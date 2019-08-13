@@ -1,0 +1,11 @@
+.idea*
+.eggs*
+data_tools.egg-info*
+venv*
+bin
+.eggs
+*.egg-info
+*.pyo
+*.pyc
+build/
+dist/
