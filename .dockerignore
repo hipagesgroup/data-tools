@@ -1,0 +1,15 @@
+.dockerignore
+.git
+.gitignore
+.travis.yml
+Dockerfile
+README*
+kube*
+*.swp
+.circleci
+.editorconfig
+.github
+.releaserc
+Makefil*
+gomplate.yml
+secrets.sh
