@@ -1,0 +1,15 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "schedule": ["after 10pm and before 5am on every weekday", "every weekend"],
+  "docker": {
+    "enabled": false
+  },
+  "docker-compose": {
+    "enabled": false
+  },
+  "circleci": {
+    "enabled": false
+  }
+}
