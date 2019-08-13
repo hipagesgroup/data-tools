@@ -1,0 +1,5 @@
+---
+repositoryUrl: https://github.com/hipagesgroup/data-tools
+verifyConditions: ['@semantic-release/github']
+prepare: []
+publish: ['@semantic-release/github']
