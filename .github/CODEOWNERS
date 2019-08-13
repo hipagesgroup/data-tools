@@ -1,0 +1,14 @@
+# Lines starting with '#' are comments.
+# Each line is a file pattern followed by one or more owners.
+
+# Order is important. The last matching pattern has the most precedence.
+
+# You can also use email addresses if you prefer.
+
+# Code owners to team for automatic PR Assignment
+* @hipagesgroup/datascience
+
+# managed by repo-man
+.github/*     @estahn @jurgenweber
+.circle*    @estahn @jurgenweber
+.releaserc  @estahn @jurgenweber
