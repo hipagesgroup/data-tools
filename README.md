@@ -14,11 +14,39 @@ The package is uploaded to PyPi for easy drop and use in various environmnets, s
  
 ## Installation
 Install from PyPi repo:
- ```
+```bash
 pip3 install hip-data-tools
 ```
 
 Install from source
-```
+```bash
 pip3 install .
+```
+
+## Connect to AWS 
+
+You will need to instantiate an AWS Connection:
+```python
+from hip_data_tools.authenticate import AwsConnection
+
+conn = AwsConnection(mode="assume_role", settings={"profile_name": "default"})
+
+# OR if you want to connect using Env Vars:
+conn = AwsConnection(mode="standard_env_var", settings={})
+
+# OR if you want custom set of env vars to connect
+conn = AwsConnection(mode="custom_env_var", settings={
+     "aws_access_key_id_env_var": "aws_access_key_id",
+     "aws_secret_access_key_env_var": "aws_secret_access_key"
+ })
+
+```
+
+Using this connection tobject you can use the aws utilities, for example aws Athena:
+```python
+from hip_data_tools.aws.athena import AthenaUtil
+
+au = AthenaUtil(database="default", conn=conn, output_bucket="example", output_key="tmp/scratch/")
+result = au.run_query("SELECT * FROM temp limit 10", return_result=True)
+print(result)
 ```

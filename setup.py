@@ -1,3 +1,7 @@
+"""
+Setup and release this package for wider consumption using setup tools
+"""
+
 from setuptools import setup, find_packages
 
 from hip_data_tools.common import get_release_version

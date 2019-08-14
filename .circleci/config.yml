@@ -95,13 +95,22 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Setup Code Climate test-reporter
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+      - run:
           name: install python dependencies
           command: |
-            sudo pip3 install --upgrade setuptools
+            sudo pip3 install --upgrade setuptools coverage
       - run:
           name: run tests using setuptools
           command: |
-            python3 setup.py test
+            ./cc-test-reporter before-build
+            coverage run setup.py test
+            coverage xml
+            ./cc-test-reporter after-build -t coverage.py
+            coverage report
   deploy:
     docker:
       - image: circleci/python:3.6
