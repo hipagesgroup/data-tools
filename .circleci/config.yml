@@ -1,0 +1,45 @@
+version: 2.1
+workflows:
+  build_and_deploy:
+    jobs:
+      - test:
+          filters:
+            tags:
+              only: /.*/
+      - build_and_deploy:
+          requires:
+            - test
+          filters:
+            branches:
+              only: master
+jobs:
+  test:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - run:
+          name: install python dependencies
+          command: |
+            pip install --upgrade setuptools
+      - run:
+          name: run tests using setuptools
+          command: |
+            python setup.py test
+  build-n-deploy:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - run:
+          name: install python dependencies
+          command: |
+            pip install --upgrade setuptools wheel twine
+      - run:
+          name: Build the distribution
+          command: |
+            python setup.py sdist bdist_wheel
+      - run:
+          name: upload to pypi
+          command: |
+            twine upload dist/*
