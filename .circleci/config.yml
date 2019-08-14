@@ -1,17 +1,92 @@
-version: 2.1
-workflows:
-  build_and_deploy:
-    jobs:
-      - test:
-          filters:
-            tags:
-              only: /.*/
-      - build_and_deploy:
-          requires:
-            - test
-          filters:
-            branches:
-              only: master
+---
+#
+# DO NOT EDIT! MANAGED VIA github.com/hipagesgroup/repo-man
+#
+
+version: 2
+
+references:
+  restore_repo: &restore_repo
+    restore_cache:
+      keys:
+        - v1-repo-{{ .Branch }}-{{ .Revision }}
+        - v1-repo-{{ .Branch }}
+        - v1-repo
+
+  save_repo: &save_repo
+    save_cache:
+      key: source-v1-{{ .Branch }}-{{ .Revision }}
+      paths:
+        - ".git"
+
+  yarn_save_cache: &yarn_save_cache
+    save_cache:
+      paths:
+        - node_modules
+      key: v1-dependencies-{{ checksum "yarn.lock" }}
+
+  yarn_restore_cache: &yarn_restore_cache
+    restore_cache:
+      keys:
+        - v1-dependencies-{{ checksum "yarn.lock" }}
+        - v1-dependencies-
+
+  yarn_save_global_cache: &yarn_save_global_cache
+    save_cache:
+      paths:
+        - .cache/yarn
+      key: v1-yarn-global-cache-
+
+  yarn_restore_global_cache: &yarn_restore_global_cache
+    restore_cache:
+      keys:
+        - v1-yarn-global-cache-
+
+  install_makefile: &install_makefile
+    run:
+      name: Download Makefile
+      command: |
+        curl -sSL -o Makefile.common https://${GITHUB_TOKEN}@raw.githubusercontent.com/hipagesgroup/repo-man/master/files/Makefile.common
+        if [[ ! -f Makefile ]]; then echo "-include Makefile.common" > Makefile; fi
+
+  install_k8s_tests: &install_k8s_tests
+    run:
+      name: Download k8s_tests
+      command: |
+        mkdir -p tests
+        curl -sSL -o tests/k8s_tests.sky https://${GITHUB_TOKEN}@raw.githubusercontent.com/hipagesgroup/repo-man/master/files/k8s_tests.sky
+
+  install_citools: &install_citools
+    run: curl -sSL https://${GITHUB_TOKEN}@raw.githubusercontent.com/hipagesgroup/repo-man/master/files/ci-tools.sh | sudo -E bash
+
+  install_semantic-release: &install_semantic-release
+    run:
+      name: Install semantic-release
+      command: |
+        yarn global add --no-progress --non-interactive "semantic-release@15.5.0" "@semantic-release/exec@2.2.4"
+
+  install_dockerlint: &install_dockerlint
+    run:
+      name: Install dockerlint
+      command: |
+        yarn global add --no-progress --non-interactive "dockerlint@0.3.9"
+
+  install_codeclimate: &install_codeclimate
+    run:
+      name: Setup Code Climate test-reporter
+      command: |
+        if [[ -z "$CC_TEST_REPORTER_ID" ]]; then
+          echo "CC_TEST_REPORTER_ID is not set. (https://docs.codeclimate.com/docs/finding-your-test-coverage-token#section-regenerating-a-repos-test-reporter-id)"
+          exit 1
+        fi
+        curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+        chmod +x ./cc-test-reporter
+
+  run_semantic-release: &run_semantic-release
+    run:
+      name: Run semantic-release
+      command: $(yarn global bin)/semantic-release
+
 jobs:
   test:
     working_directory: ~/project
@@ -27,7 +102,7 @@ jobs:
           name: run tests using setuptools
           command: |
             python3 setup.py test
-  build_and_deploy:
+  deploy:
     docker:
       - image: circleci/python:3.6
     steps:
@@ -51,3 +126,44 @@ jobs:
           name: upload to pypi
           command: |
             twine upload dist/*
+  semantic_release:
+    docker:
+      - image: circleci/node:10
+    steps:
+      - *restore_repo
+      - checkout
+      - *save_repo
+      - attach_workspace:
+          at: .
+      - *yarn_restore_cache
+      - run: yarn install --prefer-offline --frozen-lockfile
+      - *yarn_save_cache
+      - *install_makefile
+      - *yarn_restore_global_cache
+      - *install_semantic-release
+      - *yarn_save_global_cache
+      - *run_semantic-release
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - test:
+          filters:
+            tags:
+              only: /.*/
+      - semantic_release:
+          context: org-global
+          requires:
+            - test
+          filters:
+            branches:
+              only: master
+      - deploy:
+          requires:
+            - test
+            - semantic_release
+          filters:
+            branches:
+              only: master
+
