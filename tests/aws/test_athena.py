@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-import data_tools.aws.athena as athena
-from data_tools.aws.athena import AthenaUtil
+import hip_data_tools.aws.athena as athena
+from hip_data_tools.aws.athena import AthenaUtil
 
 
 class TestAthenaUtil(TestCase):

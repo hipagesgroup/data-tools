@@ -1,5 +1,5 @@
 from common import log
-from data_tools.aws.athena import AthenaUtil
+from hip_data_tools.aws.athena import AthenaUtil
 from authenticate import AwsConnection
 
 conn = AwsConnection(mode="assume_role", settings={

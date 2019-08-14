@@ -2,7 +2,7 @@ import csv
 import sys
 import time
 
-from data_tools.common import log
+from hip_data_tools.common import log
 
 
 class AthenaUtil:
