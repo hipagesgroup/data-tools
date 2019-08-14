@@ -143,7 +143,7 @@ class AthenaUtil:
         if table_settings["exists"]:
             exists = "IF NOT EXISTS"
         partitions = ""
-        if len(table_settings["partitions"]) > 0:
+        if table_settings["partitions"]:
             partitions = """
             PARTITIONED BY ( 
               {columns}
