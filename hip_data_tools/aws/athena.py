@@ -154,8 +154,8 @@ class AthenaUtil:
             and table_settings["skip_headers"]:
             no_of_skip_lines = 1
             table_properties = """
-                TBLPROPERTIES ('has_encrypted_data'='{encryption}', 'skip.header.line.count'='{
-                no_of_lines}')
+                TBLPROPERTIES ('has_encrypted_data'='{encryption}', 
+                'skip.header.line.count'='{no_of_lines}')
                 """.format(encryption=str(table_settings["encryption"]).lower(),
                            no_of_lines=no_of_skip_lines)
         else:
