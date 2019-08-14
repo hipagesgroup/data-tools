@@ -1,5 +1,7 @@
-# data-tools
+# hip-data-tools
 © Hipages Group Pty Ltd 2019
+
+[![PyPI version](https://badge.fury.io/py/hip-data-tools.svg)](https://pypi.org/project/hip-data-tools/#history)
 
 Common Python tools and utilities for data engineering, ETL, Exploration, etc. 
 The package is uploaded to PyPi for easy drop and use in various environmnets, such as (but not limited to):
@@ -12,7 +14,7 @@ The package is uploaded to PyPi for easy drop and use in various environmnets, s
 Installation
 Install from PyPi repo:
  ```
-pip3 install data_tools
+pip3 install hip-data-tools
 ```
 
 Install from source
