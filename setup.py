@@ -1,15 +1,12 @@
-import os
-
 from setuptools import setup, find_packages
 
-git_version = os.getenv("GIT_TAG", "v0.0")
-pypi_version = git_version.lstrip("v")
+from hip_data_tools.common import get_release_version
 
 setup(
     name='hip_data_tools',
     author='hipages Data Science Team',
     author_email='datascience@hipagesgroup.com.au',
-    version=pypi_version,
+    version=get_release_version(),
     description='Common utility functions for data engineering usecases',
     url='https://github.com/hipagesgroup/data-tools',
     packages=find_packages(include=["hip_data_tools", "hip_data_tools.*"]),
