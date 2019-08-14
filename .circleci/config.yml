@@ -14,19 +14,15 @@ workflows:
               only: master
 jobs:
   test:
+    working_directory: ~/project
     docker:
       - image: circleci/python:3.6
     steps:
       - checkout
       - run:
-          name: setup virtual env
-          command:  |
-            python3 -m venv env
-            source ./env/bin/activate
-      - run:
           name: install python dependencies
           command: |
-            pip3 install --upgrade setuptools
+            sudo pip3 install --upgrade setuptools
       - run:
           name: run tests using setuptools
           command: |
@@ -44,7 +40,7 @@ jobs:
       - run:
           name: install python dependencies
           command: |
-            pip3 install --upgrade setuptools wheel twine
+            sudo pip3 install --upgrade setuptools wheel twine
       - run:
           name: Build the distribution
           command: |
