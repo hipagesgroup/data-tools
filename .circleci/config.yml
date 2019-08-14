@@ -19,10 +19,10 @@ jobs:
     steps:
       - checkout
       - run:
-        name: setup virtual env
-        command:  |
-          python3 -m venv env
-          source ./env/bin/activate
+          name: setup virtual env
+          command:  |
+            python3 -m venv env
+            source ./env/bin/activate
       - run:
           name: install python dependencies
           command: |
@@ -37,10 +37,10 @@ jobs:
     steps:
       - checkout
       - run:
-        name: setup virtual env
-        command:  |
-          python3 -m venv env
-          source ./env/bin/activate
+          name: setup virtual env
+          command:  |
+            python3 -m venv env
+            source ./env/bin/activate
       - run:
           name: install python dependencies
           command: |
