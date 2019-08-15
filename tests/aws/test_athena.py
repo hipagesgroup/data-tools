@@ -134,3 +134,34 @@ class TestAthenaUtil(TestCase):
         SELECT abc FROM def
         """
         self.assertEquals(actual.split(), expected.split())
+
+    def test__zip_columns__works_with_one(self):
+        input = [{
+            "column": "abc",
+            "type": "def"
+        }]
+        actual = athena.zip_columns(input)
+        expected = "abc def"
+        self.assertEquals(actual, expected)
+
+    def test__zip_columns__works_with_two(self):
+        input = [{
+            "column": "abc",
+            "type": "def"
+        }, {
+            "column": "pqr",
+            "type": "stu"
+        }]
+        actual = athena.zip_columns(input)
+        expected = "abc def, pqr stu"
+        self.assertEquals(actual, expected)
+
+    def test__zip_columns__works_with_none(self):
+        input = []
+        actual = athena.zip_columns(input)
+        expected = ""
+        self.assertEquals(actual, expected)
+
+    def test_drop_table__works_as_intended(self):
+        with self.assertRaises(AttributeError):
+            self.au.drop_table("abc")
