@@ -69,7 +69,7 @@ class AthenaUtil:
         stats = self.__watch_query(execution_id)
         LOG.info("athena response %s", response)
         if stats['QueryExecution']['Status']['State'] == 'SUCCEEDED':
-            LOG.info("SUCCEEDED")
+            LOG.info("Query execution id - %s SUCCEEDED", execution_id)
             if return_result:
                 return self.__get_query_result(execution_id)
         else:
