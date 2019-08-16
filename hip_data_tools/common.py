@@ -1,5 +1,5 @@
 """
-Common variables and methods
+Modukle contains variables and methods used for common / shared operations throughput the package
 """
 
 import logging
