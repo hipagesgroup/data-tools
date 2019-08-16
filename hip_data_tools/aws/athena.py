@@ -139,29 +139,12 @@ class AthenaUtil:
         self.run_query(query_string=partition_query)
 
     def _build_create_table_sql(self, table_settings):
-        exists = ""
-        if table_settings["exists"]:
-            exists = "IF NOT EXISTS"
-        partitions = ""
-        if table_settings["partitions"]:
-            partitions = """
-            PARTITIONED BY ( 
-              {columns}
-              )
-              """.format(columns=zip_columns(table_settings["partitions"]))
-
-        if table_settings["storage_format_selector"].lower() == "csv" \
-            and table_settings["skip_headers"]:
-            no_of_skip_lines = 1
-            table_properties = """
-                TBLPROPERTIES ('has_encrypted_data'='{encryption}', 
-                'skip.header.line.count'='{no_of_lines}')
-                """.format(encryption=str(table_settings["encryption"]).lower(),
-                           no_of_lines=no_of_skip_lines)
-        else:
-            table_properties = """
-                TBLPROPERTIES ('has_encrypted_data'='{encryption}')
-                """.format(encryption=str(table_settings["encryption"]).lower())
+        exists = self.__construct_table_exists_ddl(table_settings["exists"])
+        partitions = self.__construct_table_partition_ddl(table_settings["partitions"])
+        table_properties = self.__construct_table_properties_ddl(
+            table_settings["skip_headers"],
+            table_settings["storage_format_selector"].lower(),
+            table_settings["encryption"])
 
         sql = """
             CREATE EXTERNAL TABLE {exists} {table}(
@@ -191,6 +174,37 @@ class AthenaUtil:
                        s3_dir=table_settings["s3_dir"],
                        table_properties=table_properties)
         return sql
+
+    def __construct_table_properties_ddl(self, skip_headers, storage_format_selector,
+                                         encryption):
+        if storage_format_selector == "csv" and skip_headers:
+            no_of_skip_lines = 1
+            table_properties = """
+                TBLPROPERTIES ('has_encrypted_data'='{encryption}', 
+                'skip.header.line.count'='{no_of_lines}')
+                """.format(encryption=str(encryption).lower(),
+                           no_of_lines=no_of_skip_lines)
+        else:
+            table_properties = """
+                TBLPROPERTIES ('has_encrypted_data'='{encryption}')
+                """.format(encryption=str(encryption).lower())
+        return table_properties
+
+    def __construct_table_exists_ddl(self, enable_exists):
+        exists = ""
+        if enable_exists:
+            exists = "IF NOT EXISTS"
+        return exists
+
+    def __construct_table_partition_ddl(self, partitions):
+        partitions = ""
+        if partitions:
+            partitions = """
+            PARTITIONED BY ( 
+              {columns}
+              )
+              """.format(columns=zip_columns(partitions))
+        return partitions
 
     def create_table(self, table_settings):
         """
