@@ -41,7 +41,7 @@ class AwsConnection():
 
     def get_client(self, client_type):
         """
-        get a client for specific aws service
+        Get a client for specific aws service
         Args:
             client_type: choice of aws service like s3, athena, etc. based on the boto3 methos
             session.client(...)
