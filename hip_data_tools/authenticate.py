@@ -9,8 +9,8 @@ class AwsConnection():
     Athena utility calss to connect to a database and perform some basic operations
 
     Args:
-        mode: the connection mode using which you will connect to aws
-                can be one of assume_role|standard_env_var|custom_env_var
+        mode: the mode to use for acquiring access / credentials to aws can be one of :
+                assume_role|standard_env_var|custom_env_var
         settings: Extra settings dictonary based on the connection mode chosen
                     example -
                     >>> conn = AwsConnection(mode="assume_role", settings={"profile_name":
