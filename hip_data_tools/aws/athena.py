@@ -1,5 +1,5 @@
 """
-Module to connect with and manipulate athena in a pythonic way
+Utility to connect to, and perform DML and DDL operations on aws Athena
 """
 
 import csv
