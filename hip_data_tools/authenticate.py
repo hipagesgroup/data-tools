@@ -16,7 +16,8 @@ class AwsConnection():
                     >>> conn = AwsConnection(mode="assume_role", settings={"profile_name":
                     "default"})
 
-                    # OR if you want to connect using Env Vars:
+                    # OR if you want to connect using the standard aws environment variables
+                    (aws_access_key_id, aws_secret_access_key):
                     >>> conn = AwsConnection(mode="standard_env_var", settings={})
 
                     # OR if you want custom set of env vars to connect
