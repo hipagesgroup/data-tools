@@ -94,8 +94,8 @@ class AthenaUtil:
 
     def __show_result(self, execution_id, max_result_size=1000):
         results = self.__get_query_result(execution_id, max_result_size)
-        headers = [h['Name'].encode("utf-8") for h in
-                   results['ResultSet']['ResultSetMetadata']['ColumnInfo']]
+        column_info = results['ResultSet']['ResultSetMetadata']['ColumnInfo']
+        headers = [h['Name'].encode("utf-8") for h in column_info]
         LOG.info(headers)
         csv_writer = csv.writer(sys.stdout, quoting=csv.QUOTE_ALL)
         csv_writer.writerows(
