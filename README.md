@@ -23,7 +23,7 @@ Install from source
 pip3 install .
 ```
 
-## Connect to AWS 
+## Connect to aws 
 
 You will need to instantiate an AWS Connection:
 ```python
