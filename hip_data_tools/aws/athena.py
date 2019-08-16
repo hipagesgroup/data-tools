@@ -14,10 +14,10 @@ class AthenaUtil:
     Utility class for connecting to athena and manipulate data in a pythonic way
 
     Args:
-        database: the athena database to run queries on
-        conn: AwsConnection object
-        output_key: the s3 key where the results of athena queries will be stored
-        output_bucket: the s3 bucket where the results of athena queries will be stored
+        database (string): the athena database to run queries on
+        conn (AwsConnection): AwsConnection object
+        output_key (string): the s3 key where the results of athena queries will be stored
+        output_bucket (string): the s3 bucket where the results of athena queries will be stored
     """
 
     def __init__(self, database, conn, output_key=None, output_bucket=None):
@@ -44,10 +44,10 @@ class AthenaUtil:
         to poll and monitor the
         sucess of the query. and optionally return the result.
         Args:
-            query_string: The string contianing valid athena query
-            return_result: Boolean flag to turn on results
+            query_string (string): The string contianing valid athena query
+            return_result (string): Boolean flag to turn on results
 
-        Returns: if return_result = True then returns result dictionary, else None
+        Returns (boolean): if return_result = True then returns result dictionary, else None
 
         """
         athena = self.__get_athena_client()
@@ -112,7 +112,7 @@ class AthenaUtil:
         """
         Runs repair on given table
         Args:
-            table: name of the table whose partitions need to be scanned and refilled
+            table (string): name of the table whose partitions need to be scanned and refilled
 
         Returns: None
 
@@ -123,9 +123,9 @@ class AthenaUtil:
         """
         Add a new partition to a given table
         Args:
-            table: name of the table to which a new partition is added
-            partition_keys: an array of the keys/partition columns
-            partition_values: an array of values for partitions
+            table (string): name of the table to which a new partition is added
+            partition_keys (list): an array of the keys/partition columns
+            partition_values (list): an array of values for partitions
 
         Returns: None
 
@@ -210,7 +210,7 @@ class AthenaUtil:
         """
         Create a table from given settings
         Args:
-            table_settings: Dictionary of settings to create table
+            table_settings (dict): Dictionary of settings to create table
 
         Returns: None
 
@@ -221,7 +221,7 @@ class AthenaUtil:
         """
         Retrive the table DDL in string
         Args:
-            table: name of the table for which ddl needs to be generated
+            table (string): name of the table for which ddl needs to be generated
 
         Returns: string containing the athena table DDL
 
@@ -240,7 +240,7 @@ class AthenaUtil:
         Drop a given athena table
 
         Args:
-            table_name: name of the table to be dropped
+            table_name (string): name of the table to be dropped
 
         Returns: None
 
@@ -253,12 +253,12 @@ def generate_csv_ctas(select_query, destination_table, destination_bucket, desti
     Method to generate a CTAS query string for creating csv output
 
     Args:
-        select_query: the query to be used for table generation
-        destination_table: name of the new table being created
-        destination_bucket: the s3 bucket where the data from select query will be stored
-        destination_key: the s3 directory where the data from select query will be stored
+        select_query (string): the query to be used for table generation
+        destination_table (string): name of the new table being created
+        destination_bucket (string): the s3 bucket where the data from select query will be stored
+        destination_key (string): the s3 directory where the data from select query will be stored
 
-    Returns: CTAS Query in a string
+    Returns (string): CTAS Query in a string
 
     """
     final_query = """
@@ -282,9 +282,9 @@ def zip_columns(column_list):
     """
     Combine the column list into a zipped comma separated list of column name and data type
     Args:
-        column_list: an array of dictionaries with keys column and type
+        column_list (list): an array of dictionaries with keys column and type
 
-    Returns: a string containing comma separated list of column name and data type
+    Returns (string): a string containing comma separated list of column name and data type
 
     """
     return ", ".join(["{} {}".format(col['column'], col["type"]) for col in column_list])
@@ -295,12 +295,12 @@ def generate_parquet_ctas(select_query, destination_table, destination_bucket, d
     Method to generate a CTAS query string for creating parquet output
 
     Args:
-        select_query: the query to be used for table generation
-        destination_table: name of the new table being created
-        destination_bucket: the s3 bucket where the data from select query will be stored
-        destination_key: the s3 directory where the data from select query will be stored
+        select_query (string): the query to be used for table generation
+        destination_table (string): name of the new table being created
+        destination_bucket (string): the s3 bucket where the data from select query will be stored
+        destination_key (string): the s3 directory where the data from select query will be stored
 
-    Returns: CTAS Query in a string
+    Returns (string): CTAS Query in a string
 
     """
     final_query = """

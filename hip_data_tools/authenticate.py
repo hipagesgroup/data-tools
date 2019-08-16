@@ -9,9 +9,9 @@ class AwsConnection():
     Athena utility class to connect to a database and perform some basic operations
 
     Args:
-        mode: the mode to use for acquiring access / credentials to aws can be one of :
+        mode (string): the mode to use for acquiring access / credentials to aws can be one of :
                 assume_role|standard_env_var|custom_env_var
-        settings: Extra settings dictonary based on the connection mode chosen
+        settings (dict): Extra settings dictonary based on the connection mode chosen
                     example -
                     >>> conn = AwsConnection(mode="assume_role", settings={"profile_name":
                     "default"})
@@ -43,10 +43,10 @@ class AwsConnection():
         """
         Get a client for specific aws service
         Args:
-            client_type: choice of aws service like s3, athena, etc. based on the boto3 methos
+            client_type (string): choice of aws service like s3, athena, etc. based on boto3:
             session.client(...)
 
-        Returns: boto3 client
+        Returns (client): boto3 client
 
         """
         return self.connection_method(client_type, **self.settings)
