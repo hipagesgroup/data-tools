@@ -81,7 +81,7 @@ class AthenaUtil:
     def __get_athena_client(self):
         return self.conn.get_client(client_type='athena')
 
-    def __watch_query(self, execution_id):
+    def __watch_query(self, execution_id, poll_frequency=10):
         LOG.info("Watching query with execution id - %s", execution_id)
         while True:
             athena = self.__get_athena_client()
@@ -90,7 +90,7 @@ class AthenaUtil:
             if status in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
                 LOG.info("Query Completed %s", stats)
                 return stats
-            time.sleep(10)  # 10sec
+            time.sleep(poll_frequency)  # 10sec
 
     def __show_result(self, execution_id, max_result_size=1000):
         results = self.__get_query_result(execution_id, max_result_size)
