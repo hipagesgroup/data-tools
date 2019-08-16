@@ -6,7 +6,7 @@ import os
 
 class AwsConnection():
     """
-    Athena utility calss to connect to a database and perform some basic operations
+    Athena utility class to connect to a database and perform some basic operations
 
     Args:
         mode: the mode to use for acquiring access / credentials to aws can be one of :

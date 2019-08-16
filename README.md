@@ -42,7 +42,7 @@ conn = AwsConnection(mode="custom_env_var", settings={
 
 ```
 
-Using this connection tobject you can use the aws utilities, for example aws Athena:
+Using this connection to object you can use the aws utilities, for example aws Athena:
 ```python
 from hip_data_tools.aws.athena import AthenaUtil
 
