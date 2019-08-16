@@ -14,7 +14,7 @@ logger object to handle logging in the entire package
 
 def get_release_version():
     """
-    Gets the Releaseversion based on the latest git tag from GIT_TAG env var, else returns 0.0
+    Gets the Release version based on the latest git tag from GIT_TAG env var, else returns 0.0
     Returns: string containing version for the release
 
     """
