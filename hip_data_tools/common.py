@@ -1,11 +1,15 @@
 """
-Modukle contains variables and methods used for common / shared operations throughput the package
+Module contains variables and methods used for common / shared operations throughput the package
 """
 
 import logging
 import os
 
 LOG = logging.getLogger(__name__)
+"""
+logger object to handle logging in the entire package
+"""
+
 
 
 def get_release_version():
