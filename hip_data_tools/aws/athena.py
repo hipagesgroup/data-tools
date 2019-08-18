@@ -142,7 +142,7 @@ class AthenaUtil:
         exists = self.__construct_table_exists_ddl(table_settings["exists"])
         partitions = self.__construct_table_partition_ddl(table_settings["partitions"])
         table_properties = self.__construct_table_properties_ddl(
-            table_settings["skip_headers"],
+            table_settings.get("skip_headers", False),
             table_settings["storage_format_selector"].lower(),
             table_settings["encryption"])
 
@@ -197,14 +197,14 @@ class AthenaUtil:
         return exists
 
     def __construct_table_partition_ddl(self, partitions):
-        partitions = ""
+        partition_query = ""
         if partitions:
-            partitions = """
+            partition_query = """
             PARTITIONED BY ( 
               {columns}
               )
               """.format(columns=zip_columns(partitions))
-        return partitions
+        return partition_query
 
     def create_table(self, table_settings):
         """
