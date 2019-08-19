@@ -66,7 +66,7 @@ class AthenaUtil:
             }
         )
         execution_id = response['QueryExecutionId']
-        stats = self._watch_query(execution_id)
+        stats = self.watch_query(execution_id)
         LOG.info("athena response %s", response)
         if stats['QueryExecution']['Status']['State'] == 'SUCCEEDED':
             LOG.info("Query execution id - %s SUCCEEDED", execution_id)
@@ -81,7 +81,16 @@ class AthenaUtil:
     def _get_athena_client(self):
         return self.conn.get_client(client_type='athena')
 
-    def _watch_query(self, execution_id, poll_frequency=10):
+    def watch_query(self, execution_id, poll_frequency=10):
+        """
+        Watch the query execution for a given execution id in Athena
+        Args:
+            execution_id: the execution id of an Athena Auery
+            poll_frequency (int): Freq in seconds to poll for the query status using Athen API
+
+        Returns: dictionary of status from Athena
+
+        """
         LOG.info("Watching query with execution id - %s", execution_id)
         while True:
             athena = self._get_athena_client()
@@ -90,7 +99,7 @@ class AthenaUtil:
             if status in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
                 LOG.info("Query Completed %s", stats)
                 return stats
-            time.sleep(poll_frequency)  # 10sec
+            time.sleep(poll_frequency)
 
     def _show_result(self, execution_id, max_result_size=1000):
         results = self._get_query_result(execution_id, max_result_size)
