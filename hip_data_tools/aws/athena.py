@@ -50,7 +50,7 @@ class AthenaUtil:
         Returns (boolean): if return_result = True then returns result dictionary, else None
 
         """
-        athena = self.__get_athena_client()
+        athena = self._get_athena_client()
         output_location = "s3://{bucket}/{key}".format(bucket=self.output_bucket,
                                                        key=self.output_key)
         LOG.info("executing query \n%s \non database - %s with results location %s", query_string,
@@ -66,25 +66,25 @@ class AthenaUtil:
             }
         )
         execution_id = response['QueryExecutionId']
-        stats = self.__watch_query(execution_id)
+        stats = self._watch_query(execution_id)
         LOG.info("athena response %s", response)
         if stats['QueryExecution']['Status']['State'] == 'SUCCEEDED':
             LOG.info("Query execution id - %s SUCCEEDED", execution_id)
             if return_result:
-                return self.__get_query_result(execution_id)
+                return self._get_query_result(execution_id)
         else:
             raise ValueError("Query exited with {} state because {}".format(
                 stats['QueryExecution']['Status']['State'],
                 stats['QueryExecution']['Status']['StateChangeReason']))
         return None
 
-    def __get_athena_client(self):
+    def _get_athena_client(self):
         return self.conn.get_client(client_type='athena')
 
-    def __watch_query(self, execution_id, poll_frequency=10):
+    def _watch_query(self, execution_id, poll_frequency=10):
         LOG.info("Watching query with execution id - %s", execution_id)
         while True:
-            athena = self.__get_athena_client()
+            athena = self._get_athena_client()
             stats = athena.get_query_execution(QueryExecutionId=execution_id)
             status = stats['QueryExecution']['Status']['State']
             if status in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
@@ -92,8 +92,8 @@ class AthenaUtil:
                 return stats
             time.sleep(poll_frequency)  # 10sec
 
-    def __show_result(self, execution_id, max_result_size=1000):
-        results = self.__get_query_result(execution_id, max_result_size)
+    def _show_result(self, execution_id, max_result_size=1000):
+        results = self._get_query_result(execution_id, max_result_size)
         column_info = results['ResultSet']['ResultSetMetadata']['ColumnInfo']
         headers = [h['Name'].encode("utf-8") for h in column_info]
         LOG.info(headers)
@@ -101,8 +101,8 @@ class AthenaUtil:
         csv_writer.writerows(
             [[val['VarCharValue'] for val in row['Data']] for row in results['ResultSet']['Rows']])
 
-    def __get_query_result(self, execution_id, max_result_size=1000):
-        athena = self.__get_athena_client()
+    def _get_query_result(self, execution_id, max_result_size=1000):
+        athena = self._get_athena_client()
         results = athena.get_query_results(QueryExecutionId=execution_id,
                                            MaxResults=max_result_size)
         # TODO: Add ability to parse pages larger than 1000 rows
