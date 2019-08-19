@@ -27,8 +27,7 @@ class AwsConnection():
                      })
 
     """
-    import boto3
-    boto = boto3
+    import boto3 as boto
 
     def __init__(self, mode, settings):
         self.connection_modes = {
