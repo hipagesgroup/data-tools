@@ -45,7 +45,7 @@ class AthenaUtil:
         sucess of the query. and optionally return the result.
         Args:
             query_string (string): The string contianing valid athena query
-            return_result (string): Boolean flag to turn on results
+            return_result (boolean): Boolean flag to turn on results
 
         Returns (boolean): if return_result = True then returns result dictionary, else None
 
@@ -139,9 +139,9 @@ class AthenaUtil:
         self.run_query(query_string=partition_query)
 
     def _build_create_table_sql(self, table_settings):
-        exists = self.__construct_table_exists_ddl(table_settings["exists"])
-        partitions = self.__construct_table_partition_ddl(table_settings["partitions"])
-        table_properties = self.__construct_table_properties_ddl(
+        exists = _construct_table_exists_ddl(table_settings["exists"])
+        partitions = _construct_table_partition_ddl(table_settings["partitions"])
+        table_properties = _construct_table_properties_ddl(
             table_settings.get("skip_headers", False),
             table_settings["storage_format_selector"].lower(),
             table_settings["encryption"])
@@ -174,37 +174,6 @@ class AthenaUtil:
                        s3_dir=table_settings["s3_dir"],
                        table_properties=table_properties)
         return sql
-
-    def __construct_table_properties_ddl(self, skip_headers, storage_format_selector,
-                                         encryption):
-        if storage_format_selector == "csv" and skip_headers:
-            no_of_skip_lines = 1
-            table_properties = """
-                TBLPROPERTIES ('has_encrypted_data'='{encryption}', 
-                'skip.header.line.count'='{no_of_lines}')
-                """.format(encryption=str(encryption).lower(),
-                           no_of_lines=no_of_skip_lines)
-        else:
-            table_properties = """
-                TBLPROPERTIES ('has_encrypted_data'='{encryption}')
-                """.format(encryption=str(encryption).lower())
-        return table_properties
-
-    def __construct_table_exists_ddl(self, enable_exists):
-        exists = ""
-        if enable_exists:
-            exists = "IF NOT EXISTS"
-        return exists
-
-    def __construct_table_partition_ddl(self, partitions):
-        partition_query = ""
-        if partitions:
-            partition_query = """
-            PARTITIONED BY ( 
-              {columns}
-              )
-              """.format(columns=zip_columns(partitions))
-        return partition_query
 
     def create_table(self, table_settings):
         """
@@ -316,3 +285,36 @@ def generate_parquet_ctas(select_query, destination_table, destination_bucket, d
         key=destination_key,
         athena_query=select_query, )
     return final_query
+
+
+def _construct_table_partition_ddl(partitions):
+    partition_query = ""
+    if partitions:
+        partition_query = """
+        PARTITIONED BY ( 
+          {columns}
+          )
+          """.format(columns=zip_columns(partitions))
+    return partition_query
+
+
+def _construct_table_exists_ddl(enable_exists):
+    exists = ""
+    if enable_exists:
+        exists = "IF NOT EXISTS"
+    return exists
+
+
+def _construct_table_properties_ddl(skip_headers, storage_format_selector, encryption):
+    if storage_format_selector == "csv" and skip_headers:
+        no_of_skip_lines = 1
+        table_properties = """
+            TBLPROPERTIES ('has_encrypted_data'='{encryption}', 
+            'skip.header.line.count'='{no_of_lines}')
+            """.format(encryption=str(encryption).lower(),
+                       no_of_lines=no_of_skip_lines)
+    else:
+        table_properties = """
+            TBLPROPERTIES ('has_encrypted_data'='{encryption}')
+            """.format(encryption=str(encryption).lower())
+    return table_properties
