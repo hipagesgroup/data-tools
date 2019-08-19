@@ -9,3 +9,4 @@ bin
 *.pyc
 build/
 dist/
+.coverage
