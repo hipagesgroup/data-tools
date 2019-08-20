@@ -118,7 +118,7 @@ jobs:
       - checkout
       - run:
           name: setup virtual env
-          command:  |
+          command: |
             python3 -m venv env
             source ./env/bin/activate
       - run:
