@@ -5,10 +5,10 @@
 
 # You can also use email addresses if you prefer.
 
+# Code owners to team for automatic PR Assignment
+* @hipagesgroup/datascience
+
 # managed by repo-man
 .github/*     @estahn @jurgenweber
 .circle*    @estahn @jurgenweber
 .releaserc  @estahn @jurgenweber
-
-# Code owners to team for automatic PR Assignment
-* @hipagesgroup/datascience
