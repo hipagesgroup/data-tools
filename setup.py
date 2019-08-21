@@ -7,10 +7,14 @@ from setuptools import setup, find_packages
 
 
 def get_long_description():
-    with open(os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), 'README.md'
-    ), encoding='utf8') as fp:
-        return fp.read()
+    """
+    Get the contents of reame file as long_description
+    Returns: bytes containing readme file
+
+    """
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'README.md'),
+              encoding='utf8') as readme_file:
+        return readme_file.read()
 
 
 setup(
