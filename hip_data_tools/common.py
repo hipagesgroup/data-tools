@@ -24,7 +24,7 @@ def get_release_version():
 
 def get_long_description():
     """
-    Get the contents of reame file as long_description
+    Get the contents of readme file as long_description
     Returns: bytes containing readme file
 
     """
