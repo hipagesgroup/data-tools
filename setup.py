@@ -5,6 +5,7 @@ Setup and release this package for wider consumption using setup tools
 from setuptools import setup, find_packages
 
 setup(
+    long_description=open("README.md").read(),
     packages=find_packages(include=["hip_data_tools", "hip_data_tools.*"]),
     zip_safe=False,
     install_requires=[
