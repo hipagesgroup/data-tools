@@ -4,8 +4,6 @@ Setup and release this package for wider consumption using setup tools
 
 from setuptools import setup, find_packages
 
-from hip_data_tools.common import get_release_version
-
 setup(
     packages=find_packages(include=["hip_data_tools", "hip_data_tools.*"]),
     zip_safe=False,
