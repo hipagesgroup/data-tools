@@ -8,7 +8,7 @@ class TestCommon(TestCase):
     def test__get_release_version__parses_tag(self):
         os.environ["GIT_TAG"] = "v1.3"
         actual = get_release_version()
-        expected = "0.0"
+        expected = "1.3"
         self.assertEquals(actual, expected)
 
     def test__get_release_version__works_without_tag(self):
