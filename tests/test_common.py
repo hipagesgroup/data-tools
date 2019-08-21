@@ -6,7 +6,7 @@ from hip_data_tools.common import get_release_version, get_long_description
 
 class TestCommon(TestCase):
     def test__get_release_version__parses_tag(self):
-        os.environ["GIT_TAG"] = "v0.0"
+        os.environ["GIT_TAG"] = "v1.3"
         actual = get_release_version()
         expected = "0.0"
         self.assertEquals(actual, expected)
