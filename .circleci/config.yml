@@ -124,7 +124,7 @@ jobs:
       - run:
           name: install python dependencies
           command: |
-            sudo pip3 install --upgrade setuptools wheel twine pbr
+            sudo pip3 install --upgrade setuptools wheel twine
       - run:
           name: Build the distribution
           command: |
