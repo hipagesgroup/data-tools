@@ -14,11 +14,12 @@ setup(
     install_requires=[
         "boto3==1.9.206",
         "joblib==0.13.2",
+        "PyYAML==5.1.2",
     ],
     test_suite="tests",
     tests_require=[
         "docker==4.0.2",
-        "moto==1.3.13"
+        "moto==1.3.13",
     ],
     python_requires='~=3.6',
     version=get_release_version(),

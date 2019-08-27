@@ -14,24 +14,24 @@ class AwsConnection():
         settings (dict): Extra settings dictonary based on the connection mode chosen
                     example -
                     >>> conn = AwsConnection(
-                    mode="assume_role",
-                    region_name="ap-southeast-2",
-                    settings={"profile_name": "default"})
+                    ... mode="assume_role",
+                    ... region_name="ap-southeast-2",
+                    ... settings={"profile_name": "default"})
 
                     # OR if you want to connect using the standard aws environment variables
                     (aws_access_key_id, aws_secret_access_key):
                     >>> conn = AwsConnection(
-                    mode="standard_env_var",
-                    region_name="ap-southeast-2",
-                    settings={})
+                    ... mode="standard_env_var",
+                    ... region_name="ap-southeast-2",
+                    ... settings={})
 
                     # OR if you want custom set of env vars to connect
                     >>> conn = AwsConnection(mode="custom_env_var",
-                    region_name="ap-southeast-2",
-                    settings={
-                         "aws_access_key_id_env_var": "aws_access_key_id",
-                         "aws_secret_access_key_env_var": "aws_secret_access_key"
-                     })
+                    ... region_name="ap-southeast-2",
+                    ... settings={
+                    ...      "aws_access_key_id_env_var": "aws_access_key_id",
+                    ...      "aws_secret_access_key_env_var": "aws_secret_access_key"
+                    ...  })
 
     """
     import boto3 as boto
@@ -46,7 +46,7 @@ class AwsConnection():
         self.region_name = region_name
         self._session = self.connection_modes[mode]
 
-    def get_client(self, client_type):
+    def client(self, client_type):
         """
         Get a client for specific aws service
         Args:
@@ -60,7 +60,7 @@ class AwsConnection():
             client_type,
             region_name=self.region_name)
 
-    def get_resource(self, resource_type):
+    def resource(self, resource_type):
         """
         Get a resource for specific aws service
         Args:
