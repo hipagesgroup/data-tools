@@ -12,10 +12,12 @@ setup(
     packages=find_packages(include=["hip_data_tools", "hip_data_tools.*"]),
     zip_safe=False,
     install_requires=[
-        "boto3==1.9.206"
+        "boto3==1.9.216",
+        "joblib==0.13.2",
     ],
     test_suite="tests",
     tests_require=[
+        "moto==1.3.13",
     ],
     python_requires='~=3.6',
     version=get_release_version(),

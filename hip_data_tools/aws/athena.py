@@ -37,6 +37,7 @@ class AthenaUtil:
                 "inputformat": "org.apache.hadoop.mapred.TextInputFormat"
             }
         }
+        self.boto_type = "athema"
 
     def run_query(self, query_string, return_result=False):
         """
@@ -50,9 +51,10 @@ class AthenaUtil:
         Returns (boolean): if return_result = True then returns result dictionary, else None
 
         """
-        athena = self._get_athena_client()
-        output_location = "s3://{bucket}/{key}".format(bucket=self.output_bucket,
-                                                       key=self.output_key)
+        athena = self.conn.client(self.boto_type)
+        output_location = "s3://{bucket}/{key}".format(
+            bucket=self.output_bucket,
+            key=self.output_key)
         LOG.info("executing query \n%s \non database - %s with results location %s", query_string,
                  self.database,
                  output_location)
@@ -78,9 +80,6 @@ class AthenaUtil:
                 stats['QueryExecution']['Status']['StateChangeReason']))
         return None
 
-    def _get_athena_client(self):
-        return self.conn.get_client(client_type='athena')
-
     def watch_query(self, execution_id, poll_frequency=10):
         """
         Watch the query execution for a given execution id in Athena
@@ -93,7 +92,7 @@ class AthenaUtil:
         """
         LOG.info("Watching query with execution id - %s", execution_id)
         while True:
-            athena = self._get_athena_client()
+            athena = self.conn.client(self.boto_type)
             stats = athena.get_query_execution(QueryExecutionId=execution_id)
             status = stats['QueryExecution']['Status']['State']
             if status in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
@@ -111,7 +110,7 @@ class AthenaUtil:
             [[val['VarCharValue'] for val in row['Data']] for row in results['ResultSet']['Rows']])
 
     def _get_query_result(self, execution_id, max_result_size=1000):
-        athena = self._get_athena_client()
+        athena = self.conn.client(self.boto_type)
         results = athena.get_query_results(QueryExecutionId=execution_id,
                                            MaxResults=max_result_size)
         # TODO: Add ability to parse pages larger than 1000 rows
