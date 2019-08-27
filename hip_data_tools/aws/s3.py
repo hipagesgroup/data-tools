@@ -52,7 +52,7 @@ class S3Util:
         Returns: object
         """
         if local_file_path is None:
-            local_file_path = "/tmp/tmp_file" + str(uuid.uuid4())
+            local_file_path = "/tmp/tmp_file{}".format(str(uuid.uuid4()))
 
         self.download_file(s3_key, local_file_path)
         return load(local_file_path)
