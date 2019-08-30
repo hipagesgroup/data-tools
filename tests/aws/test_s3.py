@@ -34,3 +34,15 @@ class TestS3Util(TestCase):
             redown_content = f.read()
 
         self.assertEqual(self.sample_file_content, redown_content)
+
+    @mock_s3
+    def test_should__serialise_deserialise_file_to_from_s3__when_using_s3util(self):
+        bucket = "TEST_BUCKET2"
+        conn = AwsConnection(mode="standard_env_var", region_name="ap-southeast-2", settings={})
+        s3u = S3Util(conn=conn, bucket=bucket)
+        s3u.create_bucket()
+        upload_key = "temp.pickle"
+        test_object = {"this": "is good"}
+        s3u.serialise_and_upload_object(obj=test_object, path_on_s3=upload_key)
+        actual_object = s3u.download_object_and_deserialse(s3_key=upload_key)
+        self.assertEqual(test_object, actual_object)

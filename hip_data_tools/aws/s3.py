@@ -4,7 +4,7 @@ Utility to connect to, and interact with the s3 file storage system
 
 import uuid
 
-from joblib import load
+from joblib import load, dump
 
 
 class S3Util:
@@ -30,7 +30,7 @@ class S3Util:
         """
         s3 = self.conn.client(self.boto_type)
 
-        s3.download_file(self.bucket, s3_key, local_file_path.strip("/"))
+        s3.download_file(self.bucket, s3_key, local_file_path)
 
     def upload_file(self, local_file_path, s3_key):
         """
@@ -41,7 +41,7 @@ class S3Util:
         Returns: None
         """
         s3 = self.conn.client(self.boto_type)
-        s3.upload_file(local_file_path, self.bucket, s3_key.strip("/"))
+        s3.upload_file(local_file_path, self.bucket, s3_key)
 
     def download_object_and_deserialse(self, s3_key, local_file_path=None):
         """
@@ -54,8 +54,21 @@ class S3Util:
         if local_file_path is None:
             local_file_path = "/tmp/tmp_file{}".format(str(uuid.uuid4()))
 
-        self.download_file(s3_key, local_file_path)
+        self.download_file(s3_key=s3_key, local_file_path=local_file_path)
         return load(local_file_path)
+
+    def serialise_and_upload_object(self, obj, path_on_s3):
+        """
+        Serialise any object to disk, and then upload to S3
+        Args:
+            obj (object): Any serialisable object
+            path_on_s3 (string): The absolute path on s3 to upload the file to
+        Returns: None
+        """
+
+        random_tmp_file_nm = "/tmp/tmp_file" + str(uuid.uuid4())
+        dump(obj, random_tmp_file_nm)
+        self.upload_file(local_file_path=random_tmp_file_nm, s3_key=path_on_s3)
 
     def create_bucket(self):
         """
