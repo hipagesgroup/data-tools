@@ -60,20 +60,23 @@ class S3Util:
     def serialise_and_upload_object(self, obj, path_on_s3):
         """
         Serialise any object to disk, and then upload to S3
-        :param obj: Any serialisable object
-        :param path_on_s3: The absolute path on s3 to upload the file to
+        Args:
+            obj (object): Any serialisable object
+            path_on_s3 (string): The absolute path on s3 to upload the file to
+        Returns: None
         """
 
         random_tmp_file_nm = "/tmp/tmp_file" + str(uuid.uuid4())
         dump(obj, random_tmp_file_nm)
-        self.upload_file_to_s3(random_tmp_file_nm, path_on_s3)
+        self.upload_file_to_s3(path_to_file=random_tmp_file_nm, path_on_s3=path_on_s3)
 
     def upload_file_to_s3(self, path_to_file, path_on_s3):
         """
         Uploads a file from local to s3
-        :param path_to_file: Absolute local path to the file to upload
-        :param path_on_s3: Absolute path within the s3 buck to upload the file
-        :return:
+        Args:
+            path_to_file (string): Absolute local path to the file to upload
+            path_on_s3 (string): Absolute path within the s3 buck to upload the file
+        Returns: None
         """
         s3 = self.conn.client(self.boto_type)
         s3.upload_file(path_to_file, self.bucket, path_on_s3.strip("/"))
