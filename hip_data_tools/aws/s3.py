@@ -30,7 +30,7 @@ class S3Util:
         """
         s3 = self.conn.client(self.boto_type)
 
-        s3.download_file(bucket=self.bucket, key=s3_key, filename=local_file_path)
+        s3.download_file(self.bucket, s3_key, local_file_path)
 
     def upload_file(self, local_file_path, s3_key):
         """
@@ -79,7 +79,7 @@ class S3Util:
         Returns: None
         """
         s3 = self.conn.client(self.boto_type)
-        s3.upload_file(filename=path_to_file, bucket=self.bucket, key=path_on_s3)
+        s3.upload_file(path_to_file, self.bucket, path_on_s3)
 
     def create_bucket(self):
         """
