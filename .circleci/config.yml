@@ -49,6 +49,13 @@ references:
         curl -sSL -o Makefile.common https://${GITHUB_TOKEN}@raw.githubusercontent.com/hipagesgroup/repo-man/master/files/Makefile.common
         if [[ ! -f Makefile ]]; then echo "-include Makefile.common" > Makefile; fi
 
+  install_argocd: &install_argocd
+    run:
+      name: Install ArgoCD CLI
+      command: |
+        sudo curl -sSL -o /usr/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v1.2.0/argocd-linux-amd64
+        sudo chmod +x /usr/bin/argocd
+
   install_k8s_tests: &install_k8s_tests
     run:
       name: Download k8s_tests
@@ -106,10 +113,10 @@ jobs:
       - run:
           name: run tests using setuptools
           command: |
-            # ./cc-test-reporter before-build
+            ./cc-test-reporter before-build
             coverage run setup.py test
-            # coverage xml
-            # ./cc-test-reporter after-build -t coverage.py
+            coverage xml
+            ./cc-test-reporter after-build -t coverage.py
             coverage report
   deploy:
     docker:
@@ -124,7 +131,7 @@ jobs:
       - run:
           name: install python dependencies
           command: |
-            sudo pip3 install --upgrade setuptools wheel twine
+            sudo pip3 install --upgrade setuptools wheel twine pbr
       - run:
           name: Build the distribution
           command: |
