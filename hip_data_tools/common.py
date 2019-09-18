@@ -4,6 +4,7 @@ Module contains variables and methods used for common / shared operations throug
 
 import logging
 import os
+import uuid
 
 LOG = logging.getLogger(__name__)
 """
@@ -31,3 +32,8 @@ def get_long_description():
     file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'README.md'))
     with open(file_path) as readme_file:
         return readme_file.read()
+
+
+def _generate_random_file_name():
+    random_tmp_file_nm = "/tmp/tmp_file{}".format(str(uuid.uuid4()))
+    return random_tmp_file_nm
