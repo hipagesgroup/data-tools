@@ -71,7 +71,7 @@ class S3Util:
         self.upload_file(local_file_path=random_tmp_file_nm, s3_key=s3_key)
 
     def _generate_random_file_name(self):
-        random_tmp_file_nm = "/tmp/tmp_file" + str(uuid.uuid4())
+        random_tmp_file_nm = "/tmp/tmp_file{}".format(str(uuid.uuid4()))
         return random_tmp_file_nm
 
     def create_bucket(self):
