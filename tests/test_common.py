@@ -9,15 +9,15 @@ class TestCommon(TestCase):
         os.environ["GIT_TAG"] = "v1.3"
         actual = get_release_version()
         expected = "1.3"
-        self.assertEquals(actual, expected)
+        self.assertEqual(actual, expected)
 
     def test__get_release_version__works_without_tag(self):
         del os.environ["GIT_TAG"]
         actual = get_release_version()
         expected = "0.0"
-        self.assertEquals(actual, expected)
+        self.assertEqual(actual, expected)
 
     def test__get_long_description__reads_readme(self):
         actual = get_long_description()[0:16]
         expected = "# hip-data-tools"
-        self.assertEquals(actual, expected)
+        self.assertEqual(actual, expected)

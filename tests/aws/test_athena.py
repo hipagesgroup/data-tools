@@ -54,7 +54,7 @@ class TestAthenaUtil(TestCase):
         """
         print(actual)
         self.maxDiff = None
-        self.assertEquals(actual.split(), expected.split())
+        self.assertEqual(actual.split(), expected.split())
 
     def test__build_create_table_for_csv_data(self):
         actual = self.au._build_create_table_sql(
@@ -100,7 +100,7 @@ class TestAthenaUtil(TestCase):
         """
         print(actual)
         self.maxDiff = None
-        self.assertEquals(actual.split(), expected.split())
+        self.assertEqual(actual.split(), expected.split())
 
     def test__generate_parquet_ctas__creates_correct_syntax(self):
         actual = athena.generate_parquet_ctas(
@@ -116,7 +116,7 @@ class TestAthenaUtil(TestCase):
         ) AS
         SELECT abc FROM def
         """
-        self.assertEquals(actual.split(), expected.split())
+        self.assertEqual(actual.split(), expected.split())
 
     def test__generate_csv_ctas__creates_correct_syntax(self):
         actual = athena.generate_csv_ctas(
@@ -133,7 +133,7 @@ class TestAthenaUtil(TestCase):
         ) AS
         SELECT abc FROM def
         """
-        self.assertEquals(actual.split(), expected.split())
+        self.assertEqual(actual.split(), expected.split())
 
     def test__zip_columns__works_with_one(self):
         input = [{
@@ -142,7 +142,7 @@ class TestAthenaUtil(TestCase):
         }]
         actual = athena.zip_columns(input)
         expected = "abc def"
-        self.assertEquals(actual, expected)
+        self.assertEqual(actual, expected)
 
     def test__zip_columns__works_with_two(self):
         input = [{
@@ -154,13 +154,13 @@ class TestAthenaUtil(TestCase):
         }]
         actual = athena.zip_columns(input)
         expected = "abc def, pqr stu"
-        self.assertEquals(actual, expected)
+        self.assertEqual(actual, expected)
 
     def test__zip_columns__works_with_none(self):
         input = []
         actual = athena.zip_columns(input)
         expected = ""
-        self.assertEquals(actual, expected)
+        self.assertEqual(actual, expected)
 
     def test_drop_table__works_as_intended(self):
         with self.assertRaises(AttributeError):
