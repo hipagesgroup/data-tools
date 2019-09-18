@@ -111,6 +111,10 @@ jobs:
           command: |
             sudo pip3 install --upgrade setuptools coverage
       - run:
+          name: install snappy as its used in tests
+          command: |
+            sudo apt-get install libsnappy-dev
+      - run:
           name: run tests using setuptools
           command: |
             ./cc-test-reporter before-build
