@@ -1,10 +1,12 @@
 """
 Utility to connect to, and interact with the s3 file storage system
 """
-import pandas as pd
 import uuid
 
+import pandas as pd
 from joblib import load, dump
+
+from common import _generate_random_file_name
 
 
 class S3Util:
@@ -66,13 +68,9 @@ class S3Util:
         Returns: None
         """
 
-        random_tmp_file_nm = self._generate_random_file_name()
+        random_tmp_file_nm = _generate_random_file_name()
         dump(obj, random_tmp_file_nm)
         self.upload_file(local_file_path=random_tmp_file_nm, s3_key=s3_key)
-
-    def _generate_random_file_name(self):
-        random_tmp_file_nm = "/tmp/tmp_file{}".format(str(uuid.uuid4()))
-        return random_tmp_file_nm
 
     def create_bucket(self):
         """
@@ -89,7 +87,7 @@ class S3Util:
             s3_key (str): The absolute path on s3 to upload the file to
         Returns: None
         """
-        random_tmp_file_nm = self._generate_random_file_name()
+        random_tmp_file_nm = _generate_random_file_name()
         df.to_parquet(random_tmp_file_nm)
         self.upload_file(random_tmp_file_nm, s3_key)
 
@@ -100,6 +98,6 @@ class S3Util:
             s3_key (str): The absolute path on s3 to upload the file to
         Returns: DataFrame
         """
-        random_tmp_file_nm = self._generate_random_file_name()
+        random_tmp_file_nm = _generate_random_file_name()
         self.download_file(random_tmp_file_nm, s3_key)
         return pd.read_parquet(random_tmp_file_nm, engine=engine, columns=columns, **kwargs)
