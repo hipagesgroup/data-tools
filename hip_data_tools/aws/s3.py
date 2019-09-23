@@ -1,13 +1,13 @@
 """
 Utility to connect to, and interact with the s3 file storage system
 """
-import uuid
+import logging as log
 
 import boto3
+import uuid
 import pandas as pd
-import logging as log
-from joblib import load, dump
 
+from joblib import load, dump
 from hip_data_tools.common import _generate_random_file_name
 
 
@@ -124,7 +124,7 @@ class S3Util:
                 new_key = "{destination_dir_without_bucket_name}/{destination_file_name}".format(
                     destination_dir_without_bucket_name=destination_dir.replace(destination_bucket_name + '/', ''),
                     destination_file_name=obj.key.split('/')[-1])
-                log.info("Moving s3 object from : \n%s \nto: \n%s" % (obj.key, new_key))
+                log.info("Moving s3 object from : \n%s \nto: \n%s", obj.key, new_key)
                 new_obj = destination_bucket.Object(new_key)
                 new_obj.copy({"Bucket": self.bucket, "Key": obj.key})
         if delete_after_copy:
@@ -140,7 +140,7 @@ class S3Util:
         s3 = boto3.resource(self.boto_type)
         bucket = s3.Bucket(name=self.bucket)
         lines = []
-        log.info("reading files from s3://%s/%s " % (self.bucket, key_prefix_filter))
+        log.info("reading files from s3://%s/%s ", self.bucket, key_prefix_filter)
         file_metadata = bucket.objects.filter(Prefix=key_prefix_filter)
         for file in file_metadata:
             obj = s3.Object(self.bucket, file.key)
@@ -148,7 +148,7 @@ class S3Util:
             lines.append(data.splitlines())
         # Flatten the list of lists
         flat_lines = [item for sublist in lines for item in sublist]
-        log.info("Read %d lines from %d s3 files" % (len(flat_lines), len(lines)))
+        log.info("Read %d lines from %d s3 files", len(flat_lines), len(lines))
         return flat_lines
 
     def delete_recursive(self, key_prefix):
@@ -158,7 +158,7 @@ class S3Util:
             key_prefix (str): Key prefix under which all files will be deleted
         Returns: NA
         """
-        log.info("Recursively deleting s3://%s/%s" % (self.bucket, key_prefix))
+        log.info("Recursively deleting s3://%s/%s", self.bucket, key_prefix)
         s3 = boto3.resource(self.boto_type)
         response = s3.Bucket(self.bucket).objects.filter(Prefix=key_prefix).delete()
         log.info(response)
