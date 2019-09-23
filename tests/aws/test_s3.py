@@ -60,3 +60,32 @@ class TestS3Util(TestCase):
         s3u.upload_df_parquet(df=test_object, s3_key=upload_key)
         redown_df = s3u.download_df_parquet(upload_key)
         assert_frame_equal(test_object, redown_df)
+
+    @mock_s3
+    def test_should__copy_file_from_one_bucket_to_another__when_valid_locations_are_given(self):
+        conn = AwsConnection(mode="standard_env_var", region_name="ap-southeast-2", settings={})
+        source_bucket_name = 'hipages-gandalf'
+        dest_bucket_name = 'au-com-hipages-data-scratchpad'
+
+        s3_util_for_source = S3Util(conn=conn, bucket=source_bucket_name)
+        s3_util_for_destination = S3Util(conn=conn, bucket=dest_bucket_name)
+
+        s3_util_for_source.create_bucket()
+        s3_util_for_destination.create_bucket()
+
+        tmp_file_path = '/tmp/testfile.txt'
+        dirname = os.path.dirname(tmp_file_path)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        with open(tmp_file_path, 'w+') as file:
+            file.write(str('Test file content'))
+
+        s3_util_for_source.upload_file(tmp_file_path, 'test/testfile.txt')
+
+        s3_util_for_source.move_recursive_to_different_bucket(source_bucket_name=source_bucket_name, source_dir='test/',
+                                                              destination_bucket_name=dest_bucket_name,
+                                                              destination_dir=dest_bucket_name + '/test_copy/')
+        actual = s3_util_for_destination.read_all_lines('test_copy')[0]
+
+        expected = 'Test file content'
+        self.assertEquals(actual, expected)
