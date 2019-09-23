@@ -2,9 +2,9 @@
 Utility to connect to, and interact with the s3 file storage system
 """
 import logging as log
+import uuid
 
 import boto3
-import uuid
 import pandas as pd
 
 from joblib import load, dump
