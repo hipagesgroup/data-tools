@@ -10,14 +10,14 @@ class FakePackage:
         return 'foo'
 
 
-def test_python_can_extract_fld_from_pkg_file(mocker):
+def test__python_can_extract_fld_from_pkg_file(mocker):
     mocker.patch.object(vt, '_get_package_location')
     vt._get_package_location.return_value = '/foo/bar/__init__.py'
     found_location = vt._find_package_location(FakePackage)
     assert (found_location == '/foo/bar/')
 
 
-def test_check_for_decorated_classes_in_file(mocker):
+def test__check_for_decorated_classes_in_file(mocker):
     some_decorated_string = "@decorator_string"
     type_definiton = "class"
     example_file = """import foo
@@ -41,7 +41,7 @@ def test_check_for_decorated_classes_in_file(mocker):
     assert (len(classes_with_tag) == 1)
 
 
-def test_check_for_file_with_no_decorarted_classes(mocker):
+def test__check_for_file_with_no_decorarted_classes(mocker):
     mappings = {
         'class': '@register_class_for_version_tracking',
         'def': '@register_method_for_version_tracking'
@@ -72,7 +72,7 @@ def test_check_for_file_with_no_decorarted_classes(mocker):
     assert (len(files_with_tag) == 2)
 
 
-def test_check_for_all_decorated_methods_and_classes_in_file(mocker):
+def test__check_for_all_decorated_methods_and_classes_in_file(mocker):
     some_decorated_string = "@decorator_string"
     type_definiton = "class"
     example_file = """import foo
@@ -96,7 +96,7 @@ def test_check_for_all_decorated_methods_and_classes_in_file(mocker):
     assert (len(classes_with_tag) == 1)
 
 
-def test_get_latest_git_hash_of_files_in_repo(stub):
+def test__get_latest_git_hash_of_files_in_repo(stub):
     commit_sha = 'someHexCommitString'
 
     class Commit:
