@@ -484,23 +484,23 @@ class KafkaS3BatchExporter:
 
         good_data, bad_data = convert_msgs_to_dictionary(list_of_msgs)
 
-        if good_data:
+        self._partition_data_and_upload_to_s3(good_data, interval)
+        self._partition_data_and_upload_to_s3(bad_data, interval)
+
+        log.info("Data Upload Complete")
+
+    def _partition_data_and_upload_to_s3(self, data_list, interval):
+        """
+        Partitions the messages by time in a dataframe, and then uploads to s3
+
+        """
+        if data_list:
 
             for msg_df, s3_path in \
-                    self.partition_msgs_and_locations(good_data, interval):
-                log.debug("Good data path : %s", s3_path)
+                    self.partition_msgs_and_locations(data_list, interval):
+                log.debug("data path : %s", s3_path)
 
                 self._s3_client.upload_df_to_s3(msg_df, s3_path)
-
-        if bad_data:
-
-            for msg_df, s3_path in \
-                    self.partition_msgs_and_locations(bad_data, interval):
-                log.debug("Good data path : %s", s3_path)
-
-                self._s3_client.upload_df_to_s3(msg_df, s3_path)
-
-            log.info("Data Upload Complete")
 
     def partition_msgs_and_locations(self, list_of_dicts, interval):
         """
