@@ -45,140 +45,211 @@ Default column name for the partitioning message batches uploaded to S3
 """
 
 
-def create_producer(bootstrap_servers=None,
-                    conf=None):
+class ProducerConfig:
+    """
+    Encapsulation of the kafka configurations, reading from environment if
+    not supplied, and defaulting where necessary
+
+    Args:
+        bootstrap_servers (string): address and port of bootstrap server
+        conf (string(dictionary)) : string of dictionary of configurations
+
+    Attributes:
+        configs (dict): Dictionary of the kafka configurations
+
+    """
+
+    def __init__(self,
+                 bootstrap_servers=None,
+                 conf=None):
+        self._bootstrap_servers = os.environ.get("KAFKA_BOOTSTRAP_SERVERS") \
+            if bootstrap_servers is None else bootstrap_servers
+
+        self.configs = literal_eval(get_from_env_or_default_with_warning(
+            "KAFKA_PRODUCER_CONF", DEFAULT_PRODUCER_CONF)) if conf is None \
+            else conf
+
+        self.configs.update({'bootstrap.servers': self._bootstrap_servers})
+
+
+def create_producer(kafka_producer_config=None):
+
     """
     Creates a Kafka producer
     Args:
-        bootstrap_servers (str): String list of bootstrap servers and their
-            ports e.g. 'localhost:9092' or '[broker1:9092, broker2:9092]'
-        conf (str): A string representation of a python dictionary which
-        encapsulates the required settings for the producer
+       kafka_producer_config (ProducerConfig) : Encapsulated
+       configurations for the KafkaProducer
     Returns (Producer): Instantiated Kafka Producer for a specified topic
     """
 
-    bootstrap_servers = bootstrap_servers if bootstrap_servers is not \
-                                             None else \
-        get_from_env_or_default_with_warning(
-            "KAFKA_BOOTSTRAP_SERVERS", 'localhost:9092')
+    kafka_producer_config = kafka_producer_config \
+        if kafka_producer_config is not None else ProducerConfig()
 
-    configs = literal_eval(get_from_env_or_default_with_warning(
-        "KAFKA_PRODUCER_CONF", DEFAULT_PRODUCER_CONF)) if conf is None else conf
-
-    configs.update({'bootstrap.servers': bootstrap_servers})
-
-    return Producer(configs)
+    return Producer(kafka_producer_config.configs)
 
 
-def create_consumer(bootstrap_servers=None,
-                    group_id=None,
-                    conf=None):
+class ConsumerConfig:
+    """
+    Enscapsulation of the Kafka Consumer Configurations
+    Args:
+        bootstrap_servers (string): address and port of bootstrap server
+        conf (string(dictionary)) : string of dictionary of configurations
+        group_id (string): Group Id for the consumer
+
+    Attributes:
+        configs (dict): Dictionary of the kafka configurations
+
+    """
+
+    def __init__(self,
+                 bootstrap_servers=None,
+                 conf=None,
+                 group_id=None):
+        self.configs = \
+            literal_eval(get_from_env_or_default_with_warning(
+                "KAFKA_CONSUMER_CONF", DEFAULT_CONSUMER_CONF)) \
+                if conf is None else conf
+
+        self._bootstrap_servers = os.environ['KAFKA_BOOTSTRAP_SERVERS'] if \
+            bootstrap_servers is None else bootstrap_servers
+
+        self.configs.update({'bootstrap.servers': self._bootstrap_servers})
+
+        # To prevent any clashes with other consumers, if no group id is
+        # provided we default to a random uuid
+        self._group_id = group_id \
+            if group_id is not None else \
+            os.environ.get(
+                "KAFKA_CONSUMER_GROUP_ID", "random_id_" + str(uuid.uuid4()))
+
+        self.configs.update({'group.id': self._group_id})
+
+
+def create_consumer(kafka_consumer_config=None):
     """
     Creates a Kafka consumer
     Args:
-        bootstrap_servers:  (str): String list of bootstrap servers and their
-            ports e.g. 'localhost:9092' or '[broker1:9092, broker2:9092]'
-        group_id (str) : Group Id for the consumer
-        conf:  string representation of a python dictionary which
-        encapsulates the required settings for the consumer
-
+        kafka_consumer_config (ConsumerConfig): Instantiated kafka
+            configuration object
     Returns: Instantiated Kafka Consumer
-
     """
-    bootstrap_servers = bootstrap_servers if bootstrap_servers is not \
-                                             None else \
-        get_from_env_or_default_with_warning(
-            "KAFKA_BOOTSTRAP_SERVERS", 'localhost:9092')
 
-    # To prevent any clashes with other consumers, if no group id is
-    # provided we default to a random uuid
-    group_id = group_id if group_id is not \
-                           None else \
-        get_from_env_or_default_with_warning(
-            "KAFKA_CONSUMER_GROUP_ID", "random_id_" + str(uuid.uuid4()))
+    kafka_consumer_config = \
+        kafka_consumer_config \
+            if kafka_consumer_config is not None else ConsumerConfig()
 
-    configs = literal_eval(get_from_env_or_default_with_warning(
-        "KAFKA_CONSUMER_CONF", DEFAULT_CONSUMER_CONF)) if conf is None else conf
-
-    configs.update({'bootstrap.servers': bootstrap_servers})
-    configs.update({'group.id': group_id})
-
-    return Consumer(configs)
+    return Consumer(kafka_consumer_config.configs)
 
 
-def create_kafka_poller(kafka_consumer=None,
-                        topic=None,
-                        timeout_interval=None):
+class KafkaPollerConfig:
+    """
+    Configuration for the poller class
+    Args:
+        consumer (Consumer): Consumer configurations object
+        topic (str): The topic to poll messages from
+        timeout_interval (int): Timeout interval for reading the messages
+    """
+
+    def __init__(self,
+                 consumer=None,
+                 topic=None,
+                 timeout_interval=None):
+        self.consumer = \
+            consumer if consumer is not None else create_consumer()
+
+        self.topic = topic if topic is not None else os.environ['KAFKA_TOPIC']
+        self.timeout_interval = timeout_interval if timeout_interval is not \
+                                                    None \
+            else int(os.environ['KAFKA_TIMEOUT_INTERVAL'])
+
+
+def create_poller(kafka_poller_conf=None):
     """
     Factory method to create a Kafka Poller and take values from environment
     if they aren't provided
     Args:
-        kafka_consumer (Consumer): Kafka Consumer
-        topic (str): Name of the topic to subscribe to
-        timeout_interval (int): Timeout interval for kafka connection
-
+        kafka_poller_conf (KafkaPollerConfig): Kafka Consumer
     Returns (KafkaPoller): Instantiated KafkaPoller
 
     """
 
-    kafka_consumer = kafka_consumer if kafka_consumer is not None \
-        else create_consumer()
+    poller_config = kafka_poller_conf if kafka_poller_conf is not None \
+        else KafkaPollerConfig()
 
-    topic = topic if topic is not None else os.environ.get("KAFKA_TOPIC")
-
-    timeout_interval = int(timeout_interval) if timeout_interval is not None \
-        else int(os.environ.get("KAFKA_TIMEOUT_INTERVAL"))
-
-    kafka_poller = KafkaPoller(kafka_consumer, topic, timeout_interval)
+    kafka_poller = KafkaPoller(poller_config.consumer,
+                               poller_config.topic,
+                               poller_config.timeout_interval)
 
     return kafka_poller
 
 
-def create_kafka_batch_s3_uploader(root_path=None,
-                                   bucket=None,
-                                   ts_col_nm=None,
-                                   partition_key_nm=None):
+class BatchS3UploaderConfig:
     """
-    Factory method to generate a kafka batch uploader
+    Configurations for the BatchS3Uploader
+
     Args:
-        root_path (str): path for data to be exported
-        bucket (str): Name of bucket for export
-        ts_col_nm (str): Name of the timestamp column used to partition the
-            messages
-        partition_key_nm (str): Name of the column in which to deposit the
-            rounded timestamps used to partition the data
+        export_path (str): base path within the s3 bucket to export to
+        bucket (str): name of the bucket to export results to
+        ts_col_nm (str): name given to the time stamp column name
+        partition_key_nm (str): name of the column used to store the temporal
+            partitioning keys
+
+    Attributes:
+        export_path (str): base path within the s3 bucket to export to
+        bucket (str): name of the bucket to export results to
+        ts_col_nm (str): name given to the time stamp column name
+        partition_key_nm (str): name of the column used to store the temporal
+            partitioning keys
+    """
+
+    def __init__(self,
+                 export_path=None,
+                 bucket=None,
+                 ts_col_nm=None,
+                 partition_key_nm=None):
+        self.root_path = export_path if export_path is not None \
+            else os.environ["KAFKA_EXPORT_PATH"]
+
+        self.bucket = bucket if bucket is not None \
+            else os.environ["KAFKA_EXPORT_BUCKET"]
+
+        self.ts_col_nm = ts_col_nm if ts_col_nm is not None else \
+            os.environ["KAFKA_TS_COL_NM"]
+
+        self.partition_key_nm = partition_key_nm \
+            if partition_key_nm is not None \
+            else os.environ["KAFKA_PARTITION_KEY_NM"]
+
+
+def create_batch_s3_uploader(batch_s3_uploader_config=None):
+    """
+    Factory method to generate a kafka batch uploadxr
+    Args:
+        batch_s3_uploader_config (BatchS3UploaderConfig): Configuration
+            object for the s3 uploader
     Returns (KafkaS3BatchExporter): Instantiated Exporter
 
     """
-    root_path = root_path if root_path is not None else os.environ.get(
-        "KAFKA_EXPORT_PATH")
 
-    bucket = bucket if bucket is not None else os.environ.get(
-        "KAFKA_EXPORT_BUCKET")
-
-    ts_col_nm = ts_col_nm if ts_col_nm is not None else os.environ.get(
-        "KAFKA_TS_COL_NM")
-
-    partition_key_nm = partition_key_nm if partition_key_nm is not None else \
-        os.environ.get(
-            "KAFKA_PARTITION_KEY_NM")
+    batch_s3_uploader_config = batch_s3_uploader_config \
+        if batch_s3_uploader_config is not None else BatchS3UploaderConfig()
 
     aws_region = os.environ.get("AWS_DEFAULT_REGION")
 
     conn = AwsConnection(mode="standard_env_var", region_name=aws_region,
                          settings={})
 
-    s3_client = S3Util(conn, bucket)
+    s3_client = S3Util(conn, batch_s3_uploader_config.bucket)
 
-    return KafkaS3BatchExporter(root_path,
+    return KafkaS3BatchExporter(batch_s3_uploader_config.root_path,
                                 s3_client,
-                                ts_col_nm,
-                                partition_key_nm)
+                                batch_s3_uploader_config.ts_col_nm,
+                                batch_s3_uploader_config.partition_key_nm)
 
 
-def create_kafka_conduit(kafka_poller,
-                         kafka_exporter,
-                         polling_interval=None):
+def create_conduit(kafka_poller=None,
+                   kafka_exporter=None,
+                   polling_interval=None):
     """
     Factory method to create Kafka S3 Conduit, this polls the Kafka queue
     after a set interval and deposits the results onto s3
@@ -191,6 +262,10 @@ def create_kafka_conduit(kafka_poller,
     Returns (KafkaS3Conduit): Instantiated KafkaS3Conduit
 
     """
+
+    kafka_poller = kafka_poller if kafka_poller is not None else create_poller()
+    kafka_exporter = kafka_exporter if kafka_exporter is not None else \
+        create_batch_s3_uploader()
 
     polling_interval = polling_interval if polling_interval is not None else \
         os.environ.get(
@@ -312,9 +387,8 @@ class KafkaProducer:
                  config=None):
 
         self.topic = os.environ.get("KAFKA_TOPIC") if topic is None else topic
-        self.bootstrap_servers = bootstrap_servers
-        self.config = config
-        self.producer = self.instantiate_producer()
+        self.producer_config = ProducerConfig(bootstrap_servers, config)
+        self.producer = None
         self.raise_exception_on_failed_connection = \
             raise_exception_on_failed_connection
 
@@ -338,20 +412,22 @@ class KafkaProducer:
         """
         try:
             log.debug("Instantiating Producer")
-            producer = create_producer(self.bootstrap_servers, self.config)
+            self.producer = create_producer(self.producer_config)
             # Check the connection works by polling for messages
             log.debug("Polling Queue")
-            producer.poll(3)
+            self.producer.poll(3)
             log.info("Succesfully polled Kafka Queue")
 
         except Exception as exception:
-            producer = None
+            self.producer = None
             log.error("Kafka Producer failed to instantiate: \n %s", exception)
 
             if self.raise_exception_on_failed_connection:
-                raise exception
+                raise NoProducerInstantiatedError()
 
-        return producer
+    def _instantiated_producer_if_required(self):
+        if self.producer is None:
+            self.instantiate_producer()
 
     def publish_dict_as_json(self, in_dict):
         """
@@ -359,11 +435,12 @@ class KafkaProducer:
         Args:
             in_dict (dict): Dictionary to be pushed to the topic
 
-        Returns: None
+        Returns (string): Message published to kafka
 
         """
         json_string = json.dumps(in_dict)
         self.produce_msg(json_string)
+        return json_string
 
     def produce_msg(self, msg):
         """
@@ -373,6 +450,8 @@ class KafkaProducer:
         Returns: None
 
         """
+        self._instantiated_producer_if_required()
+
         if self.producer is not None:
             log.debug("Producing message on topic %s : %s", self.topic, msg)
             self.producer.produce(self.topic, msg)
@@ -411,7 +490,7 @@ class KafkaPoller:
         self._timeout_interval = timeout_interval
         self._subscribed_to_topic = False
 
-    def subscribe_consumer(self):
+    def _subscribe_consumer(self):
         """
         Subscribe the Kafka consumer to the given topic
         Returns: None
@@ -431,8 +510,11 @@ class KafkaPoller:
         list_of_mgs = []
 
         if not self._subscribed_to_topic:
-            self.subscribe_consumer()
+            self._subscribe_consumer()
 
+        return self._poll_kafka_for_messages(list_of_mgs)
+
+    def _poll_kafka_for_messages(self, list_of_mgs):
         while True:
             msg = self._kafka_consumer.poll(self._timeout_interval)
 

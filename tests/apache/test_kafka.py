@@ -1,15 +1,25 @@
 import os
+import uuid
 
 import mock
 import pandas as pd
+import pytest
 from freezegun import freeze_time
+from moto import mock_s3
 from pandas.testing import assert_frame_equal
 
 import hip_data_tools.apache.kafka as kafka
-from hip_data_tools.apache.kafka import get_from_env_or_default_with_warning
 
-broker_address_and_port = 'foo:9092'
+BOOTSTRAP_SERVERS = 'somehost:9092'
+PRODUCER_CONFIG = \
+    """{'queue.buffering.max.messages': 20000, 'queue.buffering.max.ms' : 
+    2000}"""
+GROUP_ID = str(uuid.uuid4())
 
+CONSUEMR_CONF = """{'auto.offset.reset': 'latest'}"""
+KAFKA_TOPIC = 'some_topic'
+KAFKA_TIMEOUT_INTERVAL = 100
+KAFKA_POLLING_INTERVAL = 200
 
 class StubbedKafkaMessageObject:
     """
@@ -34,13 +44,90 @@ class StubbedKafkaMessageObject:
         return self.payload.encode('utf-8')
 
 
-@mock.patch.dict(os.environ, {'FOO': broker_address_and_port})
-def test_env_getter_should_ReadFromEnv():
-    default_value = 'localhost:9092'
-    value = get_from_env_or_default_with_warning('FOO',
-                                                 default_value)
-    assert value == broker_address_and_port
+@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
+                              "KAFKA_PRODUCER_CONF": PRODUCER_CONFIG})
+def test__producer_config_should_read_from_env():
+    kafka_producer_config = kafka.ProducerConfig()
+    configs_dict = {'queue.buffering.max.messages': 20000,
+                    'queue.buffering.max.ms': 2000,
+                    'bootstrap.servers': 'somehost:9092'}
 
+    assert kafka_producer_config.configs == configs_dict
+    assert kafka_producer_config._bootstrap_servers == BOOTSTRAP_SERVERS
+
+
+@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
+                              "KAFKA_PRODUCER_CONF": PRODUCER_CONFIG})
+def test__producer_creator_should_create_from_env_when_nothing_is_passed():
+    kafka_producer = kafka.create_producer()
+
+    assert type(kafka_producer).__name__ == "Producer"
+
+
+@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
+                              "KAFKA_CONSUMER_CONF": CONSUEMR_CONF,
+                              "KAFKA_CONSUMER_GROUP_ID": GROUP_ID})
+def test__consumer_config_should_read_from_env():
+    kafka_producer_config = kafka.ConsumerConfig()
+
+    configs_dict = {'auto.offset.reset': 'latest',
+                    'bootstrap.servers': BOOTSTRAP_SERVERS,
+                    'group.id': GROUP_ID}
+
+    assert kafka_producer_config.configs == configs_dict
+    assert kafka_producer_config._bootstrap_servers == BOOTSTRAP_SERVERS
+
+
+@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
+                              "KAFKA_CONSUMER_CONF": CONSUEMR_CONF,
+                              "KAFKA_CONSUMER_GROUP_ID": GROUP_ID})
+def test__consumer_config_should_read_from_env():
+    kafka_consumer = kafka.create_consumer()
+
+    assert type(kafka_consumer).__name__ == "Consumer"
+
+
+@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
+                              "KAFKA_CONSUMER_CONF": CONSUEMR_CONF,
+                              "KAFKA_CONSUMER_GROUP_ID": GROUP_ID,
+                              "KAFKA_TOPIC": KAFKA_TOPIC,
+                              "KAFKA_TIMEOUT_INTERVAL":
+                                  str(KAFKA_TIMEOUT_INTERVAL)})
+def test__poller_should_create_from_env():
+    poller = kafka.create_poller()
+
+    assert type(poller).__name__ == "KafkaPoller"
+
+
+@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
+                              "KAFKA_CONSUMER_CONF": CONSUEMR_CONF,
+                              "KAFKA_CONSUMER_GROUP_ID": GROUP_ID,
+                              "KAFKA_TOPIC": KAFKA_TOPIC,
+                              "KAFKA_TIMEOUT_INTERVAL":
+                                  str(KAFKA_TIMEOUT_INTERVAL)})
+def test__poller_should_create_from_env():
+    poller = kafka.create_poller()
+
+    assert type(poller).__name__ == "KafkaPoller"
+
+
+@mock_s3
+@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
+                              "KAFKA_CONSUMER_CONF": CONSUEMR_CONF,
+                              "KAFKA_CONSUMER_GROUP_ID": GROUP_ID,
+                              "KAFKA_TOPIC": KAFKA_TOPIC,
+                              "KAFKA_TIMEOUT_INTERVAL":
+                                  str(KAFKA_TIMEOUT_INTERVAL),
+                              "KAFKA_POLLING_INTERVAL":
+                                  str(KAFKA_POLLING_INTERVAL),
+                              "KAFKA_EXPORT_PATH": "some_path",
+                              "KAFKA_EXPORT_BUCKET": "a_bucket",
+                              "KAFKA_TS_COL_NM": "ts_column",
+                              "KAFKA_PARTITION_KEY_NM": 'partition_column'})
+def test__conduit_should_create_from_env():
+    conduit = kafka.create_conduit()
+
+    assert type(conduit).__name__ == "KafkaConduit"
 
 @freeze_time("2012-01-14 03:21:34")
 def test_fld_nm_getter_Should_GenerateTimeStampedFileNameUsingOSClock():
@@ -168,3 +255,180 @@ def test_PartitioningOfMessages_Should_SplitMessagesAndUploadToS3(mocker):
     assert (paths_and_df[0][1] == expected_path)
 
     assert (paths_and_df[0][0].shape == (2, 4))
+
+
+@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
+                              "KAFKA_CONSUMER_CONF": CONSUEMR_CONF,
+                              "KAFKA_CONSUMER_GROUP_ID": GROUP_ID,
+                              "KAFKA_TOPIC": KAFKA_TOPIC,
+                              "KAFKA_TIMEOUT_INTERVAL":
+                                  str(KAFKA_TIMEOUT_INTERVAL),
+                              "KAFKA_POLLING_INTERVAL":
+                                  str(KAFKA_POLLING_INTERVAL),
+                              "KAFKA_EXPORT_PATH": "some_path",
+                              "KAFKA_EXPORT_BUCKET": "a_bucket",
+                              "KAFKA_TS_COL_NM": "ts_column",
+                              "KAFKA_PARTITION_KEY_NM": 'partition_column'})
+def test__KafkaProducer_should_successfully_connect_to_kafka_broker(mocker):
+    class StubbedProducer:
+        def poll(self, interval):
+            return True
+
+    mocker.patch.object(kafka, "create_producer")
+    kafka.create_producer.return_value = StubbedProducer()
+
+    kafka_producer = kafka.KafkaProducer()
+    kafka_producer.instantiate_producer()
+
+    assert kafka_producer.producer is not None
+
+
+@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
+                              "KAFKA_CONSUMER_CONF": CONSUEMR_CONF,
+                              "KAFKA_CONSUMER_GROUP_ID": GROUP_ID,
+                              "KAFKA_TOPIC": KAFKA_TOPIC,
+                              "KAFKA_TIMEOUT_INTERVAL":
+                                  str(KAFKA_TIMEOUT_INTERVAL),
+                              "KAFKA_POLLING_INTERVAL":
+                                  str(KAFKA_POLLING_INTERVAL),
+                              "KAFKA_EXPORT_PATH": "some_path",
+                              "KAFKA_EXPORT_BUCKET": "a_bucket",
+                              "KAFKA_TS_COL_NM": "ts_column",
+                              "KAFKA_PARTITION_KEY_NM": 'partition_column'})
+def test__KafkaProducer_should_successfully_connect_to_kafka_broker(mocker):
+    class StubbedProducerWithNoConnection:
+        def poll(self, interval):
+            raise Exception
+
+    mocker.patch.object(kafka, "create_producer")
+    kafka.create_producer.return_value = StubbedProducerWithNoConnection()
+    with pytest.raises(kafka.NoProducerInstantiatedError) as excinfo:
+        kafka_producer = kafka.KafkaProducer(
+            raise_exception_on_failed_connection=True)
+        kafka_producer.instantiate_producer()
+    assert excinfo.typename == "NoProducerInstantiatedError"
+
+
+@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
+                              "KAFKA_CONSUMER_CONF": CONSUEMR_CONF,
+                              "KAFKA_CONSUMER_GROUP_ID": GROUP_ID,
+                              "KAFKA_TOPIC": KAFKA_TOPIC,
+                              "KAFKA_TIMEOUT_INTERVAL":
+                                  str(KAFKA_TIMEOUT_INTERVAL),
+                              "KAFKA_POLLING_INTERVAL":
+                                  str(KAFKA_POLLING_INTERVAL),
+                              "KAFKA_EXPORT_PATH": "some_path",
+                              "KAFKA_EXPORT_BUCKET": "a_bucket",
+                              "KAFKA_TS_COL_NM": "ts_column",
+                              "KAFKA_PARTITION_KEY_NM": 'partition_column'})
+def test__KafkaProducer_should_successfully_publish_dict_as_msg(mocker):
+    class StubbedProducer:
+        def produce(self, msg):
+            return None
+
+    in_dict = {'someKey': 'some value'}
+
+    mocker.patch.object(kafka, "create_producer")
+    kafka.create_producer.return_value = StubbedProducer()
+    kafka_producer = kafka.KafkaProducer()
+    published_dict = kafka_producer.publish_dict_as_json(in_dict)
+
+    assert published_dict == '{"someKey": "some value"}'
+
+
+@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
+                              "KAFKA_CONSUMER_CONF": CONSUEMR_CONF,
+                              "KAFKA_CONSUMER_GROUP_ID": GROUP_ID,
+                              "KAFKA_TOPIC": KAFKA_TOPIC,
+                              "KAFKA_TIMEOUT_INTERVAL":
+                                  str(KAFKA_TIMEOUT_INTERVAL),
+                              "KAFKA_POLLING_INTERVAL":
+                                  str(KAFKA_POLLING_INTERVAL),
+                              "KAFKA_EXPORT_PATH": "some_path",
+                              "KAFKA_EXPORT_BUCKET": "a_bucket",
+                              "KAFKA_TS_COL_NM": "ts_column",
+                              "KAFKA_PARTITION_KEY_NM": 'partition_column'})
+def test__KafkaProducer_should_raise_an_exception_if_it_cant_publish(mocker):
+    in_dict = {'someKey': 'some value'}
+
+    class StubbedProducerWithNoConnection:
+        def poll(self, interval):
+            raise Exception
+
+    mocker.patch.object(kafka, "create_producer")
+    kafka.create_producer.return_value = StubbedProducerWithNoConnection()
+
+    with pytest.raises(kafka.NoProducerInstantiatedError) as excinfo:
+        kafka_producer = kafka.KafkaProducer(
+            raise_exception_on_failed_connection=True)
+        published_dict = kafka_producer.publish_dict_as_json(in_dict)
+
+    assert excinfo.typename == "NoProducerInstantiatedError"
+
+
+def test__KafkaPoller_should_successfully_collect_msgs_from_broker(mocker):
+    import queue
+    message_queue = queue.Queue(maxsize=3)
+
+    class StubbedMessage:
+
+        def __init__(self, message_body, error):
+            self.message_body = message_body
+            self.error_on_this_msg = error
+
+        def error(self):
+            return self.error_on_this_msg
+
+        def value(self):
+            return self.message_body.encode()
+
+    class StubbedConsumer:
+        msgs = [None,
+                StubbedMessage("message 1", False),
+                StubbedMessage("message 2", False),
+                StubbedMessage("message 3", False)]
+
+        def poll(self, timeout):
+            return self.msgs.pop()
+
+        def subscribe(self, topic):
+            return None
+
+    kafka_poller = kafka.KafkaPoller(StubbedConsumer(), 'some_topic', 10)
+    returned_messages = kafka_poller.get_msgs()
+
+    assert len(returned_messages) == 3
+
+
+def test__KafkaPoller_should_successfully_log_msg_errors(mocker):
+    import queue
+    message_queue = queue.Queue(maxsize=3)
+
+    class StubbedMessage:
+
+        def __init__(self, message_body, error):
+            self.message_body = message_body
+            self.error_on_this_msg = error
+
+        def error(self):
+            return self.error_on_this_msg
+
+        def value(self):
+            return self.message_body.encode()
+
+    class StubbedConsumer:
+        msgs = [None,
+                StubbedMessage("message 1", False),
+                StubbedMessage("message 2", "Some error"),
+                StubbedMessage("message 3", False)]
+
+        def poll(self, timeout):
+            return self.msgs.pop()
+
+        def subscribe(self, topic):
+            return None
+
+    kafka_poller = kafka.KafkaPoller(StubbedConsumer(), 'some_topic', 10)
+    returned_messages = kafka_poller.get_msgs()
+
+    assert len(returned_messages) == 2
