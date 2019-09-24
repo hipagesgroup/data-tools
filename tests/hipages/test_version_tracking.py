@@ -1,6 +1,6 @@
 from unittest.mock import mock_open, patch
 
-import hip_data_tools.hipages.tracking as vt
+import hip_data_tools.hipages.version_tracking as vt
 
 
 class FakePackage:
