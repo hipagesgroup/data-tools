@@ -579,12 +579,12 @@ class KafkaS3BatchExporter:
         if data_list:
 
             for msg_df, s3_path in \
-                    self.partition_msgs_and_locations(data_list, interval):
+                    self.partition_msgs_by_kafka_ts(data_list, interval):
                 log.debug("data path : %s", s3_path)
 
                 self._s3_client.upload_df_to_s3(msg_df, s3_path)
 
-    def partition_msgs_and_locations(self, list_of_dicts, interval):
+    def partition_msgs_by_kafka_ts(self, list_of_dicts, interval):
         """
         Partition messages by their Kafka timestamps and uses these
         timestamps to generate their relevant paths on s3
@@ -602,7 +602,20 @@ class KafkaS3BatchExporter:
                                              self.ts_col_nm,
                                              self.partition_key_nm,
                                              int(interval))
-        fld_locations = []
+        data_frames_and_fld_locs = self.generate_partitioned_dataframes(
+            df_msgs_and_meta_data)
+
+        return data_frames_and_fld_locs
+
+    def generate_partitioned_dataframes(self, df_msgs_and_meta_data):
+        """
+        Generates the batched dataframes to upload to s3
+        Args:
+            df_msgs_and_meta_data (dataframe): dataframe to be paritioned
+        Returns (List(dataframe, string)): list of dataframes and thier
+            folder paths on s3
+        """
+        dataframes_and_fld_locs = []
         for cur_interval_np_datetime in \
                 pd.unique(df_msgs_and_meta_data[self.partition_key_nm]):
             df_partition = \
@@ -624,9 +637,9 @@ class KafkaS3BatchExporter:
 
             log.debug("Data path : %s", full_path_on_s3)
 
-            fld_locations.append((df_partition, full_path_on_s3))
+            dataframes_and_fld_locs.append((df_partition, full_path_on_s3))
 
-        return fld_locations
+        return dataframes_and_fld_locs
 
 
 class KafkaConduit:

@@ -99,18 +99,6 @@ def test__poller_should_create_from_env():
     assert type(poller).__name__ == "KafkaPoller"
 
 
-@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
-                              "KAFKA_CONSUMER_CONF": CONSUEMR_CONF,
-                              "KAFKA_CONSUMER_GROUP_ID": GROUP_ID,
-                              "KAFKA_TOPIC": KAFKA_TOPIC,
-                              "KAFKA_TIMEOUT_INTERVAL":
-                                  str(KAFKA_TIMEOUT_INTERVAL)})
-def test__poller_should_create_from_env():
-    poller = kafka.create_poller()
-
-    assert type(poller).__name__ == "KafkaPoller"
-
-
 @mock_s3
 @mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
                               "KAFKA_CONSUMER_CONF": CONSUEMR_CONF,
@@ -128,6 +116,26 @@ def test__conduit_should_create_from_env():
     conduit = kafka.create_conduit()
 
     assert type(conduit).__name__ == "KafkaConduit"
+
+
+@mock_s3
+@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
+                              "KAFKA_CONSUMER_CONF": CONSUEMR_CONF,
+                              "KAFKA_CONSUMER_GROUP_ID": GROUP_ID,
+                              "KAFKA_TOPIC": KAFKA_TOPIC,
+                              "KAFKA_TIMEOUT_INTERVAL":
+                                  str(KAFKA_TIMEOUT_INTERVAL),
+                              "KAFKA_POLLING_INTERVAL":
+                                  str(KAFKA_POLLING_INTERVAL),
+                              "KAFKA_EXPORT_PATH": "some_path",
+                              "KAFKA_EXPORT_BUCKET": "a_bucket",
+                              "KAFKA_TS_COL_NM": "ts_column",
+                              "KAFKA_PARTITION_KEY_NM": 'partition_column'})
+def test__conduit_should_create_from_env():
+    conduit = kafka.create_batch_s3_uploader()
+
+    assert type(conduit).__name__ == "KafkaS3BatchExporter"
+
 
 @freeze_time("2012-01-14 03:21:34")
 def test_fld_nm_getter_Should_GenerateTimeStampedFileNameUsingOSClock():
@@ -244,7 +252,7 @@ def test_PartitioningOfMessages_Should_SplitMessagesAndUploadToS3(mocker):
                                    kafka.DEFAULT_TIMESTAMP_PARTITION_KEY)
 
     paths_and_df = \
-        kafka_s3_batch_exporter.partition_msgs_and_locations(list_of_dicts, 10)
+        kafka_s3_batch_exporter.partition_msgs_by_kafka_ts(list_of_dicts, 10)
 
     assert (len(paths_and_df) == 2)
 
@@ -432,3 +440,39 @@ def test__KafkaPoller_should_successfully_log_msg_errors(mocker):
     returned_messages = kafka_poller.get_msgs()
 
     assert len(returned_messages) == 2
+
+
+@mock_s3
+@freeze_time("2017-03-28 11:10:10")
+@mock.patch.dict(os.environ, {"KAFKA_BOOTSTRAP_SERVERS": BOOTSTRAP_SERVERS,
+                              "KAFKA_CONSUMER_CONF": CONSUEMR_CONF,
+                              "KAFKA_CONSUMER_GROUP_ID": GROUP_ID,
+                              "KAFKA_TOPIC": KAFKA_TOPIC,
+                              "KAFKA_TIMEOUT_INTERVAL":
+                                  str(KAFKA_TIMEOUT_INTERVAL),
+                              "KAFKA_POLLING_INTERVAL":
+                                  str(KAFKA_POLLING_INTERVAL),
+                              "KAFKA_EXPORT_PATH": "some_path",
+                              "KAFKA_EXPORT_BUCKET": "a_bucket",
+                              "KAFKA_TS_COL_NM": "kafka_ts",
+                              "KAFKA_PARTITION_KEY_NM": 'partition_column'})
+def test__KafkaS3BatchExporter_should_partition_msgs_and_locations(mocker):
+    list_of_dicts = [
+        {'kafka_ts': "1490198805000",
+         'other_field': 'another_field'},
+        {'kafka_ts': "1490698805000",
+         'other_field': 'another_field'},
+        {'kafka_ts': "1490198805000",
+         'other_field': 'another_field'}
+    ]
+    interval = 10
+    batch_uploader = kafka.create_batch_s3_uploader()
+    list_of_dfs_and_locs = \
+        batch_uploader.partition_msgs_by_kafka_ts(list_of_dicts, interval)
+
+    assert len(list_of_dfs_and_locs) == 2
+    assert list_of_dfs_and_locs[0][0].shape == (2, 3)
+    assert list_of_dfs_and_locs[1][0].shape == (1, 3)
+    assert list_of_dfs_and_locs[0][1] \
+           == 'some_path/date_of_batch=20170322/time_of_batch=160650/' \
+              'df_dt_of_upload_20170328_000000.parquet'
