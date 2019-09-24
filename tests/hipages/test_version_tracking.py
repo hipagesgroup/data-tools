@@ -1,5 +1,7 @@
 from unittest.mock import mock_open, patch
 
+from joblib import hash
+
 import hip_data_tools.hipages.version_tracking as vt
 
 
@@ -8,6 +10,20 @@ class FakePackage:
     @staticmethod
     def some_method():
         return 'foo'
+
+
+def test__decorate_class_should_decorate_class_with_no_sideeffects():
+    stubbed_class = FakePackage()
+    decorated_class = vt.register_class_for_version_tracking(stubbed_class)
+
+    assert hash(stubbed_class) == hash(decorated_class)
+
+
+def test__decorate_class_should_decorate_class_with_no_sideeffects():
+    decorated_class = \
+        vt.register_method_for_version_tracking(FakePackage.some_method)
+
+    assert hash(FakePackage.some_method) == hash(decorated_class)
 
 
 def test__python_can_extract_fld_from_pkg_file(mocker):
