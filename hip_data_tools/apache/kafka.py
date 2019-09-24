@@ -512,9 +512,9 @@ class KafkaPoller:
         if not self._subscribed_to_topic:
             self._subscribe_consumer()
 
-        return self._poll_kafka_for_messages(list_of_mgs)
+        return self.poll_kafka_for_messages(list_of_mgs)
 
-    def _poll_kafka_for_messages(self, list_of_mgs):
+    def poll_kafka_for_messages(self, list_of_mgs):
         while True:
             msg = self._kafka_consumer.poll(self._timeout_interval)
 
