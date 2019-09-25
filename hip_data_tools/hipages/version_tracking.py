@@ -204,20 +204,18 @@ def check_for_decorated_declaration_in_file(path,
 
     """
 
-    tagged_delcarations = []
     with open(path, 'r') as file:
         lines = file.readlines()
-        _find_declarations_in_lines(declaration,
-                                    decorating_string,
-                                    lines,
-                                    tagged_delcarations)
+        tagged_delcarations = _find_declarations_in_lines(declaration,
+                                                          decorating_string,
+                                                          lines)
 
     return tagged_delcarations
 
 
-def _find_declarations_in_lines(declaration, decorating_string, lines,
-                                tagged_delcarations):
+def _find_declarations_in_lines(declaration, decorating_string, lines):
     next_line = False
+    tagged_delcarations = []
     for line in lines:
         if next_line and line.strip().startswith(declaration):
             tagged_delcarations.append(_extract_declaration_name(
@@ -226,6 +224,7 @@ def _find_declarations_in_lines(declaration, decorating_string, lines,
         if re.search(decorating_string, line):
             next_line = True
 
+    return tagged_delcarations
 
 def _extract_declaration_name(declaration, line):
     declaration_name = line.strip().split(declaration)[1] \
