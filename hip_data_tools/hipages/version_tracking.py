@@ -208,19 +208,31 @@ def check_for_decorated_declaration_in_file(path,
     tagged_delcarations = []
     with open(path, 'r') as file:
         lines = file.readlines()
-        for line in lines:
-            if next_line and line.strip().startswith(declaration):
-                declaration_name = line.strip().split(declaration)[1] \
-                    .split("(")[0] \
-                    .replace(":", "") \
-                    .strip()
-
-                tagged_delcarations.append(declaration_name)
-                next_line = False
-            if re.search(decorating_string, line):
-                next_line = True
+        _find_declarations_in_file(declaration, decorating_string, lines,
+                                   next_line, tagged_delcarations)
 
     return tagged_delcarations
+
+
+def _find_declarations_in_file(declaration, decorating_string,
+                               lines,
+                               next_line,
+                               tagged_delcarations):
+    for line in lines:
+        if next_line and line.strip().startswith(declaration):
+            _extract_declaration_name(declaration, line,
+                                      tagged_delcarations)
+            next_line = False
+        if re.search(decorating_string, line):
+            next_line = True
+
+
+def _extract_declaration_name(declaration, line, tagged_delcarations):
+    declaration_name = line.strip().split(declaration)[1] \
+        .split("(")[0] \
+        .replace(":", "") \
+        .strip()
+    tagged_delcarations.append(declaration_name)
 
 
 def get_latest_git_hash_of_files_in_repo(repo, files_to_get):
