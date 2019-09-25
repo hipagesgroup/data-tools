@@ -203,26 +203,36 @@ def check_for_decorated_declaration_in_file(path,
     Returns: list of classes within the file which require version tracking
 
     """
-    next_line = False
+
     tagged_delcarations = []
     with open(path, 'r') as file:
         lines = file.readlines()
-        for line in lines:
-            if next_line and line.strip().startswith(declaration):
-                _extract_declaration_name(declaration, line,
-                                          tagged_delcarations)
-                next_line = False
-            if re.search(decorating_string, line):
-                next_line = True
+        _find_declarations_in_lines(declaration,
+                                    decorating_string,
+                                    lines,
+                                    tagged_delcarations)
 
     return tagged_delcarations
 
-def _extract_declaration_name(declaration, line, tagged_delcarations):
+
+def _find_declarations_in_lines(declaration, decorating_string, lines,
+                                tagged_delcarations):
+    next_line = False
+    for line in lines:
+        if next_line and line.strip().startswith(declaration):
+            tagged_delcarations.append(_extract_declaration_name(
+                declaration, line))
+            next_line = False
+        if re.search(decorating_string, line):
+            next_line = True
+
+
+def _extract_declaration_name(declaration, line):
     declaration_name = line.strip().split(declaration)[1] \
         .split("(")[0] \
         .replace(":", "") \
         .strip()
-    tagged_delcarations.append(declaration_name)
+    return declaration_name
 
 
 def get_latest_git_hash_of_files_in_repo(repo, files_to_get):
