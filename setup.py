@@ -11,6 +11,8 @@ setup(
     long_description_content_type='text/markdown',
     packages=find_packages(include=["hip_data_tools", "hip_data_tools.*"]),
     zip_safe=False,
+    entry_points={'console_scripts': [
+        'version-tracker=hip_data_tools.hipages.version_tracking:main']},
     install_requires=[
         "boto3==1.9.216",
         "joblib==0.13.2",
