@@ -526,18 +526,22 @@ class KafkaPoller:
             if msg is None:
                 break
 
-            list_of_mgs = self._extract_msg_or_log_error(list_of_mgs, msg)
+            msg = self._check_msg_is_not_error(msg)
+
+            if msg is not None:
+                list_of_mgs.append(msg)
 
         return list_of_mgs
 
-    def _extract_msg_or_log_error(self, list_of_mgs, msg):
+    def _check_msg_is_not_error(self, msg):
         if msg.error():
             log.error("Consumer error: %s", msg.error())
+            return None
         else:
             log.debug(
                 "Message from topic: %s", msg.value().decode('utf-8'))
 
-            return list_of_mgs.append(msg)
+            return msg
 
 
 class KafkaS3BatchExporter:
