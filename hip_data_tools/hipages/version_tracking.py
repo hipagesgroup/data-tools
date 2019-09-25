@@ -136,7 +136,7 @@ def _instantiate_repo(repo_path):
     return git.Repo(repo_path)
 
 
-def find_all_modules_which_require_version_tracking(file_list):
+def find_tracked_modules(file_list):
     """
     Iterates through a list of python files, and returns the names of classes,
     methods and functions and their file locations, which require a version
