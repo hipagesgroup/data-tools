@@ -1,5 +1,6 @@
 from unittest.mock import mock_open, patch
 
+import pytest
 from joblib import hash
 
 import hip_data_tools.hipages.version_tracking as vt
@@ -31,6 +32,12 @@ def test__python_can_extract_fld_from_pkg_file(mocker):
     vt._get_package_location.return_value = '/foo/bar/__init__.py'
     found_location = vt._find_package_location(FakePackage)
     assert (found_location == '/foo/bar/')
+
+
+def test_finding_decorators_in_a_file():
+    lines_in_file = ['some_line', '', vt.CLASS_DECORATOR_STRING,
+                     "class "
+                     "DecoratedClass"]
 
 
 def test__check_for_decorated_classes_in_file(mocker):
@@ -76,16 +83,45 @@ def test__check_for_file_with_no_decorarted_classes(mocker):
             return int1
     
 
-    """.format(mappings['class'], 'class', mappings['def'], 'def')
+    """.format("", 'class', "", 'def')
 
     with patch("builtins.open", mock_open(read_data=example_file)) as mock_file:
         list_of_files_to_analyse = ['some_file/location/this.file']
         classes_with_tag, files_with_tag = \
-            vt.find_all_modules_which_require_version_tracking(
+            vt.find_tracked_modules(
                 list_of_files_to_analyse)
 
-    assert (len(classes_with_tag) == 2)
-    assert (len(files_with_tag) == 2)
+    assert (len(classes_with_tag) == 0)
+    assert (len(files_with_tag) == 0)
+
+
+def test__exception_raised_when_decorator_found_but_no_defintion(mocker):
+    mappings = {
+        'class': '@register_class_for_version_tracking',
+        'def': '@register_method_for_version_tracking'
+    }
+
+    example_file = """import foo
+    import pandas as pd
+    
+    {} 
+    {} ClassToBeTracked
+        def __init__(self): 
+            self.foo = 1 
+        
+        {}
+        {} foo(self, int1):
+            return int1
+    
+
+    """.format(mappings['class'], 'def', mappings['def'], 'class')
+
+    with patch("builtins.open", mock_open(read_data=example_file)) as mock_file:
+        with pytest.raises(vt.DecoratorError):
+            list_of_files_to_analyse = ['some_file/location/this.file']
+            classes_with_tag, files_with_tag = \
+                vt.find_tracked_modules(
+                    list_of_files_to_analyse)
 
 
 def test__check_for_all_decorated_methods_and_classes_in_file(mocker):

@@ -179,6 +179,7 @@ def find_any_relevant_decorations_in_file(path):
     """
     classes_in_file_with_decorator = []
     definitions_with_tags = []
+
     for declaration, decorating_string in DEFINITION_MAPPING.items():
         classes_in_file_with_decorator.extend(
             check_for_decorated_declaration_in_file(
@@ -204,13 +205,55 @@ def check_for_decorated_declaration_in_file(path,
 
     """
 
-    with open(path, 'r') as file:
-        lines = file.readlines()
-        tagged_delcarations = _find_declarations_in_lines(declaration,
-                                                          decorating_string,
-                                                          lines)
+    lines_in_file = _load_file_lines_into_list(path)
 
-    return tagged_delcarations
+    lines_with_decorator = _find_lines_with_decorator(decorating_string,
+                                                      lines_in_file)
+
+    tagged_declarations = _find_decorated_declarations(declaration,
+                                                       lines_in_file,
+                                                       lines_with_decorator)
+
+    return tagged_declarations
+
+
+def _find_decorated_declarations(declaration,
+                                 lines_in_file,
+                                 lines_with_decorator):
+    tagged_declarations = []
+    num_lines = len(lines_in_file)
+    for decorator_indicies in lines_with_decorator:
+
+        for cur_line_index in range(decorator_indicies, num_lines):
+            cur_line = lines_in_file[cur_line_index]
+            if cur_line.startswith(declaration + " "):
+                tagged_declarations.append(
+                    _extract_declaration_name(declaration, cur_line))
+                break
+            # Ignore the line if its empty string indicating whitespace,
+            # or if its another decorator
+            # and stop if its the end of the file
+            elif (not cur_line \
+                  or not cur_line.startswith("@")) \
+                    and cur_line_index < num_lines:
+                raise DecoratorError(declaration, cur_line, decorator_indicies)
+
+    return tagged_declarations
+
+
+def _find_lines_with_decorator(decorating_string, lines_in_file):
+    # find index of lines with decorator
+    lines_with_decorator = []
+    for idx, line in enumerate(lines_in_file):
+        if line.startswith(decorating_string):
+            lines_with_decorator.append(idx)
+    return lines_with_decorator
+
+
+def _load_file_lines_into_list(path):
+    with open(path, 'r') as file:
+        lines_in_file = [line.strip() for line in file.readlines()]
+    return lines_in_file
 
 
 def _find_declarations_in_lines(declaration, decorating_string, lines):
@@ -270,7 +313,7 @@ def find_relevant_file_versions(pkg, repo_location):
     package_location = _find_package_location(pkg)
     module_locations = _find_all_python_modules_in_folder(package_location)
     classes_with_tag, files_with_tag = \
-        find_all_modules_which_require_version_tracking(module_locations)
+        find_tracked_modules(module_locations)
     repo = _instantiate_repo(repo_location)
     git_hashes = get_latest_git_hash_of_files_in_repo(repo, files_with_tag)
 
@@ -310,6 +353,27 @@ def find_and_export_relevant_versions(pkg,
     versions_dict = find_relevant_file_versions(pkg, repo_location)
 
     write_versions_to_json(versions_dict, output_location)
+
+
+class DecoratorError(Exception):
+    """
+    Error raised when there is a problem with the decoration of a class or
+    method
+
+    Args:
+        declaration (str): Declartion the application is looking for
+        line (str): Line where the declaration is made
+        line_number (int): Line number in found of declaration
+
+    """
+
+    def __init__(self, declaration, line, line_number):
+        # Call the base class constructor with the parameters it needs
+        message_body = "Decorator Found, but no declaration discovered. " \
+                       "Declaration {}, at line {}, line number {}" \
+            .format(declaration, line, str(line_number))
+
+        super().__init__(message_body)
 
 
 def main():
