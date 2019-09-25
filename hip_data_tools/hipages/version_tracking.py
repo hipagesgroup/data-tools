@@ -179,7 +179,6 @@ def find_any_relevant_decorations_in_file(path):
     """
     classes_in_file_with_decorator = []
     definitions_with_tags = []
-    files_with_tag = []
     for declaration, decorating_string in DEFINITION_MAPPING.items():
         classes_in_file_with_decorator.extend(
             check_for_decorated_declaration_in_file(
@@ -214,7 +213,8 @@ def check_for_decorated_declaration_in_file(path,
     return tagged_delcarations
 
 
-def _find_declarations_in_file(declaration, decorating_string,
+def _find_declarations_in_file(declaration,
+                               decorating_string,
                                lines,
                                next_line,
                                tagged_delcarations):
