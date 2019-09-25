@@ -223,20 +223,33 @@ def _find_decorated_declarations(declaration,
     tagged_declarations = []
     num_lines = len(lines_in_file)
     for decorator_indicies in lines_with_decorator:
+        tagged_declarations.append(
+            _check_lines_after_declaration(declaration,
+                                           decorator_indicies,
+                                           lines_in_file,
+                                           num_lines))
 
-        for cur_line_index in range(decorator_indicies, num_lines):
-            cur_line = lines_in_file[cur_line_index]
-            if cur_line.startswith(declaration + " "):
-                tagged_declarations.append(
-                    _extract_declaration_name(declaration, cur_line))
-                break
-            # Ignore the line if its empty string indicating whitespace,
-            # or if its another decorator
-            # and stop if its the end of the file
-            elif (not cur_line \
-                  or not cur_line.startswith("@")) \
-                    and cur_line_index < num_lines:
-                raise DecoratorError(declaration, cur_line, decorator_indicies)
+    return tagged_declarations
+
+
+def _check_lines_after_declaration(declaration,
+                                   decorator_indicies,
+                                   lines_in_file,
+                                   num_lines):
+    tagged_declarations = []
+    for cur_line_index in range(decorator_indicies, num_lines):
+        cur_line = lines_in_file[cur_line_index]
+        if cur_line.startswith(declaration + " "):
+            tagged_declarations.append(
+                _extract_declaration_name(declaration, cur_line))
+            break
+        # Ignore the line if its empty string indicating whitespace,
+        # or if its another decorator
+        # and stop if its the end of the file
+        elif (not cur_line \
+              or not cur_line.startswith("@")) \
+                and cur_line_index < num_lines:
+            raise DecoratorError(declaration, cur_line, decorator_indicies)
 
     return tagged_declarations
 
