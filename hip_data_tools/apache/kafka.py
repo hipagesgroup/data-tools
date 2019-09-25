@@ -533,7 +533,8 @@ class KafkaPoller:
 
         return list_of_mgs
 
-    def _check_msg_is_not_error(self, msg):
+    @staticmethod
+    def _check_msg_is_not_error(msg):
         if msg.error():
             log.error("Consumer error: %s", msg.error())
             return None
