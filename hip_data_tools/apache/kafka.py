@@ -507,31 +507,37 @@ class KafkaPoller:
 
         log.debug("Getting messages from topic %s", self._topic)
 
-        list_of_mgs = []
-
         if not self._subscribed_to_topic:
             self._subscribe_consumer()
 
-        return self.poll_kafka_for_messages(list_of_mgs)
+        return self.poll_kafka_for_messages()
 
-    def poll_kafka_for_messages(self, list_of_mgs):
+    def poll_kafka_for_messages(self):
+        """
+        Poll the kafka topic for messages
+
+        Returns list(Message): list of Kafka messages
+
+        """
+        list_of_mgs = []
         while True:
             msg = self._kafka_consumer.poll(self._timeout_interval)
 
             if msg is None:
                 break
 
-            if msg.error():
-                log.error("Consumer error: %s", msg.error())
-                continue
-            else:
-
-                log.debug(
-                    "Message from topic: %s", msg.value().decode('utf-8'))
-
-                list_of_mgs.append(msg)
+            list_of_mgs = self._extract_msg_or_log_error(list_of_mgs, msg)
 
         return list_of_mgs
+
+    def _extract_msg_or_log_error(self, list_of_mgs, msg):
+        if msg.error():
+            log.error("Consumer error: %s", msg.error())
+        else:
+            log.debug(
+                "Message from topic: %s", msg.value().decode('utf-8'))
+
+            return list_of_mgs.append(msg)
 
 
 class KafkaS3BatchExporter:
