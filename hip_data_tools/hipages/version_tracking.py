@@ -254,15 +254,19 @@ def _check_line_for_declaration(cur_line,
                                 declaration,
                                 end_of_file,
                                 decorator_indicies):
-    if cur_line.startswith(declaration + " "):
-        return _extract_declaration_name(declaration, cur_line)
+    declaration_in_line = cur_line.startswith(declaration + " ")
     # Ignore the line if its empty string indicating whitespace,
     # or if its another decorator
     # and stop if its the end of the file
-    elif (not cur_line or not cur_line.startswith("@")) and end_of_file:
+    if (not cur_line or not cur_line.startswith("@")) \
+            and end_of_file and not declaration_in_line:
         raise DecoratorError(declaration, cur_line, decorator_indicies)
-    else:
-        return None
+
+    out = None
+    if declaration_in_line:
+        out = _extract_declaration_name(declaration, cur_line)
+
+    return out
 
 def _find_lines_with_decorator(decorating_string, lines_in_file):
     # find index of lines with decorator
