@@ -40,7 +40,6 @@ import argparse
 import importlib
 import json
 import os
-import re
 import sys
 from pathlib import Path
 
@@ -221,13 +220,13 @@ def _find_decorated_declarations(declaration,
                                  lines_in_file,
                                  lines_with_decorator):
     tagged_declarations = []
-    num_lines = len(lines_in_file)
+    line_limit = len(lines_in_file) - 1
     for decorator_indicies in lines_with_decorator:
         tagged_declarations.append(
             _check_lines_after_declaration(declaration,
                                            decorator_indicies,
                                            lines_in_file,
-                                           num_lines))
+                                           line_limit))
 
     return tagged_declarations
 
@@ -235,24 +234,35 @@ def _find_decorated_declarations(declaration,
 def _check_lines_after_declaration(declaration,
                                    decorator_indicies,
                                    lines_in_file,
-                                   num_lines):
+                                   line_limit):
     tagged_declarations = []
-    for cur_line_index in range(decorator_indicies, num_lines):
+    for cur_line_index in range(decorator_indicies, line_limit + 1):
         cur_line = lines_in_file[cur_line_index]
-        if cur_line.startswith(declaration + " "):
-            tagged_declarations.append(
-                _extract_declaration_name(declaration, cur_line))
+        found_value = _check_line_for_declaration(cur_line,
+                                                  declaration,
+                                                  cur_line_index >= line_limit,
+                                                  decorator_indicies)
+
+        if found_value is not None:
+            tagged_declarations.append(found_value)
             break
-        # Ignore the line if its empty string indicating whitespace,
-        # or if its another decorator
-        # and stop if its the end of the file
-        elif (not cur_line \
-              or not cur_line.startswith("@")) \
-                and cur_line_index < num_lines:
-            raise DecoratorError(declaration, cur_line, decorator_indicies)
 
     return tagged_declarations
 
+
+def _check_line_for_declaration(cur_line,
+                                declaration,
+                                end_of_file,
+                                decorator_indicies):
+    if cur_line.startswith(declaration + " "):
+        return _extract_declaration_name(declaration, cur_line)
+    # Ignore the line if its empty string indicating whitespace,
+    # or if its another decorator
+    # and stop if its the end of the file
+    elif (not cur_line or not cur_line.startswith("@")) and end_of_file:
+        raise DecoratorError(declaration, cur_line, decorator_indicies)
+    else:
+        return None
 
 def _find_lines_with_decorator(decorating_string, lines_in_file):
     # find index of lines with decorator
@@ -268,19 +278,6 @@ def _load_file_lines_into_list(path):
         lines_in_file = [line.strip() for line in file.readlines()]
     return lines_in_file
 
-
-def _find_declarations_in_lines(declaration, decorating_string, lines):
-    next_line = False
-    tagged_delcarations = []
-    for line in lines:
-        if next_line and line.strip().startswith(declaration):
-            tagged_delcarations.append(_extract_declaration_name(
-                declaration, line))
-            next_line = False
-        if re.search(decorating_string, line):
-            next_line = True
-
-    return tagged_delcarations
 
 def _extract_declaration_name(declaration, line):
     declaration_name = line.strip().split(declaration)[1] \
