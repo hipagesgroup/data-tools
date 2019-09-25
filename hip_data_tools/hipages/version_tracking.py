@@ -155,21 +155,40 @@ def find_all_modules_which_require_version_tracking(file_list):
     defitions_with_tags = []
 
     for path in file_list:
-        classes_in_file_with_decorator = []
-        for declaration, decorating_string in DEFINITION_MAPPING.items():
-            classes_in_file_with_decorator.extend(
-                check_for_decorated_declaration_in_file(
-                    path,
-                    decorating_string,
-                    declaration))
+        defs_with_tags_in_file = \
+            find_any_relevant_decorations_in_file(defitions_with_tags)
 
-        defitions_with_tags.extend(classes_in_file_with_decorator)
-        if classes_in_file_with_decorator:
+        defitions_with_tags = defitions_with_tags + defs_with_tags_in_file
+
+        if defs_with_tags_in_file:
             files_with_tag.extend(
-                [path for _ in classes_in_file_with_decorator]
+                [path for _ in defs_with_tags_in_file]
             )
 
     return defitions_with_tags, files_with_tag
+
+
+def find_any_relevant_decorations_in_file(path):
+    """
+    Find any relevant decorations in the provided in tehe
+    Args:
+        path (string): Path to the file being scanned
+
+    Returns (list(string)): List of decorated definitions found in the file
+
+    """
+    classes_in_file_with_decorator = []
+    definitions_with_tags = []
+    files_with_tag = []
+    for declaration, decorating_string in DEFINITION_MAPPING.items():
+        classes_in_file_with_decorator.extend(
+            check_for_decorated_declaration_in_file(
+                path,
+                decorating_string,
+                declaration))
+    definitions_with_tags.extend(classes_in_file_with_decorator)
+
+    return definitions_with_tags
 
 
 def check_for_decorated_declaration_in_file(path,
