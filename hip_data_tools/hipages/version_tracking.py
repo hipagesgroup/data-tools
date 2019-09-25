@@ -89,7 +89,7 @@ def register_method_for_version_tracking(meth):
 
 def _find_package_location(pkg):
     """
-    find the location on disc of the package of interest
+    find the location on disk of the package of interest
     Args:
         pkg: package of interest
 
