@@ -1,11 +1,13 @@
 """
 Utility to connect to, and interact with the s3 file storage system
 """
+import logging as log
 import uuid
 
+import boto3
 import pandas as pd
-from joblib import load, dump
 
+from joblib import load, dump
 from hip_data_tools.common import _generate_random_file_name
 
 
@@ -101,3 +103,62 @@ class S3Util:
         random_tmp_file_nm = _generate_random_file_name()
         self.download_file(random_tmp_file_nm, s3_key)
         return pd.read_parquet(random_tmp_file_nm, engine=engine, columns=columns, **kwargs)
+
+    def move_recursive_to_different_bucket(self, source_dir, destination_bucket_name, destination_dir,
+                                           delete_after_copy=True, file_suffix_filter='None'):
+        """
+        Move files from one bucket to another
+        Args:
+            source_dir (str):
+            destination_bucket_name (str):
+            destination_dir (str):
+            delete_after_copy (str): If True source files will be deleted after copying to destination
+            file_suffix_filter (str): Filter out the files with this suffix
+        Returns: NA
+        """
+        s3 = boto3.resource(self.boto_type)
+        source_bucket = s3.Bucket(self.bucket)
+        destination_bucket = s3.Bucket(destination_bucket_name)
+        for obj in source_bucket.objects.filter(Prefix=source_dir):
+            if not obj.key.endswith(file_suffix_filter):
+                new_key = "{destination_dir_without_bucket_name}/{destination_file_name}".format(
+                    destination_dir_without_bucket_name=destination_dir.replace(destination_bucket_name + '/', ''),
+                    destination_file_name=obj.key.split('/')[-1])
+                log.info("Moving s3 object from : \n%s \nto: \n%s", obj.key, new_key)
+                new_obj = destination_bucket.Object(new_key)
+                new_obj.copy({"Bucket": self.bucket, "Key": obj.key})
+        if delete_after_copy:
+            self.delete_recursive(source_dir)
+
+    def read_lines_as_list(self, key_prefix_filter):
+        """
+        Read lines from s3 files
+        Args:
+            key_prefix_filter (str): the key prefix under which all files will be read
+        Returns: a list of strings representing lines read from all files
+        """
+        s3 = boto3.resource(self.boto_type)
+        bucket = s3.Bucket(name=self.bucket)
+        lines = []
+        log.info("reading files from s3://%s/%s ", self.bucket, key_prefix_filter)
+        file_metadata = bucket.objects.filter(Prefix=key_prefix_filter)
+        for file in file_metadata:
+            obj = s3.Object(self.bucket, file.key)
+            data = obj.get()["Body"].read().decode("utf-8")
+            lines.append(data.splitlines())
+        # Flatten the list of lists
+        flat_lines = [item for sublist in lines for item in sublist]
+        log.info("Read %d lines from %d s3 files", len(flat_lines), len(lines))
+        return flat_lines
+
+    def delete_recursive(self, key_prefix):
+        """
+        Recursively delete all keys with given prefix from the named bucket
+        Args:
+            key_prefix (str): Key prefix under which all files will be deleted
+        Returns: NA
+        """
+        log.info("Recursively deleting s3://%s/%s", self.bucket, key_prefix)
+        s3 = boto3.resource(self.boto_type)
+        response = s3.Bucket(self.bucket).objects.filter(Prefix=key_prefix).delete()
+        log.info(response)
