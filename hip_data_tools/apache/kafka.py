@@ -537,11 +537,11 @@ class KafkaPoller:
         if msg.error():
             log.error("Consumer error: %s", msg.error())
             return None
-        else:
-            log.debug(
-                "Message from topic: %s", msg.value().decode('utf-8'))
 
-            return msg
+        log.debug(
+            "Message from topic: %s", msg.value().decode('utf-8'))
+
+        return msg
 
 
 class KafkaS3BatchExporter:
