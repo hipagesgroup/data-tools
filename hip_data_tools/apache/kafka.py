@@ -31,12 +31,16 @@ python dictionary of configurations"""
 
 DEFAULT_CONSUMER_CONF = \
     """{'auto.offset.reset': 'earliest'}"""
-"""Default configurations for the Kafka consumer, as string representing a
-python dictionary of configurations"""
+"""
+Default configurations for the Kafka consumer, as string representing a
+python dictionary of configurations
+"""
 
 DEFAULT_KAFKA_TIMESTAMP_COLUMN_NAME = 'kafka_timestamp'
-"""Default name of the column in which we store a message's timestamp
-provided by Kafka """
+"""
+Default name of the column in which we store a message's timestamp
+provided by Kafka 
+"""
 
 DEFAULT_TIMESTAMP_PARTITION_KEY = 'partition_key_ts'
 """
