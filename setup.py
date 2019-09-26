@@ -10,18 +10,30 @@ from hip_data_tools.common import get_release_version, get_long_description
 
 
 class PyTest(test_command):
+    """
+    Setup tools class used to initiate pytests
+    """
     user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
 
     def initialize_options(self):
+        """
+        Added options to apply to the pytests
+        Returns: None
+        """
         test_command.initialize_options(self)
-        self.pytest_args = ["-v"]
+        self.pytest_args = ["-vv"]
 
     def finalize_options(self):
+        """
+        Options for finalisation
+        Returns: None
+        """
         test_command.finalize_options(self)
         self.test_args = []
         self.test_suite = True
 
     def run_tests(self):
+        """Test executions options"""
         # import here, cause outside the eggs aren't loaded
         import pytest
         errno = pytest.main(self.pytest_args)
