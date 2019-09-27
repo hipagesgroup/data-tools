@@ -37,10 +37,8 @@ containing registered classes, functions, and methods will be logged to disk
 """
 
 import argparse
-import importlib
 import json
 import os
-import sys
 from pathlib import Path
 
 import git
@@ -312,19 +310,19 @@ def get_latest_git_hash_of_files_in_repo(repo, files_to_get):
     return git_hashes
 
 
-def find_relevant_file_versions(pkg, repo_location):
+def find_relevant_file_versions(package_location, repo_location):
     """
     Finds all the classes, and versions, for classes with the relevant
     decorator given the package and the repo location
     Args:
-        pkg: package to analyse
-        repo_location: path to relevant git repo
+        package_location (str): path to package
+        repo_location (str): path to relevant git repo
 
     Returns: dictionary of classes and the latest git hash of the
         file in which they live
 
     """
-    package_location = _find_package_location(pkg)
+
     module_locations = _find_all_python_modules_in_folder(package_location)
     classes_with_tag, files_with_tag = \
         find_tracked_modules(module_locations)
@@ -350,7 +348,7 @@ def write_versions_to_json(version_dict, output_location):
         json.dump(version_dict, file)
 
 
-def find_and_export_relevant_versions(pkg,
+def find_and_export_relevant_versions(path,
                                       repo_location,
                                       output_location):
     """
@@ -358,13 +356,13 @@ def find_and_export_relevant_versions(pkg,
     as requiring version tagging, and then writes these classes and their
     versions to a json file
     Args:
-        pkg: package to analyse
+        path: local path to package
         repo_location: location of github repo used to track versions
         output_location: location of version control json report
 
     """
 
-    versions_dict = find_relevant_file_versions(pkg, repo_location)
+    versions_dict = find_relevant_file_versions(path, repo_location)
 
     write_versions_to_json(versions_dict, output_location)
 
@@ -429,10 +427,8 @@ def main():
                         help="location to put versioning file")
 
     args = parser.parse_args()
-    sys.path.append(args.pkg_dir)
-    pkg_of_interest = importlib.import_module(args.pkg_nm)
 
-    find_and_export_relevant_versions(pkg_of_interest, args.repo, args.out_loc)
+    find_and_export_relevant_versions(args.pkg_nm, args.repo, args.out_loc)
 
 
 if __name__ == "__main__":
