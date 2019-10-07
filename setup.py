@@ -45,10 +45,13 @@ setup(
     long_description_content_type='text/markdown',
     packages=find_packages(include=["hip_data_tools", "hip_data_tools.*"]),
     zip_safe=False,
+    entry_points={'console_scripts': [
+        'version-tracker=hip_data_tools.hipages.version_tracking:main']},
     install_requires=[
         "boto3==1.9.216",
         "joblib==0.13.2",
         "pandas==0.25.1",
+        "GitPython==3.0.0",
         'confluent-kafka==1.1.0',
     ],
     test_suite="tests",
@@ -58,6 +61,7 @@ setup(
         "moto==1.3.13",
         "pyarrow==0.14.1",
         "python-snappy==0.5.4",
+        "pytest-stub==0.1.0",
         "freezegun==0.1.11"
     ],
     cmdclass={'test': PyTest},
