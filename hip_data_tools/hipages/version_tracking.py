@@ -39,9 +39,15 @@ containing registered classes, functions, and methods will be logged to disk
 import argparse
 import json
 import os
+import socket
+import traceback
+from datetime import datetime
 from pathlib import Path
 
 import git
+import joblib
+
+from hip_data_tools.common import LOG as log
 
 CLASS_DECORATOR_STRING = '@register_class_for_version_tracking'
 "string : Used to trigger identification of the class by the version tracker"
@@ -386,6 +392,133 @@ class DecoratorError(Exception):
             .format(declaration, line, str(line_number))
 
         super().__init__(message_body)
+
+
+class VersionTracker:
+    """
+    A class that allows us to track versions through hashes and strings by
+    generating a dictionary. Versions can be loaded from file or can be
+    generated on the fly from object hashes
+
+    """
+
+    def __init__(self):
+
+        self._version_dict = {}
+
+    def add_dictionary_to_versions(self, in_dict):
+        """
+        Add a Python dictionary to the versioning dictionary
+        Args:
+            in_dict (dict): A dictionary to append to the version dictionary
+
+        Returns: None
+
+        """
+
+        self._version_dict.update(in_dict)
+
+    def add_versions_from_json_file(self, version_file_location):
+        """
+        Load a json file from local storage and append these versions to the
+        version tracking dictionary
+        Args:
+            version_file_location (str): Path to the json file
+
+        Returns: None
+
+        """
+        try:
+            with open(version_file_location, "r") as content:
+                file_content = content.read()
+                version_dict_from_file = json.loads(file_content)
+
+                self.add_dictionary_to_versions(version_dict_from_file)
+
+        except FileNotFoundError as fnf:
+            log.error("No versioning file found at : %s",
+                      version_file_location)
+            raise fnf
+
+        except json.decoder.JSONDecodeError as decode_error:
+
+            log.error("JSON file failed to decode, check version dict is "
+                      "correctly formatted")
+
+            raise decode_error
+
+        except Exception as exception:
+            log.error("unknown error")
+            log.error(traceback.format_exc())
+            raise exception
+
+    def _add_hostname(self):
+
+        self._version_dict.update({'hostname': socket.gethostname()})
+
+    def add_object_version(self, dict_key, obj):
+        """Adds a hash of an object to the version tracking
+        Args:
+            dict_key (str): Name to be using in the version tracking
+                dictioanry
+            obj (Object): Any hashable object
+
+        Returns: None
+        """
+
+        self.add_dictionary_to_versions({dict_key: joblib.hash(obj)})
+
+    def add_string_to_version_tracking(self, dict_key, in_string):
+        """
+        Adds a string value to the version tracking.
+        Args:
+            dict_key (str): Name to use as the key in the version tracking
+                dictionary
+            in_string (str): Value to be stored in the version tracking
+                dictionary
+
+        Returns: None
+
+        """
+
+        self.add_dictionary_to_versions({dict_key: in_string})
+
+    def _set_agglomerated_version_hash(self):
+        """
+        This hash takes all of the versioning hashes and combines them to
+        produce a single hash of everything excluding the timestamp and
+        hostname. This should, therefore, provide a single hash which
+        encapsulates the software versions.
+
+        Returns: None
+
+        """
+        relevant_versions = {x: self._version_dict[x]
+                             for x in self._version_dict if x not in
+                             ['hostname', 'versioning_timestamp']}
+
+        version_hash = joblib.hash(json.dumps(relevant_versions,
+                                              sort_keys=True)
+                                   )
+
+        self.add_dictionary_to_versions({'aggregated_version': version_hash})
+
+    def _add_versioning_timestamp(self):
+        self.add_dictionary_to_versions({'versioning_timestamp':
+                                             datetime.utcnow().isoformat()})
+
+    def get_version_dict(self):
+        """
+        Brings together all of the required versioning information and
+        returns the relevant dictionary
+        Returns (dict): Dictionary which tracks all of the tracked versions
+        """
+
+        self._set_agglomerated_version_hash()
+        self._add_hostname()
+        self._add_versioning_timestamp()
+
+        return self._version_dict
 
 
 def main():
