@@ -56,6 +56,7 @@ setup(
     ],
     test_suite="tests",
     tests_require=[
+        'attrs==19.1.0',
         'pytest==4.2.1',
         'pytest-mock==1.10.1',
         "moto==1.3.13",
