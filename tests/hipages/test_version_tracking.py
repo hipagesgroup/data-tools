@@ -1,7 +1,11 @@
+import json
+import uuid
 from unittest.mock import mock_open, patch
 
 import pytest
+from freezegun import freeze_time
 from joblib import hash
+from mock import patch, mock_open
 
 import hip_data_tools.hipages.version_tracking as vt
 
@@ -11,6 +15,12 @@ class FakePackage:
     @staticmethod
     def some_method():
         return 'foo'
+
+
+class ExampleClass:
+
+    def __init__(self, some_attribute):
+        self.some_attribute = some_attribute
 
 
 def test__decorate_class_should_decorate_class_with_no_sideeffects():
@@ -185,3 +195,112 @@ def test__get_latest_git_hash_of_files_in_repo(stub):
                                                          files_to_get)
 
     assert ([commit_sha, commit_sha] == git_hashes)
+
+
+def test__versiontracker_should_load_version_file():
+    version_file = """{"some_class": "version_1"}"""
+
+    with patch("builtins.open", mock_open(read_data=version_file)) as mock_file:
+        version_tracker = \
+            vt.VersionTracker()
+
+        version_tracker.add_versions_from_json_file('some_location')
+
+        assert version_tracker._version_dict == \
+               {'some_class': 'version_1'}
+
+
+def test__versiontracker_should_raise_error_when_file_not_found():
+    random_file_location = str(uuid.uuid4())
+
+    with pytest.raises(FileNotFoundError) as fnf:
+        version_tracker = \
+            vt.VersionTracker()
+
+        version_tracker.add_versions_from_json_file(random_file_location)
+
+    assert fnf.typename == "FileNotFoundError"
+
+
+def test__versiontracker_should_raise_decode_error_when_problem_found():
+    version_file = """not a json file"""
+
+    with patch("builtins.open", mock_open(read_data=version_file)) as mock_file:
+        with pytest.raises(json.decoder.JSONDecodeError) as decode_error:
+            version_tracker = vt.VersionTracker()
+
+            version_tracker.add_versions_from_json_file('some_file/location')
+
+    assert decode_error.typename == "JSONDecodeError"
+
+
+def test_versiontracker_should_add_a_consistent_object_version_for_tracking():
+    example_class_1 = ExampleClass('attr1')
+    example_class_2 = ExampleClass('attr2')
+
+    expected_hash_value_1 = '7755191057dcd7367e90110af2f38378'
+    expected_hash_value_2 = '27a50c050e78a07ff1ccd27e4dcab7b7'
+
+    version_tracker = vt.VersionTracker()
+
+    version_tracker.add_object_version('example_class_1', example_class_1)
+    version_tracker.add_object_version('example_class_2', example_class_2)
+
+    expected_dict = {'example_class_1': expected_hash_value_1,
+                     'example_class_2': expected_hash_value_2}
+
+    assert expected_dict == version_tracker._version_dict
+
+
+def test__versiontracker_should_add_string_to_version_tracking():
+    version_tracker = vt.VersionTracker()
+
+    version_tracker.add_string_to_version_tracking("A_path_to_something",
+                                                   'some/path/some/where')
+
+    version_tracker.add_string_to_version_tracking("another_path_to_something",
+                                                   'another/path/some/where')
+
+    expected_dict = {"A_path_to_something": 'some/path/some/where',
+                     "another_path_to_something": 'another/path/some/where'}
+
+    assert version_tracker._version_dict == expected_dict
+
+
+@freeze_time("2017-03-28 11:10:10")
+def test_versiontracker_provide_all_the_versions(mocker):
+    version_file = """{"some_class": "version_1"}"""
+
+    with patch("builtins.open", mock_open(read_data=version_file)) as mock_file:
+        with mocker.patch("socket.gethostname", return_value="a_host"):
+            example_class_1 = ExampleClass('attr1')
+            example_class_2 = ExampleClass('attr2')
+
+            vtracker = vt.VersionTracker()
+
+            vtracker.add_versions_from_json_file("some/location")
+            vtracker.add_string_to_version_tracking("A_path_to_something",
+                                                    'some/path/some/where')
+
+            vtracker.add_string_to_version_tracking("another_path_to_something",
+                                                    'another/path/some/where')
+
+            vtracker.add_object_version('example_class_1', example_class_1)
+            vtracker.add_object_version('example_class_2', example_class_2)
+
+            version_dict = vtracker.get_version_dict()
+
+            expected_dict = {'A_path_to_something': 'some/path/some/where',
+                             'aggregated_version':
+                                 '080d27b8c6e6f8975ea8d227742c22bd',
+                             'another_path_to_something':
+                                 'another/path/some/where',
+                             'example_class_1':
+                                 '7755191057dcd7367e90110af2f38378',
+                             'example_class_2':
+                                 '27a50c050e78a07ff1ccd27e4dcab7b7',
+                             'hostname': 'a_host',
+                             'some_class': 'version_1',
+                             'versioning_timestamp': '2017-03-28T11:10:10'}
+
+            assert expected_dict == version_dict
