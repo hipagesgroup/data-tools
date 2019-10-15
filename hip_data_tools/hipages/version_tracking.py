@@ -155,20 +155,20 @@ def find_tracked_modules(file_list):
 
     """
     files_with_tag = []
-    defitions_with_tags = []
+    definitions_with_tags = []
 
     for path in file_list:
         defs_with_tags_in_file = \
-            find_any_relevant_decorations_in_file(defitions_with_tags)
+            find_any_relevant_decorations_in_file(definitions_with_tags)
 
-        defitions_with_tags = defitions_with_tags + defs_with_tags_in_file
+        definitions_with_tags = definitions_with_tags + defs_with_tags_in_file
 
         if defs_with_tags_in_file:
             files_with_tag.extend(
                 [path for _ in defs_with_tags_in_file]
             )
 
-    return defitions_with_tags, files_with_tag
+    return definitions_with_tags, files_with_tag
 
 
 def find_any_relevant_decorations_in_file(path):
@@ -271,6 +271,7 @@ def _check_line_for_declaration(cur_line,
         out = _extract_declaration_name(declaration, cur_line)
 
     return out
+
 
 def _find_lines_with_decorator(decorating_string, lines_in_file):
     # find index of lines with decorator
