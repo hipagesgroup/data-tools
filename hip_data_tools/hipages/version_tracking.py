@@ -568,8 +568,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    find_and_export_relevant_versions(
-        '/Users/christophercoulson/IdeaProjects/muriel/muriel_inference',
-        '/Users/christophercoulson/IdeaProjects/muriel/',
-        "version_tracking.json")
+    main()
