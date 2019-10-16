@@ -34,6 +34,7 @@ class Foo:
 
 When the version tracking app is executed the latest githash of the files
 containing registered classes, functions, and methods will be logged to disk
+in a json file
 """
 
 import argparse
