@@ -180,18 +180,15 @@ def find_any_relevant_decorations_in_file(path):
     Returns (list(string)): List of decorated definitions found in the file
 
     """
-    classes_in_file_with_decorator = []
+
     definitions_with_tags = []
 
     for declaration, decorating_string in DEFINITION_MAPPING.items():
-        classes_in_file_with_decorator.extend(
+        definitions_with_tags.extend(
             check_for_decorated_declaration_in_file(
                 path,
                 decorating_string,
                 declaration))
-
-    [definitions_with_tags.append(cur_class) for
-     cur_class in classes_in_file_with_decorator]
 
     return definitions_with_tags
 
@@ -228,11 +225,11 @@ def _find_decorated_declarations(declaration,
     tagged_declarations = []
     line_limit = len(lines_in_file) - 1
     for decorator_indicies in lines_with_decorator:
-        [tagged_declarations.append(cur_dec) for cur_dec in
-         _check_lines_after_declaration(declaration,
-                                        decorator_indicies,
-                                        lines_in_file,
-                                        line_limit)]
+        tagged_declarations.extend(
+            _check_lines_after_declaration(declaration,
+                                           decorator_indicies,
+                                           lines_in_file,
+                                           line_limit))
 
     return tagged_declarations
 
