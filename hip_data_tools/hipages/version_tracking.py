@@ -148,10 +148,10 @@ def find_tracked_modules(file_list):
         file_list: list of paths to python files
 
     Returns:
-            defitions_with_tags : list of class names which require version
+            definitions_with_tags: list of class names which require version
             tracking
             files_with_tag: list of files in which the version tracked files
-            are found
+                are found
 
     """
     files_with_tag = []
@@ -159,7 +159,7 @@ def find_tracked_modules(file_list):
 
     for path in file_list:
         defs_with_tags_in_file = \
-            find_any_relevant_decorations_in_file(definitions_with_tags)
+            find_any_relevant_decorations_in_file(path)
 
         definitions_with_tags = definitions_with_tags + defs_with_tags_in_file
 
@@ -189,7 +189,9 @@ def find_any_relevant_decorations_in_file(path):
                 path,
                 decorating_string,
                 declaration))
-    definitions_with_tags.extend(classes_in_file_with_decorator)
+
+    [definitions_with_tags.append(cur_class) for
+     cur_class in classes_in_file_with_decorator]
 
     return definitions_with_tags
 
@@ -226,11 +228,11 @@ def _find_decorated_declarations(declaration,
     tagged_declarations = []
     line_limit = len(lines_in_file) - 1
     for decorator_indicies in lines_with_decorator:
-        tagged_declarations.append(
-            _check_lines_after_declaration(declaration,
-                                           decorator_indicies,
-                                           lines_in_file,
-                                           line_limit))
+        [tagged_declarations.append(cur_dec) for cur_dec in
+         _check_lines_after_declaration(declaration,
+                                        decorator_indicies,
+                                        lines_in_file,
+                                        line_limit)]
 
     return tagged_declarations
 
@@ -566,4 +568,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    find_and_export_relevant_versions(
+        '/Users/christophercoulson/IdeaProjects/muriel/muriel_inference',
+        '/Users/christophercoulson/IdeaProjects/muriel/',
+        "version_tracking.json")
