@@ -148,27 +148,27 @@ def find_tracked_modules(file_list):
         file_list: list of paths to python files
 
     Returns:
-            defitions_with_tags : list of class names which require version
+            definitions_with_tags: list of class names which require version
             tracking
             files_with_tag: list of files in which the version tracked files
-            are found
+                are found
 
     """
     files_with_tag = []
-    defitions_with_tags = []
+    definitions_with_tags = []
 
     for path in file_list:
         defs_with_tags_in_file = \
-            find_any_relevant_decorations_in_file(defitions_with_tags)
+            find_any_relevant_decorations_in_file(path)
 
-        defitions_with_tags = defitions_with_tags + defs_with_tags_in_file
+        definitions_with_tags = definitions_with_tags + defs_with_tags_in_file
 
         if defs_with_tags_in_file:
             files_with_tag.extend(
                 [path for _ in defs_with_tags_in_file]
             )
 
-    return defitions_with_tags, files_with_tag
+    return definitions_with_tags, files_with_tag
 
 
 def find_any_relevant_decorations_in_file(path):
@@ -180,16 +180,15 @@ def find_any_relevant_decorations_in_file(path):
     Returns (list(string)): List of decorated definitions found in the file
 
     """
-    classes_in_file_with_decorator = []
+
     definitions_with_tags = []
 
     for declaration, decorating_string in DEFINITION_MAPPING.items():
-        classes_in_file_with_decorator.extend(
+        definitions_with_tags.extend(
             check_for_decorated_declaration_in_file(
                 path,
                 decorating_string,
                 declaration))
-    definitions_with_tags.extend(classes_in_file_with_decorator)
 
     return definitions_with_tags
 
@@ -226,7 +225,7 @@ def _find_decorated_declarations(declaration,
     tagged_declarations = []
     line_limit = len(lines_in_file) - 1
     for decorator_indicies in lines_with_decorator:
-        tagged_declarations.append(
+        tagged_declarations.extend(
             _check_lines_after_declaration(declaration,
                                            decorator_indicies,
                                            lines_in_file,
@@ -271,6 +270,7 @@ def _check_line_for_declaration(cur_line,
         out = _extract_declaration_name(declaration, cur_line)
 
     return out
+
 
 def _find_lines_with_decorator(decorating_string, lines_in_file):
     # find index of lines with decorator
