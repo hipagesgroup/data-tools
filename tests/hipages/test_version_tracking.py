@@ -188,9 +188,6 @@ def test__check_for_all_decorated_classes_in_file(mocker):
     assert classes_with_tag[1] == 'AnotherClassToBeTracked'
 
 
-
-
-
 def test__get_latest_git_hash_of_files_in_repo(stub):
     commit_sha = 'someHexCommitString'
 
