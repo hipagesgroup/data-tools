@@ -53,7 +53,7 @@ references:
     run:
       name: Install ArgoCD CLI
       command: |
-        sudo curl -sSL -o /usr/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v1.2.0/argocd-linux-amd64
+        sudo curl -sSL -o /usr/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v1.3.0-rc1/argocd-linux-amd64
         sudo chmod +x /usr/bin/argocd
 
   install_k8s_tests: &install_k8s_tests
@@ -93,6 +93,11 @@ references:
     run:
       name: Run semantic-release
       command: $(yarn global bin)/semantic-release
+
+  yarn_authenticate_github_packages: &yarn_authenticate_github_packages
+    run:
+      name: Authenticate github packages for yarn
+      command: grep -q @hipagesgroup yarn.lock && echo //npm.pkg.github.com/:_authToken=$GITHUB_TOKEN >> .npmrc || true
 
 jobs:
   test:
@@ -155,6 +160,7 @@ jobs:
       - *save_repo
       - attach_workspace:
           at: .
+      - *yarn_authenticate_github_packages
       - *yarn_restore_cache
       - run: yarn install --prefer-offline --frozen-lockfile
       - *yarn_save_cache
