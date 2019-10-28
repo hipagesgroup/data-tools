@@ -6,8 +6,8 @@ import uuid
 
 import boto3
 import pandas as pd
-
 from joblib import load, dump
+
 from hip_data_tools.common import _generate_random_file_name
 
 
@@ -15,7 +15,7 @@ class S3Util:
     """
     Utility class for connecting to s3 and manipulate data in a pythonic way
     Args:
-        conn (AwsConnection): AwsConnection object
+        conn (AwsConnection): AwsConnection object or a boto.Session object
         bucket (string): S3 bucket name where these operations will take place
     """
 

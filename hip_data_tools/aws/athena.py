@@ -37,7 +37,7 @@ class AthenaUtil:
                 "inputformat": "org.apache.hadoop.mapred.TextInputFormat"
             }
         }
-        self.boto_type = "athema"
+        self.boto_type = "athena"
 
     def run_query(self, query_string, return_result=False):
         """

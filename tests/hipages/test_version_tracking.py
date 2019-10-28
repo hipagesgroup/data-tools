@@ -44,12 +44,6 @@ def test__python_can_extract_fld_from_pkg_file(mocker):
     assert (found_location == '/foo/bar/')
 
 
-def test_finding_decorators_in_a_file():
-    lines_in_file = ['some_line', '', vt.CLASS_DECORATOR_STRING,
-                     "class "
-                     "DecoratedClass"]
-
-
 def test__check_for_decorated_classes_in_file(mocker):
     some_decorated_string = "@decorator_string"
     type_definiton = "class"
@@ -134,7 +128,7 @@ def test__exception_raised_when_decorator_found_but_no_defintion(mocker):
                     list_of_files_to_analyse)
 
 
-def test__check_for_all_decorated_methods_and_classes_in_file(mocker):
+def test__check_for_single_decorated_classes_in_file(mocker):
     some_decorated_string = "@decorator_string"
     type_definiton = "class"
     example_file = """import foo
@@ -156,6 +150,42 @@ def test__check_for_all_decorated_methods_and_classes_in_file(mocker):
                                                        type_definiton)
 
     assert (len(classes_with_tag) == 1)
+    assert classes_with_tag[0] == 'ClassToBeTracked'
+
+
+def test__check_for_all_decorated_classes_in_file(mocker):
+    some_decorated_string = "@decorator_string"
+    type_definiton = "class"
+    example_file = """import foo
+    import pandas as pd
+    
+    {}
+    {} ClassToBeTracked
+        def __init__(self): 
+            self.foo = 1 
+    
+    {} ClassToBeIgnored
+    
+    {}
+    {} AnotherClassToBeTracked
+        def __init__(self): 
+            self.foo = 1     
+    """.format(some_decorated_string,
+               type_definiton,
+               type_definiton,
+               some_decorated_string,
+               type_definiton)
+    #
+    m = mock_open(read_data=example_file)
+    with patch('builtins.open', m, create=True):
+        classes_with_tag = \
+            vt.check_for_decorated_declaration_in_file('some/mocked/file/path',
+                                                       some_decorated_string,
+                                                       type_definiton)
+
+    assert (len(classes_with_tag) == 2)
+    assert classes_with_tag[0] == 'ClassToBeTracked'
+    assert classes_with_tag[1] == 'AnotherClassToBeTracked'
 
 
 def test__get_latest_git_hash_of_files_in_repo(stub):
