@@ -72,6 +72,12 @@ references:
       command: |
         yarn global add --no-progress --non-interactive "semantic-release@15.5.0" "@semantic-release/exec@2.2.4"
 
+  install_semantic-release-with-beta: &install_semantic-release-with-beta
+    run:
+      name: Install semantic-release with beta
+      command: |
+        yarn global add --no-progress --non-interactive "semantic-release@16.0.0-beta.35" "@semantic-release/exec@2.2.4"
+
   install_dockerlint: &install_dockerlint
     run:
       name: Install dockerlint
@@ -160,6 +166,7 @@ jobs:
       - *save_repo
       - attach_workspace:
           at: .
+
       - *yarn_authenticate_github_packages
       - *yarn_restore_cache
       - run: yarn install --prefer-offline --frozen-lockfile
