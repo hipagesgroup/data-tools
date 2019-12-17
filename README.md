@@ -50,3 +50,4 @@ au = AthenaUtil(database="default", conn=conn, output_bucket="example", output_k
 result = au.run_query("SELECT * FROM temp limit 10", return_result=True)
 print(result)
 ```
+
