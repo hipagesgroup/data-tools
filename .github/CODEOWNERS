@@ -9,6 +9,6 @@
 * @hipagesgroup/datascience
 
 # managed by repo-man
-.github/*     @estahn @jurgenweber
-.circle*    @estahn @jurgenweber
-.releaserc  @estahn @jurgenweber
+.github/*     @estahn
+.circle*    @estahn
+.releaserc  @estahn
