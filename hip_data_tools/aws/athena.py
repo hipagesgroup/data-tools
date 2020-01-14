@@ -316,9 +316,8 @@ def generate_parquet_ctas(select_query, destination_table, destination_bucket, d
         destination_table (string): name of the new table being created
         destination_bucket (string): the s3 bucket where the data from select query will be stored
         destination_key (string): the s3 directory where the data from select query will be stored
-
+        partition_fields (string): partitioning fields as a comma separated string
     Returns (string): CTAS Query in a string
-
     """
     partitioned_by = ""
     if partition_fields != '':
