@@ -35,70 +35,14 @@ class AthenaUtil:
                 "row_format_serde": "org.apache.hadoop.hive.serde2.OpenCSVSerde",
                 "outputformat": "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
                 "inputformat": "org.apache.hadoop.mapred.TextInputFormat"
+            },
+            "json": {
+                "row_format_serde": "org.openx.data.jsonserde.JsonSerDe",
+                "outputformat": "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
+                "inputformat": "org.apache.hadoop.mapred.TextInputFormat"
             }
         }
         self.boto_type = "athena"
-
-    def run_query(self, query_string, return_result=False):
-        """
-        General purpose query executor that submits an athena query, then uses the execution id
-        to poll and monitor the
-        sucess of the query. and optionally return the result.
-        Args:
-            query_string (string): The string contianing valid athena query
-            return_result (boolean): Boolean flag to turn on results
-
-        Returns (boolean): if return_result = True then returns result dictionary, else None
-
-        """
-        athena = self.conn.client(self.boto_type)
-        output_location = "s3://{bucket}/{key}".format(
-            bucket=self.output_bucket,
-            key=self.output_key)
-        LOG.info("executing query \n%s \non database - %s with results location %s", query_string,
-                 self.database,
-                 output_location)
-        response = athena.start_query_execution(
-            QueryString=query_string,
-            QueryExecutionContext={
-                'Database': self.database
-            },
-            ResultConfiguration={
-                'OutputLocation': output_location
-            }
-        )
-        execution_id = response['QueryExecutionId']
-        stats = self.watch_query(execution_id)
-        LOG.info("athena response %s", response)
-        if stats['QueryExecution']['Status']['State'] == 'SUCCEEDED':
-            LOG.info("Query execution id - %s SUCCEEDED", execution_id)
-            if return_result:
-                return self._get_query_result(execution_id)
-        else:
-            raise ValueError("Query exited with {} state because {}".format(
-                stats['QueryExecution']['Status']['State'],
-                stats['QueryExecution']['Status']['StateChangeReason']))
-        return None
-
-    def watch_query(self, execution_id, poll_frequency=10):
-        """
-        Watch the query execution for a given execution id in Athena
-        Args:
-            execution_id: the execution id of an Athena Auery
-            poll_frequency (int): Freq in seconds to poll for the query status using Athen API
-
-        Returns: dictionary of status from Athena
-
-        """
-        LOG.info("Watching query with execution id - %s", execution_id)
-        while True:
-            athena = self.conn.client(self.boto_type)
-            stats = athena.get_query_execution(QueryExecutionId=execution_id)
-            status = stats['QueryExecution']['Status']['State']
-            if status in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
-                LOG.info("Query Completed %s", stats)
-                return stats
-            time.sleep(poll_frequency)
 
     def _show_result(self, execution_id, max_result_size=1000):
         results = self._get_query_result(execution_id, max_result_size)
@@ -115,36 +59,6 @@ class AthenaUtil:
                                            MaxResults=max_result_size)
         # TODO: Add ability to parse pages larger than 1000 rows
         return results
-
-    def repair_table_partitions(self, table):
-        """
-        Runs repair on given table
-        Args:
-            table (string): name of the table whose partitions need to be scanned and refilled
-
-        Returns: None
-
-        """
-        self.run_query("MSCK REPAIR TABLE {}".format(table))
-
-    def add_partitions(self, table, partition_keys, partition_values):
-        """
-        Add a new partition to a given table
-        Args:
-            table (string): name of the table to which a new partition is added
-            partition_keys (list): an array of the keys/partition columns
-            partition_values (list): an array of values for partitions
-
-        Returns: None
-
-        """
-        partition_kv = ["{}='{}'".format(key, value) for key, value in
-                        zip(partition_keys, partition_values)]
-        partition_query = """
-        ALTER TABLE {table_name} ADD IF NOT EXISTS PARTITION ({partitions});
-        """.format(table_name=table,
-                   partitions=', '.join(partition_kv))
-        self.run_query(query_string=partition_query)
 
     def _build_create_table_sql(self, table_settings):
         exists = _construct_table_exists_ddl(table_settings["exists"])
@@ -182,6 +96,98 @@ class AthenaUtil:
                        s3_dir=table_settings["s3_dir"],
                        table_properties=table_properties)
         return sql
+
+    def run_query(self, query_string, return_result=False):
+        """
+        General purpose query executor that submits an athena query, then uses the execution id
+        to poll and monitor the
+        sucess of the query. and optionally return the result.
+        Args:
+            query_string (string): The string contianing valid athena query
+            return_result (boolean): Boolean flag to turn on results
+
+        Returns (boolean): if return_result = True then returns result dictionary, else None
+
+        """
+        athena = self.conn.client(self.boto_type)
+        output_location = "s3://{bucket}/{key}".format(
+            bucket=self.output_bucket,
+            key=self.output_key)
+        LOG.info("executing query \n%s \non database - %s with results location %s", query_string,
+                 self.database,
+                 output_location)
+        response = athena.start_query_execution(
+            QueryString=query_string,
+            QueryExecutionContext={
+                'Database': self.database
+            },
+            ResultConfiguration={
+                'OutputLocation': output_location
+            },
+            WorkGroup='gandalf',
+        )
+        execution_id = response['QueryExecutionId']
+        stats = self.watch_query(execution_id)
+        LOG.info("athena response %s", response)
+        if stats['QueryExecution']['Status']['State'] == 'SUCCEEDED':
+            LOG.info("Query execution id - %s SUCCEEDED", execution_id)
+            if return_result:
+                return self._get_query_result(execution_id)
+        else:
+            raise ValueError("Query exited with {} state because {}".format(
+                stats['QueryExecution']['Status']['State'],
+                stats['QueryExecution']['Status']['StateChangeReason']))
+        return None
+
+    def watch_query(self, execution_id, poll_frequency=10):
+        """
+        Watch the query execution for a given execution id in Athena
+        Args:
+            execution_id: the execution id of an Athena Auery
+            poll_frequency (int): Freq in seconds to poll for the query status using Athen API
+
+        Returns: dictionary of status from Athena
+
+        """
+        LOG.info("Watching query with execution id - %s", execution_id)
+        while True:
+            athena = self.conn.client(self.boto_type)
+            stats = athena.get_query_execution(QueryExecutionId=execution_id)
+            status = stats['QueryExecution']['Status']['State']
+            if status in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
+                LOG.info("Query Completed %s", stats)
+                return stats
+            time.sleep(poll_frequency)
+
+    def repair_table_partitions(self, table):
+        """
+        Runs repair on given table
+        Args:
+            table (string): name of the table whose partitions need to be scanned and refilled
+
+        Returns: None
+
+        """
+        self.run_query("MSCK REPAIR TABLE {}".format(table))
+
+    def add_partitions(self, table, partition_keys, partition_values):
+        """
+        Add a new partition to a given table
+        Args:
+            table (string): name of the table to which a new partition is added
+            partition_keys (list): an array of the keys/partition columns
+            partition_values (list): an array of values for partitions
+
+        Returns: None
+
+        """
+        partition_kv = ["{}='{}'".format(key, value) for key, value in
+                        zip(partition_keys, partition_values)]
+        partition_query = """
+        ALTER TABLE {table_name} ADD IF NOT EXISTS PARTITION ({partitions});
+        """.format(table_name=table,
+                   partitions=', '.join(partition_kv))
+        self.run_query(query_string=partition_query)
 
     def create_table(self, table_settings):
         """
@@ -225,76 +231,6 @@ class AthenaUtil:
         self.run_query("""DROP TABLE IF EXISTS {}""".format(table_name))
 
 
-def generate_csv_ctas(select_query, destination_table, destination_bucket, destination_key):
-    """
-    Method to generate a CTAS query string for creating csv output
-
-    Args:
-        select_query (string): the query to be used for table generation
-        destination_table (string): name of the new table being created
-        destination_bucket (string): the s3 bucket where the data from select query will be stored
-        destination_key (string): the s3 directory where the data from select query will be stored
-
-    Returns (string): CTAS Query in a string
-
-    """
-    final_query = """
-    CREATE TABLE {destination_table}
-    WITH (
-        field_delimiter='{field_delimiter}',
-        format='TEXTFILE',
-        external_location='s3://{bucket}/{key}'
-    ) AS
-    {athena_query}
-    """.format(
-        field_delimiter=",",
-        destination_table=destination_table,
-        bucket=destination_bucket,
-        key=destination_key,
-        athena_query=select_query, )
-    return final_query
-
-
-def zip_columns(column_list):
-    """
-    Combine the column list into a zipped comma separated list of column name and data type
-    Args:
-        column_list (list): an array of dictionaries with keys column and type
-
-    Returns (string): a string containing comma separated list of column name and data type
-
-    """
-    return ", ".join(["{} {}".format(col['column'], col["type"]) for col in column_list])
-
-
-def generate_parquet_ctas(select_query, destination_table, destination_bucket, destination_key):
-    """
-    Method to generate a CTAS query string for creating parquet output
-
-    Args:
-        select_query (string): the query to be used for table generation
-        destination_table (string): name of the new table being created
-        destination_bucket (string): the s3 bucket where the data from select query will be stored
-        destination_key (string): the s3 directory where the data from select query will be stored
-
-    Returns (string): CTAS Query in a string
-
-    """
-    final_query = """
-    CREATE TABLE {destination_table}
-    WITH (
-        format='parquet',
-        external_location='s3://{bucket}/{key}'
-    ) AS
-    {athena_query}
-    """.format(
-        destination_table=destination_table,
-        bucket=destination_bucket,
-        key=destination_key,
-        athena_query=select_query, )
-    return final_query
-
-
 def _construct_table_partition_ddl(partitions):
     partition_query = ""
     if partitions:
@@ -326,3 +262,83 @@ def _construct_table_properties_ddl(skip_headers, storage_format_selector, encry
             TBLPROPERTIES ('has_encrypted_data'='{encryption}')
             """.format(encryption=str(encryption).lower())
     return table_properties
+
+
+def generate_csv_ctas(select_query, destination_table, destination_bucket, destination_key):
+    """
+    Method to generate a CTAS query string for creating csv output
+
+    Args:
+        select_query (string): the query to be used for table generation
+        destination_table (string): name of the new table being created
+        destination_bucket (string): the s3 bucket where the data from select query will be stored
+        destination_key (string): the s3 directory where the data from select query will be stored
+
+    Returns (string): CTAS Query in a string
+
+    """
+    final_query = """
+    CREATE TABLE {destination_table}
+    WITH (
+        field_delimiter='{field_delimiter}',
+        format='TEXTFILE',
+        external_location='s3://{bucket}/{key}'
+    ) AS
+    {athena_query}
+    """.format(
+        field_delimiter=",",
+        destination_table=destination_table,
+        bucket=destination_bucket,
+        key=destination_key,
+        athena_query=select_query,
+    )
+    return final_query
+
+
+def zip_columns(column_list):
+    """
+    Combine the column list into a zipped comma separated list of column name and data type
+    Args:
+        column_list (list): an array of dictionaries with keys column and type
+
+    Returns (string): a string containing comma separated list of column name and data type
+
+    """
+    return ", ".join(["{} {}".format(col['column'], col["type"]) for col in column_list])
+
+
+def generate_parquet_ctas(select_query, destination_table, destination_bucket, destination_key, partition_fields=''):
+    """
+    Method to generate a CTAS query string for creating parquet output
+
+    Args:
+        select_query (string): the query to be used for table generation
+        destination_table (string): name of the new table being created
+        destination_bucket (string): the s3 bucket where the data from select query will be stored
+        destination_key (string): the s3 directory where the data from select query will be stored
+
+    Returns (string): CTAS Query in a string
+
+    """
+    partitioned_by = ""
+    if partition_fields != '':
+        partitioned_by = """,
+        partitioned_by = ARRAY[{partition_keys}]
+        """.format(
+            partition_keys=partition_fields
+        )
+    final_query = """
+        CREATE TABLE {destination_table}
+        WITH (
+            format='parquet',
+            external_location='s3://{bucket}/{key}'{partitioned_by}
+        ) AS
+        {athena_query}
+        """.format(
+        destination_table=destination_table,
+        bucket=destination_bucket,
+        key=destination_key,
+        athena_query=select_query,
+        partitioned_by=partitioned_by,
+    )
+    return final_query
