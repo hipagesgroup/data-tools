@@ -3,8 +3,13 @@ Utility to connect to, and interact with the s3 file storage system
 """
 import logging as log
 import uuid
+from pathlib import Path
+from multiprocessing import Pool
+import os
+import json
 
 import boto3
+import arrow
 import pandas as pd
 
 from joblib import load, dump
@@ -36,30 +41,80 @@ class S3Util:
 
         s3.download_file(self.bucket, s3_key, local_file_path)
 
-    def upload_file(self, local_file_path, s3_key):
+    def upload_file(self, local_file_path, s3_key, remove_local=False):
         """
         Uploads a file from local to s3
         Args:
             local_file_path (string): Absolute local path to the file to upload
             s3_key (string): Absolute path within the s3 buck to upload the file
+            remove_local: If this is true remove the local file
         Returns: None
         """
         s3 = self.conn.client(self.boto_type)
         s3.upload_file(local_file_path, self.bucket, s3_key)
+        if remove_local:
+            os.remove(local_file_path)
 
-    def download_object_and_deserialse(self, s3_key, local_file_path=None):
+    def upload_directory(self, source_directory, extension, target_key, overwrite=True, rename=True):
         """
-        Download a serialised object from S3 and deserialse
+        Upload a local file directory to s3
+        (NOT TESTED)
         Args:
-            s3_key (string): Absolute path on s3 to the file
-            local_file_path (string): The deserialsed object
-        Returns: object
+            source_directory (string): Local source directory's absolute path
+            extension (string): the file extension of files in that directory to be uploaded
+            target_key (string): Target location on the s3 bucket for files to be uploaded
+            overwrite (Boolean): Boolean value to overwrite files on s3 or not
+            rename (Boolean): Boolean value to rename the file when uploading to s3 or not
+        Returns: NA
         """
-        if local_file_path is None:
-            local_file_path = "/tmp/tmp_file{}".format(str(uuid.uuid4()))
+        if overwrite:
+            print("Cleaning existing files on s3")
+            self.delete_recursive("{}/".format(target_key))
+        print("searching for files to upload in {}".format(source_directory))
+        path_list = Path(source_directory).glob('**/*.{ext}'.format(ext=extension))
+        itr = 0
+        upload_data = []
+        for path in path_list:
+            # because path is object not string
+            path_in_str = str(path)
+            filename = os.path.basename(path_in_str)
 
-        self.download_file(s3_key=s3_key, local_file_path=local_file_path)
-        return load(local_file_path)
+            if rename:
+                filename = "file-{seq}.{ext}".format(seq=str(uuid.uuid4()), ext=extension)
+
+            destination_key = "{dir}/{filename}".format(
+                dir=target_key,
+                filename=filename)
+
+            itr = itr + 1
+            upload_data += [(self.conn, path_in_str, self.bucket, destination_key)]
+        pool_size = min(16, max(1, int(len(upload_data) / 3)))  # limit pool size between 1 and 16
+        log.debug("uploading with a multiprocessing pool of {} processes".format(pool_size))
+
+        Pool(pool_size).starmap(upload_file, upload_data)
+        log.debug("Saved csv chunks at s3://{bucket}/{dir}".format(bucket=self.bucket, dir=target_key))
+
+    def download_directory(self, source_key, file_suffix, local_directory):
+        """
+        Download an entire directory from s3 onto local file system
+        Args:
+            source_key (string): key prefix of the directory to be downloaded from s3
+            file_suffix (string): suffix to sunset the files to be downloaded
+            local_directory (string): local absolute path to store all the files
+        Returns: NA
+        """
+        s3 = boto3.resource(self.boto_type)
+        print("Downloading s3://{bucket}/{key} to {source}".format(
+            source=local_directory,
+            bucket=self.bucket,
+            key=source_key))
+        for obj in s3.Bucket(self.bucket).objects.filter(Prefix=source_key):
+            key_path = obj.key.split("/")
+            if obj.key.endswith(file_suffix):
+                filename = "{}/{}".format(local_directory, key_path[-1])
+                self.download_file(
+                    local_file_path=filename,
+                    s3_key=obj.key)
 
     def serialise_and_upload_object(self, obj, s3_key):
         """
@@ -74,12 +129,19 @@ class S3Util:
         dump(obj, random_tmp_file_nm)
         self.upload_file(local_file_path=random_tmp_file_nm, s3_key=s3_key)
 
-    def create_bucket(self):
+    def download_object_and_deserialse(self, s3_key, local_file_path=None):
         """
-        Creates the s3 bucket
-        Returns: None
+        Download a serialised object from S3 and deserialse
+        Args:
+            s3_key (string): Absolute path on s3 to the file
+            local_file_path (string): The deserialsed object
+        Returns: object
         """
-        self.conn.resource(self.boto_type).create_bucket(Bucket=self.bucket)
+        if local_file_path is None:
+            local_file_path = "/tmp/tmp_file{}".format(str(uuid.uuid4()))
+
+        self.download_file(s3_key=s3_key, local_file_path=local_file_path)
+        return load(local_file_path)
 
     def upload_df_parquet(self, df, s3_key):
         """
@@ -98,6 +160,8 @@ class S3Util:
         Exports a datafame to a parquet file on s3
         Args:
             s3_key (str): The absolute path on s3 to upload the file to
+            engine:
+            columns:
         Returns: DataFrame
         """
         random_tmp_file_nm = _generate_random_file_name()
@@ -129,6 +193,13 @@ class S3Util:
                 new_obj.copy({"Bucket": self.bucket, "Key": obj.key})
         if delete_after_copy:
             self.delete_recursive(source_dir)
+
+    def create_bucket(self):
+        """
+        Creates the s3 bucket
+        Returns: None
+        """
+        self.conn.resource(self.boto_type).create_bucket(Bucket=self.bucket)
 
     def read_lines_as_list(self, key_prefix_filter):
         """
@@ -162,3 +233,205 @@ class S3Util:
         s3 = boto3.resource(self.boto_type)
         response = s3.Bucket(self.bucket).objects.filter(Prefix=key_prefix).delete()
         log.info(response)
+
+    def delete_suffix(self, key_prefix, suffix):
+        """
+        Recursively delete all keys with given key prefix and suffix from the bucket
+        Args:
+            key_prefix (str): Key prefix under which all files will be deleted
+            suffix (str): suffix of the subset of files in the given prefix directory to be deleted
+        Returns: NA
+        """
+        if not suffix:
+            raise ValueError("suffix must not be empty")
+        s3 = boto3.resource(self.boto_type)
+        for obj in s3.Bucket(self.bucket).objects.filter(Prefix=key_prefix):
+            log.info('{}'.format(obj.key))
+            if obj.key.endswith(suffix):
+                log.info("deleting s3://{bucket}/{key}".format(bucket=self.bucket, key=obj.key))
+                response = obj.delete()
+                log.info(response)
+
+    def copy_files(self, source_key, destination_conn_id, destination_bucket, destination_key, local_directory="/tmp",
+                   extension="gz"):
+        """
+        A method to copy an entire key from a bucket that exists in one connection to another
+        (NOT TESTED)
+        Args:
+            source_key:
+            destination_conn_id:
+            destination_bucket:
+            destination_key:
+            local_directory:
+            extension:
+        Returns: NA
+        """
+        print(
+            "Copying from {source_conn_id} s3://{source_bucket}/{source_key} to {destination_conn_id} s3://{destination_bucket}/{destination_key}".format(
+                source_conn_id=self.conn,
+                source_bucket=self.bucket,
+                source_key=source_key,
+                destination_conn_id=destination_conn_id,
+                destination_bucket=destination_bucket,
+                destination_key=destination_key
+            ))
+
+        self.download_directory(source_key=source_key, file_suffix=extension, local_directory=local_directory)
+
+        destination_s3 = S3Util(conn=destination_conn_id, bucket=destination_bucket)
+        destination_s3.upload_directory(source_directory=local_directory, extension=extension,
+                                        target_key=destination_key, overwrite=False, rename=False)
+
+    def save_dict(self, key, json_list):
+        """
+        Save the json/dict data structure onto s3 as a file without using temporary local files
+        Args:
+            key (str): target key of the file on s3
+            json_list (dictionary): a list of dictionaries that are saved as newline json in a file
+        Returns: NA
+        """
+        s3 = boto3.resource(self.boto_type)
+        s3.Object(self.bucket, key).put(
+            Body=(bytes(json.dumps(json_list, indent=2).encode('UTF-8')))
+        )
+
+    def read_dict(self, key):
+        """
+        Read a file with json in a file on s3
+        Args:
+            key (str): target key of the file on s3
+        Returns: json data read from file
+        """
+        s3 = boto3.resource(self.boto_type)
+        json_content = json.loads(s3.Object(self.bucket, key).get()['Body'].read().decode('utf-8'))
+        return json_content
+
+    def read_modified_lines(self, key_prefix, start_date, end_date):
+        """
+        Read lines from s3 files which have changed between the given date time ranges
+        (NOT TESTED)
+        Args:
+            key_prefix (str): the key prefix under which all files will be sensed
+            start_date: arrow datetime object
+            end_date: arrow datetime object
+        Returns: a list of strings representing lines read from modified files
+        """
+        s3 = boto3.resource(self.boto_type)
+        lines = []
+        print("reading files from s3://{bucket}/{key} \n between {start_date} to {end_date}".format(
+            bucket=self.bucket, key=key_prefix, start_date=start_date, end_date=end_date))
+        for file in self.get_changed_keys(key_prefix, start_date, end_date):
+            obj = s3.Object(self.bucket, file)
+            data = obj.get()['Body'].read().decode('utf-8')
+            lines.append(data.splitlines())
+        # Flatten the list of lists
+        flat_lines = [item for sublist in lines for item in sublist]
+        print("read {} lines from {} s3 files".format(len(flat_lines), len(lines)))
+        return flat_lines
+
+    def read_all_lines(self, key_prefix):
+        """
+        Read lines from s3 files
+        Args:
+            key_prefix (str):  the key prefix under which all files will be read
+        Returns: a list of strings representing lines read from all files
+        """
+        s3 = boto3.resource(self.boto_type)
+        bucket = s3.Bucket(name=self.bucket)
+        lines = []
+        print("reading files from s3://{bucket}/{key} ".format(bucket=self.bucket, key=key_prefix))
+        file_metadata = bucket.objects.filter(Prefix=key_prefix)
+        for file in file_metadata:
+            obj = s3.Object(self.bucket, file.key)
+            data = obj.get()['Body'].read().decode('utf-8')
+            lines.append(data.splitlines())
+        # Flatten the list of lists
+        flat_lines = [item for sublist in lines for item in sublist]
+        print("read {} lines from {} s3 files".format(len(flat_lines), len(lines)))
+        return flat_lines
+
+    def get_changed_keys(self, key_prefix, start_date, end_date):
+        """
+        Sense if there were any files changed or added in the given time period under the given key prefix and return a
+        list of keys
+        (NOT TESTED)
+        Args:
+            key_prefix (str): the key prefix under which all files will be sensed
+            start_date: arrow datetime object
+            end_date: arrow datetime object
+        Returns: a list of keys which were modified
+        """
+        print("sensing files from s3://{bucket}/{key} \n between {start_date} to {end_date}".format(
+            bucket=self.bucket, key=key_prefix, start_date=start_date, end_date=end_date))
+        metadata = self.get_object_metadata(key_prefix)
+        lines = []
+        for file in metadata:
+            if start_date < arrow.get(file.last_modified) <= end_date:
+                lines += [file.key]
+        print("found {} s3 files changed".format(len(lines)))
+        return lines
+
+    def get_all_keys(self, key_prefix):
+        """
+        Sense all keys under a given key prefix
+        Args:
+            key_prefix (str):  the key prefix under which all files will be sensed
+        Returns: a list of keys which were modified
+        """
+        print("sensing files from s3://{bucket}/{key} ".format(bucket=self.bucket, key=key_prefix))
+        metadata = self.get_object_metadata(key_prefix)
+        lines = []
+        for file in metadata:
+            lines += [file.key]
+        print("found {} s3 files changed".format(len(lines)))
+        return lines
+
+    def get_object_metadata(self, key_prefix):
+        """
+        Get metadata for all objects under a key prefix
+        Args:
+            key_prefix (str):  the key prefix under which all files will be sensed
+        Returns: a list of object metadata
+        """
+        s3 = boto3.resource(self.boto_type)
+        bucket = s3.Bucket(name=self.bucket)
+        metadata = bucket.objects.filter(Prefix=key_prefix)
+        return metadata
+
+    def upload_binary_stream(self, stream, key):
+        """
+        Upload binary stream to S3
+        Args:
+            stream (binary):  binary data
+            key (string): s3 file key
+        Returns: NA
+        """
+        s3 = boto3.resource(self.boto_type)
+        object = s3.Object(self.bucket, key)
+        object.put(Body=stream)
+
+    def rename_file(self, bucket_name, file_path, new_name):
+        """
+        This method can be used to rename any file in S3
+        Args:
+            bucket_name (string):  Name of the bucket
+            file_path (string): Path of the existing file including the file name and extension
+            new_name (string): The new name of the file
+        Returns: NA
+        """
+        s3 = boto3.resource(self.boto_type)
+        full_new_file_path = file_path.rpartition('/')[0] + '/' + new_name
+        print("Renaming source: " + file_path)
+        print("Renaming destination: " + full_new_file_path)
+        s3.Object(bucket_name, full_new_file_path).copy_from(CopySource={'Bucket': bucket_name, 'Key': file_path})
+        s3.Object(bucket_name, file_path).delete()
+
+    def get_the_bucket(self, bucket_name):
+        """
+        Return the bucket using the given bucket name
+        Args:
+            bucket_name (str):  name of the bucket
+        Returns: S3 bucket
+        """
+        s3 = boto3.resource(self.boto_type)
+        return s3.Bucket(bucket_name)
