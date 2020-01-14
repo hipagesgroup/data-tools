@@ -408,7 +408,7 @@ class S3Util:
         """
         s3 = boto3.resource(self.boto_type)
         s3_object = s3.Object(self.bucket, key)
-        object.put(Body=s3_object)
+        s3_object.put(Body=stream)
 
     def rename_file(self, bucket_name, file_path, new_name):
         """
