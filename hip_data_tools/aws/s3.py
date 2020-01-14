@@ -89,10 +89,10 @@ class S3Util:
             itr = itr + 1
             upload_data += [(self.conn, path_in_str, self.bucket, destination_key)]
         pool_size = min(16, max(1, int(len(upload_data) / 3)))  # limit pool size between 1 and 16
-        log.debug("uploading with a multiprocessing pool of {} processes".format(pool_size))
+        log.debug("uploading with a multiprocessing pool of %s processes", pool_size)
 
         Pool(pool_size).starmap(upload_file, upload_data)
-        log.debug("Saved csv chunks at s3://{bucket}/{dir}".format(bucket=self.bucket, dir=target_key))
+        log.debug("Saved csv chunks at s3://%s/%s", self.bucket, target_key)
 
     def download_directory(self, source_key, file_suffix, local_directory):
         """
@@ -222,16 +222,19 @@ class S3Util:
         log.info("Read %d lines from %d s3 files", len(flat_lines), len(lines))
         return flat_lines
 
-    def delete_recursive(self, key_prefix):
+    def delete_recursive(self, key_prefix, add_trailing_slash=False):
         """
         Recursively delete all keys with given prefix from the named bucket
         Args:
             key_prefix (str): Key prefix under which all files will be deleted
+            add_trailing_slash: boolean flag indicating if a trailing slash should be added in order specify deletion
+                of bucket folders rather than prefixes
         Returns: NA
         """
-        log.info("Recursively deleting s3://%s/%s", self.bucket, key_prefix)
+        target_prefix = "{key}{trailing_slash}".format(key=key_prefix, trailing_slash="/" if add_trailing_slash else "")
+        log.info("Recursively deleting s3://%s/%s", self.bucket, target_prefix)
         s3 = boto3.resource(self.boto_type)
-        response = s3.Bucket(self.bucket).objects.filter(Prefix=key_prefix).delete()
+        response = s3.Bucket(self.bucket).objects.filter(Prefix=target_prefix).delete()
         log.info(response)
 
     def delete_suffix(self, key_prefix, suffix):
@@ -246,9 +249,9 @@ class S3Util:
             raise ValueError("suffix must not be empty")
         s3 = boto3.resource(self.boto_type)
         for obj in s3.Bucket(self.bucket).objects.filter(Prefix=key_prefix):
-            log.info('{}'.format(obj.key))
+            log.info(obj.key)
             if obj.key.endswith(suffix):
-                log.info("deleting s3://{bucket}/{key}".format(bucket=self.bucket, key=obj.key))
+                log.info("deleting s3://%s/%s", self.bucket, obj.key)
                 response = obj.delete()
                 log.info(response)
 
@@ -320,10 +323,9 @@ class S3Util:
         lines = []
         print("reading files from s3://{bucket}/{key} \n between {start_date} to {end_date}".format(
             bucket=self.bucket, key=key_prefix, start_date=start_date, end_date=end_date))
-        for file in self.get_changed_keys(key_prefix, start_date, end_date):
-            obj = s3.Object(self.bucket, file)
-            data = obj.get()['Body'].read().decode('utf-8')
-            lines.append(data.splitlines())
+        file_list = self.get_changed_keys(key_prefix, start_date, end_date)
+        for file in file_list:
+            self.__update_lines(s3=s3, key=file, lines=lines)
         # Flatten the list of lists
         flat_lines = [item for sublist in lines for item in sublist]
         print("read {} lines from {} s3 files".format(len(flat_lines), len(lines)))
@@ -342,9 +344,7 @@ class S3Util:
         print("reading files from s3://{bucket}/{key} ".format(bucket=self.bucket, key=key_prefix))
         file_metadata = bucket.objects.filter(Prefix=key_prefix)
         for file in file_metadata:
-            obj = s3.Object(self.bucket, file.key)
-            data = obj.get()['Body'].read().decode('utf-8')
-            lines.append(data.splitlines())
+            self.__update_lines(s3=s3, key=file.key, lines=lines)
         # Flatten the list of lists
         flat_lines = [item for sublist in lines for item in sublist]
         print("read {} lines from {} s3 files".format(len(flat_lines), len(lines)))
@@ -435,3 +435,25 @@ class S3Util:
         """
         s3 = boto3.resource(self.boto_type)
         return s3.Bucket(bucket_name)
+
+    def __update_lines(self, s3, key, lines):
+        obj = s3.Object(self.bucket, key)
+        data = obj.get()['Body'].read().decode('utf-8')
+        lines.append(data.splitlines())
+
+
+def upload_file(conn, file_path, destination_bucket, destination_key, boto_type='s3'):
+    """
+    Uploads a file from local to s3
+    Args:
+        conn:
+        boto_type:
+        file_path (string): Absolute local path to the file to upload
+        destination_bucket: bucket name
+        destination_key (string): s3 key
+    Returns: None
+    """
+    s3 = conn.client(boto_type)
+    absolute_s3_path = "s3://{destination_bucket}/{destination_key}".format(destination_bucket=destination_bucket,
+                                                                            destination_key=destination_key)
+    s3.upload_file(file_path, destination_bucket, absolute_s3_path)
