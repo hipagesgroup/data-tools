@@ -54,6 +54,7 @@ setup(
         "GitPython==3.0.0",
         'confluent-kafka==1.1.0',
         "pyarrow==0.14.1",
+        "psycopg2==2.8.4"
     ],
     test_suite="tests",
     tests_require=[
@@ -64,7 +65,8 @@ setup(
         "pyarrow==0.14.1",
         "python-snappy==0.5.4",
         "pytest-stub==0.1.0",
-        "freezegun==0.1.11"
+        "freezegun==0.1.11",
+        "psycopg2==2.8.4"
     ],
     cmdclass={'test': PyTest},
     python_requires='~=3.6',
