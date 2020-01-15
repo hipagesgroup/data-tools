@@ -1,5 +1,4 @@
 import re
-
 import boto3
 import psycopg2
 
@@ -51,9 +50,6 @@ class RedshiftUtil:
         self.schema = schema
         self.user = user
         self.password = password
-        # self.redshift_conn_id = redshift_conn_id
-        # self.schema = schema
-        # self.boto_type = "redshift"
 
     def load_table_from_s3(self, s3bucket, s3key, column_list, table,
                            delimiter='|', s3_conn_id="s3_gandalf_write", empty_as_null=True):
@@ -345,12 +341,10 @@ class RedshiftUtil:
         conn.commit()
         print("S3 data unloaded")
 
-    def __retrieve_aws_creds(self, conn_id):
+    def __retrieve_aws_creds(self):
         """
         Internal method to Retrieve aws credentials from conn string
-        Args:
-            conn_id: Airflow connection name
-        Returns: None
+        Returns: aws_access_key_id and aws_secret_access_key
         """
         session = boto3.Session()
         credentials = session.get_credentials()
