@@ -75,7 +75,7 @@ class CassandraConnectionManager:
             password=self._settings.secrets_manager.password,
         )
 
-    def cluster(self):
+    def get_cluster(self):
         if self.cluster is None:
             self.cluster = Cluster(
                 contact_points=self._settings.cluster_ips,
@@ -86,7 +86,7 @@ class CassandraConnectionManager:
             )
         return self.cluster
 
-    def session(self):
+    def get_session(self):
         if self.session is None:
             self.session = self.cluster().connect()
 
