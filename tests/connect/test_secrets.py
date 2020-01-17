@@ -13,9 +13,10 @@ class TestCommon(TestCase):
         self.assertEqual(actual.password, "def")
 
     def test__cassandra_secrets_manager_should_raise_errors_when_keys_are_not_found(self):
-        self.assertRaises(Exception, CassandraSecretsManager(
-            username_var="SOMEUNKNOWNVAR"
-        ))
+        def func():
+            CassandraSecretsManager(username_var="SOMEUNKNOWNVAR")
+
+        self.assertRaises(Exception, func)
 
     def test__aws_secrets_manager_should_instantiate_with_sensible_defaults(self):
         os.environ["AWS_ACCESS_KEY_ID"] = "abc"
@@ -25,6 +26,7 @@ class TestCommon(TestCase):
         self.assertEqual(actual.aws_secret_access_key, "def")
 
     def test__aws_secrets_manager_should_raise_errors_when_keys_are_not_found(self):
-        self.assertRaises(Exception, AwsSecretsManager(
-            access_key_id_var="SOMEUNKNOWNVAR"
-        ))
+        def func():
+            AwsSecretsManager(access_key_id_var="SOMEUNKNOWNVAR")
+
+        self.assertRaises(Exception, func)
