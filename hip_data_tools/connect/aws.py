@@ -16,7 +16,7 @@ class AwsConnectionManager:
     """
     utility class to connect to a database and perform some basic operations
     example -
-    Example to connect using an aws cli profile
+    to connect using an aws cli profile
     >>> conn = AwsConnectionManager(
     ...     AwsConnectionSettings(region_name="ap-southeast-2", profile="default"))
 
