@@ -47,7 +47,7 @@ class SecretsManager(ABC):
     structured manner
     """
 
-    def __int__(self, required_keys: list, source: KeyValueSource):
+    def __init__(self, required_keys: list, source: KeyValueSource):
         self.keys = required_keys
         self._source = source
         for key in self.keys:
@@ -59,37 +59,24 @@ class SecretsManager(ABC):
 
 
 class CassandraSecretsManager(SecretsManager):
-    def __init__(self,
-                 source: KeyValueSource = environmentKeyValueSource,
+    def __init__(self, source: KeyValueSource = environmentKeyValueSource,
                  username_var: str = "CASSANDRA_USERNAME",
                  password_var: str = "CASSANDRA_PASSWORD"):
-        self._source = source
-        self.required_keys = [
-            username_var,
-            password_var,
-        ]
-        super()
+        super().__init__([username_var, password_var], source)
 
         self.username = self.get_secret(username_var)
         self.password = self.get_secret(password_var)
 
 
 class AwsSecretsManager(SecretsManager):
-    def __init__(self,
-                 source: KeyValueSource = environmentKeyValueSource,
+    def __init__(self, source: KeyValueSource = environmentKeyValueSource,
                  access_key_id_var="AWS_ACCESS_KEY_ID",
-                 secret_access_key_var="AWS_SECRET_ACCESS_KEY",
-                 use_session_token=False,
-                 aws_session_token_var="AWS_SESSION_TOKEN",
-                 ):
-        self._source = source
-        self._required_keys = [
-            access_key_id_var,
-            secret_access_key_var,
-        ]
+                 secret_access_key_var="AWS_SECRET_ACCESS_KEY", use_session_token=False,
+                 aws_session_token_var="AWS_SESSION_TOKEN"):
+        self._required_keys = [access_key_id_var, secret_access_key_var, ]
         if use_session_token:
             self._required_keys.append(aws_session_token_var)
-        super()
+        super().__init__(self._required_keys, source)
 
         self.aws_access_key_id = self.get_secret(access_key_id_var)
         self.aws_secret_access_key = self.get_secret(secret_access_key_var)
