@@ -22,6 +22,7 @@ from hip_data_tools.common import get_from_env_or_default_with_warning
 # TODO: For the kafka consumer implement the commit of the messages only after
 #   successful upload to s3. This will reduce the risks of data loss if the pod
 #   has errors after reading the data from Kafka
+from hip_data_tools.connect.aws import AwsConnectionManager, AwsConnectionSettings
 
 DEFAULT_PRODUCER_CONF = \
     """{'queue.buffering.max.messages': 10000,
@@ -239,8 +240,7 @@ def create_batch_s3_uploader(batch_s3_uploader_config=None):
 
     aws_region = os.environ.get("AWS_DEFAULT_REGION")
 
-    conn = AwsConnection(mode="standard_env_var", region_name=aws_region,
-                         settings={})
+    conn = AwsConnectionManager(AwsConnectionSettings(region=aws_region))
 
     s3_client = S3Util(conn, batch_s3_uploader_config.bucket)
 
