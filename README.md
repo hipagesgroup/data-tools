@@ -33,7 +33,6 @@ from hip_data_tools.connect.aws import AwsConnectionManager, AwsConnectionSettin
 conn = AwsConnectionManager(AwsConnectionSettings(region_name="ap-southeast-2", profile="default"))
 
 # OR if you want to connect using the standard aws environment variables
-# (aws_access_key_id, aws_secret_access_key):
 conn = AwsConnectionManager(settings=AwsConnectionSettings(region_name="ap-southeast-2"))
 
 # OR if you want custom set of env vars to connect
