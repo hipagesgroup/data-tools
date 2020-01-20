@@ -63,9 +63,7 @@ class AwsConnectionManager:
         Args:
             resource_type (string): choice of aws service like s3, athena, etc. based on boto3:
             session.client(...)
-
-        Returns (resource): boto3 resource_type
-
+        Returns (resource): boto3 of type resource_type
         """
         return self._get_session().resource(resource_type, region_name=self.settings.region)
 
