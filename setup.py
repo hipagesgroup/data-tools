@@ -54,6 +54,7 @@ setup(
         "GitPython==3.0.0",
         'confluent-kafka==1.1.0',
         "pyarrow==0.14.1",
+        "cassandra-driver==3.21.0",
     ],
     test_suite="tests",
     tests_require=[

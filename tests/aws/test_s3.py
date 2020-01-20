@@ -6,8 +6,8 @@ import pandas as pd
 from moto import mock_s3
 from pandas.util.testing import assert_frame_equal
 
-from hip_data_tools.authenticate import AwsConnection
 from hip_data_tools.aws.s3 import S3Util
+from hip_data_tools.connect.aws import AwsConnectionManager, AwsConnectionSettings
 
 
 class TestS3Util(TestCase):
@@ -25,7 +25,7 @@ class TestS3Util(TestCase):
     @mock_s3
     def test_should__upload_then_download_file_from_s3__when_using_s3util(self):
         bucket = "TEST_BUCKET"
-        conn = AwsConnection(mode="standard_env_var", region_name="ap-southeast-2", settings={})
+        conn = AwsConnectionManager(AwsConnectionSettings(region="ap-southeast-2"))
         s3u = S3Util(conn=conn, bucket=bucket)
         s3u.create_bucket()
         upload_key = "temp.txt"
@@ -40,7 +40,7 @@ class TestS3Util(TestCase):
     @mock_s3
     def test_should__serialise_deserialise_file_to_from_s3__when_using_s3util(self):
         bucket = "TEST_BUCKET2"
-        conn = AwsConnection(mode="standard_env_var", region_name="ap-southeast-2", settings={})
+        conn = AwsConnectionManager(AwsConnectionSettings(region="ap-southeast-2"))
         s3u = S3Util(conn=conn, bucket=bucket)
         s3u.create_bucket()
         upload_key = "temp.pickle"
@@ -52,7 +52,7 @@ class TestS3Util(TestCase):
     @mock_s3
     def test_should__upload_dataframe_and_download_parquet__when_using_s3util(self):
         bucket = "TEST_BUCKET3"
-        conn = AwsConnection(mode="standard_env_var", region_name="ap-southeast-2", settings={})
+        conn = AwsConnectionManager(AwsConnectionSettings(region="ap-southeast-2"))
         s3u = S3Util(conn=conn, bucket=bucket)
         s3u.create_bucket()
         upload_key = "temp.pickle"
@@ -63,7 +63,7 @@ class TestS3Util(TestCase):
 
     @mock_s3
     def test_should__copy_file_from_one_bucket_to_another__when_valid_locations_are_given(self):
-        conn = AwsConnection(mode="standard_env_var", region_name="ap-southeast-2", settings={})
+        conn = AwsConnectionManager(AwsConnectionSettings(region="ap-southeast-2"))
         source_bucket_name = "hipages-gandalf"
         dest_bucket_name = "au-com-hipages-data-scratchpad"
 
@@ -88,4 +88,4 @@ class TestS3Util(TestCase):
         actual = s3_util_for_destination.read_lines_as_list("test_copy")[0]
 
         expected = "Test file content"
-        self.assertEquals(actual, expected)
+        self.assertEqual(actual, expected)

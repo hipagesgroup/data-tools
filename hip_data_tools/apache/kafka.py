@@ -15,13 +15,13 @@ from datetime import datetime
 import pandas as pd
 from confluent_kafka import Producer, Consumer
 
-from hip_data_tools.authenticate import AwsConnection
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.common import get_from_env_or_default_with_warning
 
 # TODO: For the kafka consumer implement the commit of the messages only after
 #   successful upload to s3. This will reduce the risks of data loss if the pod
 #   has errors after reading the data from Kafka
+from hip_data_tools.connect.aws import AwsConnectionManager, AwsConnectionSettings
 
 DEFAULT_PRODUCER_CONF = \
     """{'queue.buffering.max.messages': 10000,
@@ -76,7 +76,6 @@ class ProducerConfig:
 
 
 def create_producer(kafka_producer_config=None):
-
     """
     Creates a Kafka producer
     Args:
@@ -239,8 +238,7 @@ def create_batch_s3_uploader(batch_s3_uploader_config=None):
 
     aws_region = os.environ.get("AWS_DEFAULT_REGION")
 
-    conn = AwsConnection(mode="standard_env_var", region_name=aws_region,
-                         settings={})
+    conn = AwsConnectionManager(AwsConnectionSettings(region=aws_region))
 
     s3_client = S3Util(conn, batch_s3_uploader_config.bucket)
 
@@ -594,7 +592,7 @@ class KafkaS3BatchExporter:
         if data_list:
 
             for msg_df, s3_path in \
-                    self.partition_msgs_by_kafka_ts(data_list, interval):
+                self.partition_msgs_by_kafka_ts(data_list, interval):
                 log.debug("data path : %s", s3_path)
 
                 self._s3_client.upload_df_parquet(msg_df, s3_path)
@@ -632,7 +630,7 @@ class KafkaS3BatchExporter:
         """
         dataframes_and_fld_locs = []
         for cur_interval_np_datetime in \
-                pd.unique(df_msgs_and_meta_data[self.partition_key_nm]):
+            pd.unique(df_msgs_and_meta_data[self.partition_key_nm]):
             df_partition = \
                 df_msgs_and_meta_data[
                     df_msgs_and_meta_data[self.partition_key_nm] ==
