@@ -60,3 +60,39 @@ result = au.run_query("SELECT * FROM temp limit 10", return_result=True)
 print(result)
 ```
 
+## Connect to Cassandra
+
+ ```python
+from cassandra.policies import DCAwareRoundRobinPolicy
+from cassandra.cqlengine import columns
+from cassandra.cqlengine.management import sync_table
+from cassandra.cqlengine.models import Model
+
+load_balancing_policy = DCAwareRoundRobinPolicy(local_dc='AWS_VPC_AP_SOUTHEAST_2')
+
+conn = CassandraConnectionManager(
+    settings = CassandraConnectionSettings(
+        cluster_ips=["1.1.1.1", "2.2.2.2"],
+        port=9042,
+        load_balancing_policy=load_balancing_policy,
+    )
+)
+
+conn = CassandraConnectionManager(
+    CassandraConnectionSettings(
+        cluster_ips=["1.1.1.1", "2.2.2.2"],
+        port=9042,
+        load_balancing_policy=load_balancing_policy,
+        secrets_manager=CassandraSecretsManager(
+        username_var="MY_CUSTOM_USERNAME_ENV_VAR"),
+    )
+)
+
+# For running Cassandra model operations
+conn.setup_connection("dev_space")
+class ExampleModel(Model):
+    example_type    = columns.Integer(primary_key=True)
+    created_at      = columns.DateTime()
+    description     = columns.Text(required=False)
+sync_table(ExampleModel)
+```

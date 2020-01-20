@@ -1,18 +1,24 @@
-from ssl import SSLContext
+from ssl import SSLContext, PROTOCOL_TLSv1, CERT_REQUIRED
 
 from attr import dataclass
 from cassandra.auth import PlainTextAuthProvider
-from cassandra.cluster import Cluster
+from cassandra.cluster import Cluster, Session
 from cassandra.cqlengine import connection
 from cassandra.policies import LoadBalancingPolicy
 from hip_data_tools.connect.secrets import CassandraSecretsManager
 
 
-def get_ssl_context(self, cert_path):
-    self._ssl_context = self.SSLContext(self.PROTOCOL_TLSv1)
-    self._ssl_context.load_verify_locations(cert_path)
-    self._ssl_context.verify_mode = self.CERT_REQUIRED
-    return self._ssl_context
+def get_ssl_context(cert_path: str) -> SSLContext:
+    """
+    Creates an ssl context if required for connecting to cassandra
+    Args:
+        cert_path (str): path where the ssl cetificate pem file is stored
+    Returns: SSLContext
+    """
+    ssl_context = SSLContext(PROTOCOL_TLSv1)
+    ssl_context.load_verify_locations(cert_path)
+    ssl_context.verify_mode = CERT_REQUIRED
+    return ssl_context
 
 
 @dataclass
@@ -75,7 +81,11 @@ class CassandraConnectionManager:
             password=self._settings.secrets_manager.password,
         )
 
-    def get_cluster(self):
+    def get_cluster(self) -> Cluster:
+        """
+        get the cassandra Cluster object if it already exists or create a new one
+        Returns: Cluster
+        """
         if self.cluster is None:
             self.cluster = Cluster(
                 contact_points=self._settings.cluster_ips,
@@ -86,13 +96,24 @@ class CassandraConnectionManager:
             )
         return self.cluster
 
-    def get_session(self):
+    def get_session(self) -> Session:
+        """
+        get the cassandra Cluster's Session object if it already exists or create a new one
+        Returns: Session
+        """
         if self.session is None:
-            self.session = self.cluster().connect()
+            self.session = self.get_cluster().connect()
 
         return self.session
 
-    def setup_connection(self, default_keyspace):
+    def setup_connection(self, default_keyspace) -> None:
+        """
+        setups an implicit connection object for cassandra using the cassandra settings in the
+        connection manager
+        Args:
+            default_keyspace (str): the keyspace to use as default for this implicit connection
+        Returns: None
+        """
         connection.setup(
             self._settings.cluster_ips,
             load_balancing_policy=self._settings.load_balancing_policy,
