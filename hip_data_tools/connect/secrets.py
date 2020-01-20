@@ -26,7 +26,7 @@ class EnvironmentKeyValueSource(KeyValueSource):
         return os.getenv(key)
 
 
-environmentKeyValueSource = EnvironmentKeyValueSource()
+ENVIRONMENT: EnvironmentKeyValueSource = EnvironmentKeyValueSource()
 
 
 class FileKeyValueSource(KeyValueSource):
@@ -59,7 +59,7 @@ class SecretsManager(ABC):
 
 
 class CassandraSecretsManager(SecretsManager):
-    def __init__(self, source: KeyValueSource = environmentKeyValueSource,
+    def __init__(self, source: KeyValueSource = ENVIRONMENT,
                  username_var: str = "CASSANDRA_USERNAME",
                  password_var: str = "CASSANDRA_PASSWORD"):
         super().__init__([username_var, password_var], source)
@@ -69,7 +69,7 @@ class CassandraSecretsManager(SecretsManager):
 
 
 class AwsSecretsManager(SecretsManager):
-    def __init__(self, source: KeyValueSource = environmentKeyValueSource,
+    def __init__(self, source: KeyValueSource = ENVIRONMENT,
                  access_key_id_var="AWS_ACCESS_KEY_ID",
                  secret_access_key_var="AWS_SECRET_ACCESS_KEY", use_session_token=False,
                  aws_session_token_var="AWS_SESSION_TOKEN"):
