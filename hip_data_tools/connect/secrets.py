@@ -31,6 +31,9 @@ class KeyValueSource(ABC):
 
 
 class EnvironmentKeyValueSource(KeyValueSource):
+    """
+    class for sourcing secrets from env variables
+    """
     def exists(self, key):
         """
         verify if a key exists
@@ -54,6 +57,9 @@ ENVIRONMENT: EnvironmentKeyValueSource = EnvironmentKeyValueSource()
 
 
 class FileKeyValueSource(KeyValueSource):
+    """
+    class for sourcing secrets from file
+    """
     def __init__(self, path):
         pass
 
