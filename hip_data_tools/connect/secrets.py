@@ -80,7 +80,7 @@ class SecretsManager(ABC):
         source (KeyValueSource): a kv source that has secrets
     """
 
-    def __init__(self, required_keys: list[str], source: KeyValueSource):
+    def __init__(self, required_keys: list, source: KeyValueSource):
         self.keys = required_keys
         self._source = source
         for key in self.keys:
