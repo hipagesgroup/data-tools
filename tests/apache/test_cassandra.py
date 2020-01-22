@@ -1,4 +1,5 @@
 import datetime
+import os
 import uuid
 from unittest import TestCase
 from unittest.mock import Mock
@@ -9,7 +10,7 @@ from pandas._libs.tslibs.nattype import NaT
 from pandas.util.testing import assert_frame_equal
 
 from hip_data_tools.apache.cassandra import CassandraUtil, _extract_rows_from_dataframe, \
-    _clean_outgoing_values, _extract_rows_from_list_of_dict
+    _clean_outgoing_values, _extract_rows_from_list_of_dict, CassandraSecretsManager
 
 
 class TestCassandraUtil(TestCase):
@@ -163,3 +164,16 @@ class TestCassandraUtil(TestCase):
             (300, 9, None, 'this is from a dict'),
         ]
         self.assertEqual(actual, expected)
+
+    def test__cassandra_secrets_manager_should_raise_errors_when_keys_are_not_found(self):
+        def func():
+            CassandraSecretsManager(username_var="SOMEUNKNOWNVAR")
+
+        self.assertRaises(Exception, func)
+
+    def test__cassandra_secrets_manager_should_instantiate_with_sensible_defaults(self):
+        os.environ["CASSANDRA_USERNAME"] = "abc"
+        os.environ["CASSANDRA_PASSWORD"] = "def"
+        actual = CassandraSecretsManager()
+        self.assertEqual(actual.username, "abc")
+        self.assertEqual(actual.password, "def")

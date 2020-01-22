@@ -1,6 +1,8 @@
 import os
 from unittest import TestCase
 
+from hip_data_tools.apache.cassandra import CassandraSecretsManager
+from hip_data_tools.aws.aws import AwsSecretsManager
 from hip_data_tools.common import get_release_version, get_long_description
 
 
@@ -21,3 +23,5 @@ class TestCommon(TestCase):
         actual = get_long_description()[0:16]
         expected = "# hip-data-tools"
         self.assertEqual(actual, expected)
+
+
