@@ -18,7 +18,7 @@ from confluent_kafka import Producer, Consumer
 # TODO: For the kafka consumer implement the commit of the messages only after
 #   successful upload to s3. This will reduce the risks of data loss if the pod
 #   has errors after reading the data from Kafka
-from hip_data_tools.aws.aws import AwsConnectionManager, AwsConnectionSettings
+from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.common import get_from_env_or_default_with_warning
 
