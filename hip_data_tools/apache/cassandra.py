@@ -62,7 +62,7 @@ class CassandraConnectionSettings:
 
 class CassandraConnectionManager:
     """
-    Creates and manages connection to a given cassandra cluster.
+    Creates and manages connection to the cassandra cluster.
     Example -
     >>> from cassandra.policies import DCAwareRoundRobinPolicy
     >>> from cassandra.cqlengine import columns
@@ -227,7 +227,7 @@ class CassandraUtil:
 
     def create_table_from_dataframe(self, dataframe: DataFrame, table: str) -> None:
         """
-        Create a table based on a given pandas DataFrame 's schema
+        Create a table based on the pandas DataFrame 's schema
         Args:
             dataframe (DataFrame):
             table (str):
@@ -237,7 +237,7 @@ class CassandraUtil:
 
     def upsert_dict(self, data: list, table: str) -> ResultSet:
         """
-        Upsert a row into a given cassandra table based on the dictionary key values
+        Upsert a row into the cassandra table based on the dictionary key values
         Args:
             data (list[dict]):
             table (str):
@@ -249,7 +249,7 @@ class CassandraUtil:
 
     def create_table_from_model(self, model_class):
         """
-        Create a table if not exists from the given Model Class
+        Create a table if not exists from the Model Class
         Args:
             model_class (class): class for the Model
         Returns: None
@@ -290,7 +290,7 @@ class CassandraUtil:
 
     def execute(self, query, row_factory, **kwargs):
         """
-        Execute a cql command and retrieve data with a given row factory
+        Execute a cql command and retrieve data with the row factory
         Args:
             query (str):
             row_factory (callable):
