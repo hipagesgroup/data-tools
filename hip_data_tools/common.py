@@ -103,7 +103,7 @@ class EnvironmentKeyValueSource(KeyValueSource):
             key (str): the key to be verified for existance
         Returns: bool
         """
-        if os.getenv(key, None) is None:
+        if os.getenv(key) is None:
             return False
         return True
 
