@@ -136,7 +136,7 @@ class CassandraUtil:
             query (str):
         Returns: list[dict]
         """
-        return self.execute(dict_factory, query, **kwargs).current_rows
+        return self.execute(query, dict_factory, **kwargs).current_rows
 
     def read_dataframe(self, query, **kwargs) -> DataFrame:
         """
@@ -147,8 +147,17 @@ class CassandraUtil:
         """
         # Since Pandas DataFrame does not have a boolean truth value will need to access
         # protected _current_rows
-        return self.execute(_pandas_factory, query, **kwargs)._current_rows
+        return self.execute(query, _pandas_factory, **kwargs)._current_rows
 
-    def execute(self, row_factory, query, **kwargs):
-        self._session.row_factory = row_factory
+    def execute(self, query, row_factory, **kwargs):
+        """
+        Execute a cql command and retrieve data with a given row factory
+        Args:
+            query (str):
+            row_factory (callable):
+            **kwargs: Kwargs to match the session.execute command in cassandra
+        Returns: ResultSet
+        """
+        if row_factory is not None:
+            self._session.row_factory = row_factory
         return self._session.execute(query, **kwargs)
