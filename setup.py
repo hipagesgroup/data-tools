@@ -65,7 +65,7 @@ setup(
         "pyarrow==0.14.1",
         "python-snappy==0.5.4",
         "pytest-stub==0.1.0",
-        "freezegun==0.1.11"
+        "freezegun==0.1.11",
     ],
     cmdclass={'test': PyTest},
     python_requires='~=3.6',

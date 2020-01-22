@@ -34,6 +34,7 @@ class EnvironmentKeyValueSource(KeyValueSource):
     """
     class for sourcing secrets from env variables
     """
+
     def exists(self, key):
         """
         verify if a key exists
@@ -41,7 +42,9 @@ class EnvironmentKeyValueSource(KeyValueSource):
             key (str): the key to be verified for existance
         Returns: bool
         """
-        return os.getenv(key)
+        if os.getenv(key, None) is None:
+            return False
+        return True
 
     def get(self, key):
         """
@@ -53,6 +56,35 @@ class EnvironmentKeyValueSource(KeyValueSource):
         return os.getenv(key)
 
 
+class DictKeyValueSource(KeyValueSource):
+    """
+    class for sourcing secrets from a provided Dict object, usually used for testing
+    """
+
+    def __init__(self, data):
+        self.data = data
+
+    def exists(self, key):
+        """
+        verify if a key exists
+        Args:
+            key (str): the key to be verified for existance
+        Returns: bool
+        """
+        if key in self.data:
+            return True
+        return False
+
+    def get(self, key):
+        """
+        get the value for a given key
+        Args:
+            key (str): the key for which the value needs to be returned
+        Returns: str
+        """
+        return self.data[key]
+
+
 ENVIRONMENT: EnvironmentKeyValueSource = EnvironmentKeyValueSource()
 
 
@@ -60,6 +92,7 @@ class FileKeyValueSource(KeyValueSource):
     """
     class for sourcing secrets from file
     """
+
     def __init__(self, path):
         pass
 

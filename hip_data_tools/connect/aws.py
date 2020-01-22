@@ -9,7 +9,7 @@ class AwsConnectionSettings:
     """Encapsulates the Cassandra connection settings"""
     region: str
     profile: str = None
-    secrets_manager: AwsSecretsManager = AwsSecretsManager()
+    secrets_manager: AwsSecretsManager = None
 
 
 class AwsConnectionManager:

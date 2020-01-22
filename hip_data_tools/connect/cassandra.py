@@ -24,10 +24,10 @@ def get_ssl_context(cert_path: str) -> SSLContext:
 @dataclass
 class CassandraConnectionSettings:
     """Encapsulates the Cassandra connection settings"""
-    cluster_ips: list[str]
+    cluster_ips: list
     port: int
     load_balancing_policy: LoadBalancingPolicy
-    secrets_manager: CassandraSecretsManager = CassandraSecretsManager()
+    secrets_manager: CassandraSecretsManager
     ssl_context: SSLContext = None
 
 
@@ -96,13 +96,13 @@ class CassandraConnectionManager:
             )
         return self.cluster
 
-    def get_session(self) -> Session:
+    def get_session(self, keyspace) -> Session:
         """
         get the cassandra Cluster's Session object if it already exists or create a new one
         Returns: Session
         """
         if self.session is None:
-            self.session = self.get_cluster().connect()
+            self.session = self.get_cluster().connect(keyspace)
 
         return self.session
 
