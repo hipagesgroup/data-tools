@@ -8,6 +8,7 @@ from pandas.util.testing import assert_frame_equal
 
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.connect.aws import AwsConnectionManager, AwsConnectionSettings
+from hip_data_tools.connect.secrets import AwsSecretsManager
 
 
 class TestS3Util(TestCase):
@@ -25,7 +26,8 @@ class TestS3Util(TestCase):
     @mock_s3
     def test_should__upload_then_download_file_from_s3__when_using_s3util(self):
         bucket = "TEST_BUCKET"
-        conn = AwsConnectionManager(AwsConnectionSettings(region="ap-southeast-2"))
+        conn = AwsConnectionManager(
+            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager()))
         s3u = S3Util(conn=conn, bucket=bucket)
         s3u.create_bucket()
         upload_key = "temp.txt"
@@ -40,7 +42,8 @@ class TestS3Util(TestCase):
     @mock_s3
     def test_should__serialise_deserialise_file_to_from_s3__when_using_s3util(self):
         bucket = "TEST_BUCKET2"
-        conn = AwsConnectionManager(AwsConnectionSettings(region="ap-southeast-2"))
+        conn = AwsConnectionManager(
+            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager()))
         s3u = S3Util(conn=conn, bucket=bucket)
         s3u.create_bucket()
         upload_key = "temp.pickle"
@@ -52,7 +55,8 @@ class TestS3Util(TestCase):
     @mock_s3
     def test_should__upload_dataframe_and_download_parquet__when_using_s3util(self):
         bucket = "TEST_BUCKET3"
-        conn = AwsConnectionManager(AwsConnectionSettings(region="ap-southeast-2"))
+        conn = AwsConnectionManager(
+            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager()))
         s3u = S3Util(conn=conn, bucket=bucket)
         s3u.create_bucket()
         upload_key = "temp.pickle"
@@ -63,7 +67,8 @@ class TestS3Util(TestCase):
 
     @mock_s3
     def test_should__copy_file_from_one_bucket_to_another__when_valid_locations_are_given(self):
-        conn = AwsConnectionManager(AwsConnectionSettings(region="ap-southeast-2"))
+        conn = AwsConnectionManager(
+            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager()))
         source_bucket_name = "hipages-gandalf"
         dest_bucket_name = "au-com-hipages-data-scratchpad"
 
@@ -84,7 +89,8 @@ class TestS3Util(TestCase):
 
         s3_util_for_source.move_recursive_to_different_bucket(source_dir="test/",
                                                               destination_bucket_name=dest_bucket_name,
-                                                              destination_dir=dest_bucket_name + "/test_copy/")
+                                                              destination_dir=dest_bucket_name +
+                                                                              "/test_copy/")
         actual = s3_util_for_destination.read_lines_as_list("test_copy")[0]
 
         expected = "Test file content"
