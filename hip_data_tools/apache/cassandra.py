@@ -145,7 +145,7 @@ class CassandraUtil:
             query (str):
         Returns: DataFrame
         """
-        # Since Pandas DataFrame does not have a boolean truth value will need to access
+        # Since pandas DataFrame does not have a boolean truth value will need to access
         # protected _current_rows
         return self.execute(query, _pandas_factory, **kwargs)._current_rows
 
