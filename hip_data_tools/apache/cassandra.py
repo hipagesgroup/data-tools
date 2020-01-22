@@ -71,7 +71,7 @@ class CassandraUtil:
 
     def upsert_dataframe(self, dataframe: DataFrame, table: str) -> None:
         """
-        upload all data from a DataFrame onto a cassandra table
+        Upload all data from a DataFrame onto a cassandra table
         Args:
             dataframe (DataFrame): a DataFrame to upsert
             table (str): the table to upsert data into
@@ -87,7 +87,7 @@ class CassandraUtil:
 
     def create_table_from_dataframe(self, dataframe: DataFrame, table: str) -> None:
         """
-        create a table based on a given pandas DataFrame 's schema
+        Create a table based on a given pandas DataFrame 's schema
         Args:
             dataframe (DataFrame):
             table (str):
@@ -109,7 +109,7 @@ class CassandraUtil:
 
     def create_table_from_model(self, model_class):
         """
-        create a table if not exists from the given Model Class
+        Create a table if not exists from the given Model Class
         Args:
             model_class (class): class for the Model
         Returns: None
@@ -139,7 +139,7 @@ class CassandraUtil:
 
     def read_dataframe(self, query, **kwargs) -> DataFrame:
         """
-        read the result of a query in form of a pandas DataFrame
+        Read the result of a query in form of a pandas DataFrame
         Args:
             query (str):
         Returns: DataFrame
