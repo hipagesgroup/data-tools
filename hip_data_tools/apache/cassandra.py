@@ -75,10 +75,9 @@ class CassandraUtil:
         Args:
             dataframe (DataFrame): a DataFrame to upsert
             table (str): the table to upsert data into
-            column_mapping (dict): a mapping between column names of the dataframe to cassandra
             table. If None then the DataFrame column names that match cassandra table anme will be
             upserted else ignored
-        Returns: None
+        Returns: ResultSet
         """
         prepared_statement = self._session.prepare(
             self._cql_upsert_from_dataframe(dataframe, table))
