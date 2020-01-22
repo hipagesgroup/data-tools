@@ -44,6 +44,13 @@ class CassandraUtil:
         return [tuple([CassandraUtil._clean_outgoing_values(val) for val in row]) for index, row in
                 dataframe.iterrows()]
 
+    @staticmethod
+    def _prepare_batch(prepared_statement, rows) -> BatchStatement:
+        batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
+        for row in rows:
+            batch.add(prepared_statement, row)
+        return batch
+
     def _cql_upsert_from_dict(self, data, table):
         upsert_sql = f"""
         INSERT INTO {self.keyspace}.{table} 
@@ -62,12 +69,6 @@ class CassandraUtil:
         print(upsert_sql)
         return upsert_sql
 
-    def _prepare_batch(self, prepared_statement, rows) -> BatchStatement:
-        batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
-        for row in rows:
-            batch.add(prepared_statement, row)
-        return batch
-
     def upsert_dataframe(self, dataframe: DataFrame, table: str) -> None:
         """
         upload all data from a DataFrame onto a cassandra table
@@ -79,8 +80,10 @@ class CassandraUtil:
             upserted else ignored
         Returns: None
         """
-        prepared_statement = self._session.prepare(self._cql_upsert_from_dataframe(dataframe, table))
-        batch = self._prepare_batch(prepared_statement, self._extract_rows_from_dataframe(dataframe))
+        prepared_statement = self._session.prepare(
+            self._cql_upsert_from_dataframe(dataframe, table))
+        batch = self._prepare_batch(prepared_statement,
+                                    self._extract_rows_from_dataframe(dataframe))
         return self._session.execute(batch)
 
     def create_table_from_dataframe(self, dataframe: DataFrame, table: str) -> None:
@@ -115,14 +118,16 @@ class CassandraUtil:
         self._conn.setup_connection(default_keyspace=self.keyspace)
         sync_table(model_class)
 
-    def create_table(self, columns: dict, pk: list, table: str) -> ResultSet:
+    def create_table(self, columns: dict, primary_keys: list, table: str) -> ResultSet:
         """
         Create a table if not already exists based on data from a dictionary
         Args:
-            row (dict):
+            columns (dict):
+            primary_keys (list[str]):
             table (str):
         Returns: ResultSet
         """
+        pass
 
     def read_dict(self, query, **kwargs) -> list:
         """
