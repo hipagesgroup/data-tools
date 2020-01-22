@@ -6,8 +6,8 @@ import pandas as pd
 from moto import mock_s3
 from pandas.util.testing import assert_frame_equal
 
+from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 from hip_data_tools.aws.s3 import S3Util
-from hip_data_tools.aws.aws import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 
 
 class TestS3Util(TestCase):
@@ -26,7 +26,8 @@ class TestS3Util(TestCase):
     def test_should__upload_then_download_file_from_s3__when_using_s3util(self):
         bucket = "TEST_BUCKET"
         conn = AwsConnectionManager(
-            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager()))
+            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(),
+                                  profile=None))
         s3u = S3Util(conn=conn, bucket=bucket)
         s3u.create_bucket()
         upload_key = "temp.txt"
@@ -42,7 +43,8 @@ class TestS3Util(TestCase):
     def test_should__serialise_deserialise_file_to_from_s3__when_using_s3util(self):
         bucket = "TEST_BUCKET2"
         conn = AwsConnectionManager(
-            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager()))
+            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(),
+                                  profile=None))
         s3u = S3Util(conn=conn, bucket=bucket)
         s3u.create_bucket()
         upload_key = "temp.pickle"
@@ -55,7 +57,8 @@ class TestS3Util(TestCase):
     def test_should__upload_dataframe_and_download_parquet__when_using_s3util(self):
         bucket = "TEST_BUCKET3"
         conn = AwsConnectionManager(
-            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager()))
+            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(),
+                                  profile=None))
         s3u = S3Util(conn=conn, bucket=bucket)
         s3u.create_bucket()
         upload_key = "temp.pickle"
@@ -67,7 +70,8 @@ class TestS3Util(TestCase):
     @mock_s3
     def test_should__copy_file_from_one_bucket_to_another__when_valid_locations_are_given(self):
         conn = AwsConnectionManager(
-            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager()))
+            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(),
+                                  profile=None))
         source_bucket_name = "hipages-gandalf"
         dest_bucket_name = "au-com-hipages-data-scratchpad"
 

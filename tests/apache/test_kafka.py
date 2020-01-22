@@ -21,6 +21,7 @@ KAFKA_TOPIC = 'some_topic'
 KAFKA_TIMEOUT_INTERVAL = 100
 KAFKA_POLLING_INTERVAL = 200
 
+
 class StubbedKafkaMessageObject:
     """
     Stubbed class which allows testing of of the Kafka Message objects

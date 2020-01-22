@@ -1,7 +1,7 @@
 import os
 from unittest import TestCase
 
-from hip_data_tools.aws.aws import AwsSecretsManager
+from hip_data_tools.aws.common import AwsSecretsManager
 
 
 class TestAws(TestCase):
