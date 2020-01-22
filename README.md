@@ -27,7 +27,7 @@ pip3 install .
 
 You will need to instantiate an AWS Connection:
 ```python
-from hip_data_tools.aws.aws import AwsConnectionManager, AwsConnectionSettings
+from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 
 # to connect using an aws cli profile
 conn = AwsConnectionManager(AwsConnectionSettings(region_name="ap-southeast-2", profile="default"))
