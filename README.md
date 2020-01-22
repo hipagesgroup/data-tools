@@ -30,21 +30,22 @@ You will need to instantiate an AWS Connection:
 from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 
 # to connect using an aws cli profile
-conn = AwsConnectionManager(AwsConnectionSettings(region_name="ap-southeast-2", profile="default"))
+conn = AwsConnectionManager(AwsConnectionSettings(region="ap-southeast-2", secrets_manager=None, profile="default"))
 
 # OR if you want to connect using the standard aws environment variables
-conn = AwsConnectionManager(settings=AwsConnectionSettings(region_name="ap-southeast-2"))
+conn = AwsConnectionManager(settings=AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(), profile=None))
 
 # OR if you want custom set of env vars to connect
 conn = AwsConnectionManager(
     settings=AwsConnectionSettings(
-        region_name="ap-southeast-2",
+        region="ap-southeast-2",
         secrets_manager=AwsSecretsManager(
             access_key_id_var="SOME_CUSTOM_AWS_ACCESS_KEY_ID",
             secret_access_key_var="SOME_CUSTOM_AWS_SECRET_ACCESS_KEY",
             use_session_token=True,
             aws_session_token_var="SOME_CUSTOM_AWS_SESSION_TOKEN"
-            )
+            ),
+        profile=None,
         )
     )
 

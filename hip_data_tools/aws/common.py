@@ -45,12 +45,12 @@ class AwsConnectionManager:
     example -
     to connect using an aws cli profile
     >>> conn = AwsConnectionManager(
-    ...     AwsConnectionSettings(region_name="ap-southeast-2", profile="default"))
+    ...     AwsConnectionSettings(region_name="ap-southeast-2", profile="default", secrets_manager=None))
 
     # OR if you want to connect using the standard aws environment variables
     (aws_access_key_id, aws_secret_access_key):
     >>> conn = AwsConnectionManager(settings=AwsConnectionSettings(region_name="ap-southeast-2",
-    profile=None))
+    profile=None, secrets_manager=None))
 
     # OR if you want custom set of env vars to connect
     >>> conn = AwsConnectionManager(
@@ -61,7 +61,8 @@ class AwsConnectionManager:
     ...             secret_access_key_var="SOME_CUSTOM_AWS_SECRET_ACCESS_KEY",
     ...             use_session_token=True,
     ...             aws_session_token_var="SOME_CUSTOM_AWS_SESSION_TOKEN"
-    ...             )
+    ...             ),
+    ...         profile=None,
     ...         )
     ...     )
 
