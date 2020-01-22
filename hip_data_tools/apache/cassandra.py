@@ -29,7 +29,7 @@ class CassandraUtil:
 
     @staticmethod
     def _clean_outgoing_values(val):
-        if type(val) is Timestamp:
+        if isinstance(val, Timestamp):
             return val.to_pydatetime()
         if val is NaT:
             return None
