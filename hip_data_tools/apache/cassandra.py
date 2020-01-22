@@ -225,16 +225,6 @@ class CassandraUtil:
                                _extract_rows_from_dataframe(dataframe))
         return self._session.execute(batch)
 
-    def create_table_from_dataframe(self, dataframe: DataFrame, table: str) -> None:
-        """
-        Create a table based on the pandas DataFrame 's schema
-        Args:
-            dataframe (DataFrame):
-            table (str):
-        Returns: None
-        """
-        pass
-
     def upsert_dict(self, data: list, table: str) -> ResultSet:
         """
         Upsert a row into the cassandra table based on the dictionary key values
@@ -256,17 +246,6 @@ class CassandraUtil:
         """
         self._conn.setup_connection(default_keyspace=self.keyspace)
         sync_table(model_class)
-
-    def create_table(self, columns: dict, primary_keys: list, table: str) -> ResultSet:
-        """
-        Create a table if not already exists based on data from a dictionary
-        Args:
-            columns (dict):
-            primary_keys (list[str]):
-            table (str):
-        Returns: ResultSet
-        """
-        pass
 
     def read_dict(self, query, **kwargs) -> list:
         """

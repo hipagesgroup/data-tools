@@ -152,24 +152,6 @@ Standard Environment Variable Secret source to be reused across the project
 """
 
 
-class FileKeyValueSource(KeyValueSource):
-    """
-    class for sourcing secrets from file
-    """
-
-    def __init__(self, path):
-        # TODO: Implement
-        pass
-
-    def exists(self, key):
-        # TODO: Implement
-        pass
-
-    def get(self, key):
-        # TODO: Implement
-        pass
-
-
 class SecretsManager(ABC):
     """
     A secret management abstract class that provides ways of extracting secrets
