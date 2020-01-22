@@ -17,6 +17,30 @@ def _pandas_factory(colnames, rows):
     return pd.DataFrame(rows, columns=colnames)
 
 
+def _prepare_batch(prepared_statement, rows) -> BatchStatement:
+    batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
+    for row in rows:
+        batch.add(prepared_statement, row)
+    return batch
+
+
+def _extract_rows_from_dataframe(dataframe):
+    return [tuple([_clean_outgoing_values(val) for val in row]) for index, row in
+            dataframe.iterrows()]
+
+
+def _extract_rows_from_list_of_dict(data):
+    return [tuple(dct.values()) for dct in data]
+
+
+def _clean_outgoing_values(val):
+    if isinstance(val, Timestamp):
+        return val.to_pydatetime()
+    if val is NaT:
+        return None
+    return val
+
+
 class CassandraUtil:
     """
     Class to connect to and then retrieve, transform and upload data from and to cassandra
@@ -26,30 +50,6 @@ class CassandraUtil:
         self.keyspace = keyspace
         self._conn = conn
         self._session = self._conn.get_session(self.keyspace)
-
-    @staticmethod
-    def _clean_outgoing_values(val):
-        if isinstance(val, Timestamp):
-            return val.to_pydatetime()
-        if val is NaT:
-            return None
-        return val
-
-    @staticmethod
-    def _extract_rows_from_list_of_dict(data):
-        return [tuple(dct.values()) for dct in data]
-
-    @staticmethod
-    def _extract_rows_from_dataframe(dataframe):
-        return [tuple([CassandraUtil._clean_outgoing_values(val) for val in row]) for index, row in
-                dataframe.iterrows()]
-
-    @staticmethod
-    def _prepare_batch(prepared_statement, rows) -> BatchStatement:
-        batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
-        for row in rows:
-            batch.add(prepared_statement, row)
-        return batch
 
     def _cql_upsert_from_dict(self, data, table):
         upsert_sql = f"""
@@ -82,8 +82,8 @@ class CassandraUtil:
         """
         prepared_statement = self._session.prepare(
             self._cql_upsert_from_dataframe(dataframe, table))
-        batch = self._prepare_batch(prepared_statement,
-                                    self._extract_rows_from_dataframe(dataframe))
+        batch = _prepare_batch(prepared_statement,
+                               _extract_rows_from_dataframe(dataframe))
         return self._session.execute(batch)
 
     def create_table_from_dataframe(self, dataframe: DataFrame, table: str) -> None:
@@ -105,7 +105,7 @@ class CassandraUtil:
         Returns: None
         """
         prepared_statement = self._session.prepare(self._cql_upsert_from_dict(data, table))
-        batch = self._prepare_batch(prepared_statement, self._extract_rows_from_list_of_dict(data))
+        batch = _prepare_batch(prepared_statement, _extract_rows_from_list_of_dict(data))
         return self._session.execute(batch)
 
     def create_table_from_model(self, model_class):
