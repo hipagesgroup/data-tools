@@ -47,7 +47,7 @@ class CassandraUtil:
     def _cql_upsert_from_dict(self, data, table):
         upsert_sql = f"""
         INSERT INTO {self.keyspace}.{table} 
-        ({", ".join([key for key in data[0]])}) 
+        ({", ".join(data[0])}) 
         VALUES ({", ".join(['?' for key in data[0]])});
             """
         print(upsert_sql)
