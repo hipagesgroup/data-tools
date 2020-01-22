@@ -38,13 +38,13 @@ class TestCassandraUtil(TestCase):
             {
                 "example_type": 100,
                 "example_id": uuid.uuid4(),
-                "created_at": datetime.now(),
+                "created_at": datetime.datetime.now(),
                 "description": "this is from a dict"
             },
             {
                 "example_type": 200,
                 "example_id": uuid.uuid4(),
-                "created_at": datetime.now(),
+                "created_at": datetime.datetime.now(),
                 "description": "this is from a dict"
             },
             {
@@ -68,13 +68,13 @@ class TestCassandraUtil(TestCase):
             {
                 "example_type": 100,
                 "example_id": uuid.uuid4(),
-                "created_at": datetime.now(),
+                "created_at": datetime.datetime.now(),
                 "description": "this is from a dict"
             },
             {
                 "example_type": 200,
                 "example_id": uuid.uuid4(),
-                "created_at": datetime.now(),
+                "created_at": datetime.datetime.now(),
                 "description": "this is from a dict"
             },
             {
