@@ -147,6 +147,9 @@ class DictKeyValueSource(KeyValueSource):
 
 
 ENVIRONMENT: EnvironmentKeyValueSource = EnvironmentKeyValueSource()
+"""
+Standard Environment Variable Secret source to be reused across the project
+"""
 
 
 class FileKeyValueSource(KeyValueSource):
