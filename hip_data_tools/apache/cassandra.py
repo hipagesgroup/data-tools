@@ -37,12 +37,12 @@ class CassandraUtil:
 
     @staticmethod
     def _extract_rows_from_list_of_dict(data):
-        return [tuple([val for val in dct.values()]) for dct in data]
+        return [tuple(dct.values()) for dct in data]
 
     @staticmethod
-    def _extract_rows_from_dataframe(df):
+    def _extract_rows_from_dataframe(dataframe):
         return [tuple([CassandraUtil._clean_outgoing_values(val) for val in row]) for index, row in
-                df.iterrows()]
+                dataframe.iterrows()]
 
     def _cql_upsert_from_dict(self, data, table):
         upsert_sql = f"""
@@ -53,11 +53,11 @@ class CassandraUtil:
         print(upsert_sql)
         return upsert_sql
 
-    def _cql_upsert_from_dataframe(self, df, table):
+    def _cql_upsert_from_dataframe(self, dataframe, table):
         upsert_sql = f"""
         INSERT INTO {self.keyspace}.{table} 
-        ({", ".join(list(df.columns.values))}) 
-        VALUES ({", ".join(['?' for key in df.columns.values])});
+        ({", ".join(list(dataframe.columns.values))}) 
+        VALUES ({", ".join(['?' for key in dataframe.columns.values])});
             """
         print(upsert_sql)
         return upsert_sql
@@ -68,26 +68,26 @@ class CassandraUtil:
             batch.add(prepared_statement, row)
         return batch
 
-    def upsert_dataframe(self, df: DataFrame, table: str) -> None:
+    def upsert_dataframe(self, dataframe: DataFrame, table: str) -> None:
         """
         upload all data from a DataFrame onto a cassandra table
         Args:
-            df (DataFrame): a DataFrame to upsert
+            dataframe (DataFrame): a DataFrame to upsert
             table (str): the table to upsert data into
             column_mapping (dict): a mapping between column names of the dataframe to cassandra
             table. If None then the DataFrame column names that match cassandra table anme will be
             upserted else ignored
         Returns: None
         """
-        prepared_statement = self._session.prepare(self._cql_upsert_from_dataframe(df, table))
-        batch = self._prepare_batch(prepared_statement, self._extract_rows_from_dataframe(df))
+        prepared_statement = self._session.prepare(self._cql_upsert_from_dataframe(dataframe, table))
+        batch = self._prepare_batch(prepared_statement, self._extract_rows_from_dataframe(dataframe))
         return self._session.execute(batch)
 
-    def create_table_from_dataframe(self, df: DataFrame, table: str) -> None:
+    def create_table_from_dataframe(self, dataframe: DataFrame, table: str) -> None:
         """
         create a table based on a given pandas DataFrame 's schema
         Args:
-            df (DataFrame):
+            dataframe (DataFrame):
             table (str):
         Returns: None
         """
