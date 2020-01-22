@@ -1,7 +1,8 @@
 import os
 from unittest import TestCase
 
-from hip_data_tools.connect.secrets import CassandraSecretsManager, AwsSecretsManager
+from hip_data_tools.apache.cassandra import CassandraSecretsManager
+from hip_data_tools.aws.aws import AwsSecretsManager
 
 
 class TestCommon(TestCase):

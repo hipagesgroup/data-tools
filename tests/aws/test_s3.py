@@ -7,8 +7,7 @@ from moto import mock_s3
 from pandas.util.testing import assert_frame_equal
 
 from hip_data_tools.aws.s3 import S3Util
-from hip_data_tools.connect.aws import AwsConnectionManager, AwsConnectionSettings
-from hip_data_tools.connect.secrets import AwsSecretsManager
+from hip_data_tools.aws.aws import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 
 
 class TestS3Util(TestCase):

@@ -1,7 +1,34 @@
 import boto3 as boto
 from attr import dataclass
 
-from hip_data_tools.connect.secrets import AwsSecretsManager
+from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
+
+
+class AwsSecretsManager(SecretsManager):
+    """
+
+    Args:
+        source (KeyValueSource): a kv source that has secrets
+        access_key_id_var (str): the variable name or the key for finding access_key_id
+        secret_access_key_var (str): the variable name or the key for finding secret_access_key
+        use_session_token (bool): flag to check the session token is required or not
+        aws_session_token_var (str): the variable name or the key for finding aws_session_token
+    """
+
+    def __init__(self,
+                 source: KeyValueSource = ENVIRONMENT,
+                 access_key_id_var: str = "AWS_ACCESS_KEY_ID",
+                 secret_access_key_var: str = "AWS_SECRET_ACCESS_KEY",
+                 use_session_token: bool = False,
+                 aws_session_token_var: str = "AWS_SESSION_TOKEN"):
+        self._required_keys = [access_key_id_var, secret_access_key_var, ]
+        if use_session_token:
+            self._required_keys.append(aws_session_token_var)
+        super().__init__(self._required_keys, source)
+
+        self.aws_access_key_id = self.get_secret(access_key_id_var)
+        self.aws_secret_access_key = self.get_secret(secret_access_key_var)
+        self.aws_session_token = self.get_secret(aws_session_token_var)
 
 
 @dataclass

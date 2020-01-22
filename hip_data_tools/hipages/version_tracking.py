@@ -263,7 +263,7 @@ def _check_line_for_declaration(cur_line,
     # or if its another decorator
     # and stop if its the end of the file
     if (not cur_line or not cur_line.startswith("@")) \
-            and end_of_file and not declaration_in_line:
+        and end_of_file and not declaration_in_line:
         raise DecoratorError(declaration, cur_line, decorator_indicies)
 
     out = None

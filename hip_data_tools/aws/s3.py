@@ -6,8 +6,8 @@ import uuid
 
 import boto3
 import pandas as pd
-
 from joblib import load, dump
+
 from hip_data_tools.common import _generate_random_file_name
 
 
@@ -104,7 +104,8 @@ class S3Util:
         self.download_file(random_tmp_file_nm, s3_key)
         return pd.read_parquet(random_tmp_file_nm, engine=engine, columns=columns, **kwargs)
 
-    def move_recursive_to_different_bucket(self, source_dir, destination_bucket_name, destination_dir,
+    def move_recursive_to_different_bucket(self, source_dir, destination_bucket_name,
+                                           destination_dir,
                                            delete_after_copy=True, file_suffix_filter='None'):
         """
         Move files from one bucket to another
@@ -112,7 +113,8 @@ class S3Util:
             source_dir (str):
             destination_bucket_name (str):
             destination_dir (str):
-            delete_after_copy (str): If True source files will be deleted after copying to destination
+            delete_after_copy (str): If True source files will be deleted after copying to
+            destination
             file_suffix_filter (str): Filter out the files with this suffix
         Returns: NA
         """
@@ -122,7 +124,8 @@ class S3Util:
         for obj in source_bucket.objects.filter(Prefix=source_dir):
             if not obj.key.endswith(file_suffix_filter):
                 new_key = "{destination_dir_without_bucket_name}/{destination_file_name}".format(
-                    destination_dir_without_bucket_name=destination_dir.replace(destination_bucket_name + '/', ''),
+                    destination_dir_without_bucket_name=destination_dir.replace(
+                        destination_bucket_name + '/', ''),
                     destination_file_name=obj.key.split('/')[-1])
                 log.info("Moving s3 object from : \n%s \nto: \n%s", obj.key, new_key)
                 new_obj = destination_bucket.Object(new_key)
