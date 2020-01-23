@@ -227,9 +227,7 @@ class AthenaUtil(AwsUtil):
         return (bucket, key)
 
     def _get_glue_table_metadata(self, table: str) -> dict:
-        glue = self.conn.client('glue')
-        table = glue.get_table(DatabaseName=self.database, Name=table)
-        return table
+        return self.conn.client('glue').get_table(DatabaseName=self.database, Name=table)
 
     def drop_table(self, table_name):
         """
