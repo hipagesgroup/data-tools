@@ -1,4 +1,5 @@
 from unittest import TestCase
+from unittest.mock import Mock
 
 import hip_data_tools.aws.athena as athena
 from hip_data_tools.aws.athena import AthenaUtil
@@ -165,3 +166,17 @@ class TestAthenaUtil(TestCase):
     def test_drop_table__works_as_intended(self):
         with self.assertRaises(AttributeError):
             self.au.drop_table("abc")
+
+    def test__get_table_data_location__should_return_an_s3_location(self):
+        mock_au = Mock()
+        expected = ("abc", "def/pqr/")
+        # 
+        mock_au._get_glue_table_metadata.return_value = {
+            'Table': {
+                'StorageDescriptor': {
+                    'Location': "s3://abc/def/pqr/",
+                }
+            }
+        }
+        actual = AthenaUtil.get_table_data_location(mock_au, "test")
+        self.assertEqual(actual, expected)

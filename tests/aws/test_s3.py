@@ -20,6 +20,9 @@ class TestS3Util(TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.sample_file_location = "./test_sample.txt"
+        os.remove(cls.sample_file_location)
+        cls.sample_file_location = "./test_sample.txtre"
         os.remove(cls.sample_file_location)
 
     @mock_s3
@@ -72,8 +75,8 @@ class TestS3Util(TestCase):
         conn = AwsConnectionManager(
             AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(),
                                   profile=None))
-        source_bucket_name = "hipages-gandalf"
-        dest_bucket_name = "au-com-hipages-data-scratchpad"
+        source_bucket_name = "test"
+        dest_bucket_name = "test-scratchpad"
 
         s3_util_for_source = S3Util(conn=conn, bucket=source_bucket_name)
         s3_util_for_destination = S3Util(conn=conn, bucket=dest_bucket_name)
@@ -98,3 +101,18 @@ class TestS3Util(TestCase):
 
         expected = "Test file content"
         self.assertEqual(actual, expected)
+
+    @mock_s3
+    def test__list_objects_should_provide_a_complete_list(self):
+        conn = AwsConnectionManager(
+            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(),
+                                  profile=None))
+        s3 = S3Util(conn=conn, bucket="test")
+        s3.create_bucket()
+        for itr in range(1500):
+            s3.upload_file(self.sample_file_location, f"some/{itr}.abc")
+
+        keys = s3.list_objects("some")
+        self.assertEqual(len(keys), 1500)
+        keys = s3.list_objects("some/111")
+        self.assertEqual(len(keys), 11)

@@ -51,7 +51,7 @@ class AthenaUtil:
         Returns (boolean): if return_result = True then returns result dictionary, else None
 
         """
-        athena = self.conn.client(self.boto_type)
+        athena = self._client()
         output_location = "s3://{bucket}/{key}".format(
             bucket=self.output_bucket,
             key=self.output_key)
@@ -92,7 +92,7 @@ class AthenaUtil:
         """
         LOG.info("Watching query with execution id - %s", execution_id)
         while True:
-            athena = self.conn.client(self.boto_type)
+            athena = self._client()
             stats = athena.get_query_execution(QueryExecutionId=execution_id)
             status = stats['QueryExecution']['Status']['State']
             if status in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
@@ -110,11 +110,15 @@ class AthenaUtil:
             [[val['VarCharValue'] for val in row['Data']] for row in results['ResultSet']['Rows']])
 
     def _get_query_result(self, execution_id, max_result_size=1000):
-        athena = self.conn.client(self.boto_type)
+        athena = self._client()
         results = athena.get_query_results(QueryExecutionId=execution_id,
                                            MaxResults=max_result_size)
         # TODO: Add ability to parse pages larger than 1000 rows
         return results
+
+    def _client(self):
+        athena = self.conn.client(self.boto_type)
+        return athena
 
     def repair_table_partitions(self, table):
         """
@@ -211,6 +215,24 @@ class AthenaUtil:
                 ddl = ddl + " " + column["VarCharValue"]
             ddl = ddl + "\n"
         return ddl
+
+    def get_table_data_location(self, table):
+        """
+        Retrieves the table data location s3 using glue meta store
+        Args:
+            table (str): name of the table
+        Returns: a tuple of s3 bucket and key
+        """
+        table = self._get_glue_table_metadata(table)
+        location = table['Table']['StorageDescriptor']['Location']
+        bucket = location.split("/")[2]
+        key = "/".join(location.split("/")[3:])
+        return (bucket, key)
+
+    def _get_glue_table_metadata(self, table):
+        glue = self.conn.client('glue')
+        table = glue.get_table(DatabaseName=self.database, Name=table)
+        return table
 
     def drop_table(self, table_name):
         """

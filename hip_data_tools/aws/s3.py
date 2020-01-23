@@ -32,9 +32,10 @@ class S3Util:
             s3_key (string): Absolute path to save file to local
         Returns: None
         """
-        s3 = self.conn.client(self.boto_type)
+        self._client().download_file(self.bucket, s3_key, local_file_path)
 
-        s3.download_file(self.bucket, s3_key, local_file_path)
+    def _client(self):
+        return self.conn.client(self.boto_type)
 
     def upload_file(self, local_file_path, s3_key):
         """
@@ -44,8 +45,7 @@ class S3Util:
             s3_key (string): Absolute path within the s3 buck to upload the file
         Returns: None
         """
-        s3 = self.conn.client(self.boto_type)
-        s3.upload_file(local_file_path, self.bucket, s3_key)
+        self._client().upload_file(local_file_path, self.bucket, s3_key)
 
     def download_object_and_deserialse(self, s3_key, local_file_path=None):
         """
@@ -118,7 +118,7 @@ class S3Util:
             file_suffix_filter (str): Filter out the files with this suffix
         Returns: NA
         """
-        s3 = boto3.resource(self.boto_type)
+        s3 = self._resource()
         source_bucket = s3.Bucket(self.bucket)
         destination_bucket = s3.Bucket(destination_bucket_name)
         for obj in source_bucket.objects.filter(Prefix=source_dir):
@@ -133,6 +133,10 @@ class S3Util:
         if delete_after_copy:
             self.delete_recursive(source_dir)
 
+    def _resource(self):
+        s3 = boto3.resource(self.boto_type)
+        return s3
+
     def read_lines_as_list(self, key_prefix_filter):
         """
         Read lines from s3 files
@@ -140,7 +144,7 @@ class S3Util:
             key_prefix_filter (str): the key prefix under which all files will be read
         Returns: a list of strings representing lines read from all files
         """
-        s3 = boto3.resource(self.boto_type)
+        s3 = self._resource()
         bucket = s3.Bucket(name=self.bucket)
         lines = []
         log.info("reading files from s3://%s/%s ", self.bucket, key_prefix_filter)
@@ -162,6 +166,30 @@ class S3Util:
         Returns: NA
         """
         log.info("Recursively deleting s3://%s/%s", self.bucket, key_prefix)
-        s3 = boto3.resource(self.boto_type)
-        response = s3.Bucket(self.bucket).objects.filter(Prefix=key_prefix).delete()
+        response = self._resource().Bucket(self.bucket).objects.filter(Prefix=key_prefix).delete()
         log.info(response)
+
+    def list_objects(self, key_prefix):
+        itr = 0
+        continuation_token = None
+        keys = []
+        while True:
+            itr = itr + 1
+            if continuation_token is None:
+                result = self._client().list_objects_v2(
+                    Bucket=self.bucket,
+                    Prefix=key_prefix,
+                )
+            else:
+                result = self._client().list_objects_v2(
+                    Bucket=self.bucket,
+                    Prefix=key_prefix,
+                    ContinuationToken=continuation_token,
+                )
+            new_data = [content['Key'] for content in result['Contents']]
+            log.debug(f"new_data {new_data}")
+            keys = keys + new_data
+            if 'NextContinuationToken' not in result:
+                break
+            continuation_token = result['NextContinuationToken']
+        return keys
