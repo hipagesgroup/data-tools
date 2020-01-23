@@ -170,26 +170,31 @@ class S3Util:
         log.info(response)
 
     def list_objects(self, key_prefix):
-        itr = 0
+        """
+        returns a list of all objects unser a given key prefix
+        Args:
+            key_prefix (str): Key Prefix under which all objects are to be listed
+        Returns: list[str]
+        """
         continuation_token = None
         keys = []
         while True:
-            itr = itr + 1
-            if continuation_token is None:
-                result = self._client().list_objects_v2(
-                    Bucket=self.bucket,
-                    Prefix=key_prefix,
-                )
-            else:
-                result = self._client().list_objects_v2(
-                    Bucket=self.bucket,
-                    Prefix=key_prefix,
-                    ContinuationToken=continuation_token,
-                )
-            new_data = [content['Key'] for content in result['Contents']]
-            log.debug(f"new_data {new_data}")
-            keys = keys + new_data
+            result = self._list_object_page(key_prefix, continuation_token)
+            keys = keys + [content['Key'] for content in result['Contents']]
             if 'NextContinuationToken' not in result:
                 break
             continuation_token = result['NextContinuationToken']
         return keys
+
+    def _list_object_page(self, key_prefix, continuation_token):
+        if continuation_token is None:
+            return self._client().list_objects_v2(
+                Bucket=self.bucket,
+                Prefix=key_prefix,
+            )
+        else:
+            return self._client().list_objects_v2(
+                Bucket=self.bucket,
+                Prefix=key_prefix,
+                ContinuationToken=continuation_token,
+            )
