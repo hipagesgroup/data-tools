@@ -1,3 +1,5 @@
+from abc import ABC
+
 import boto3 as boto
 from attr import dataclass
 
@@ -45,7 +47,8 @@ class AwsConnectionManager:
     example -
     to connect using an aws cli profile
     >>> conn = AwsConnectionManager(
-    ...     AwsConnectionSettings(region_name="ap-southeast-2", profile="default", secrets_manager=None))
+    ...     AwsConnectionSettings(region_name="ap-southeast-2", profile="default",
+    secrets_manager=None))
 
     # OR if you want to connect using the standard aws environment variables
     (aws_access_key_id, aws_secret_access_key):
@@ -111,3 +114,21 @@ class AwsConnectionManager:
                     aws_session_token=self.settings.secrets_manager.aws_session_token,
                 )
         return self._session
+
+
+class AwsUtil(ABC):
+    def __init__(self, conn: AwsConnectionManager, boto_type: str):
+        self.conn = conn
+        self._client = None
+        self._resource = None
+        self.boto_type = boto_type
+
+    def get_client(self):
+        if self._client is None:
+            self._client = self.conn.client(self.boto_type)
+        return self._client
+
+    def get_resource(self):
+        if self._resource is None:
+            self._resource = self.conn.resource(self.boto_type)
+        return self._resource

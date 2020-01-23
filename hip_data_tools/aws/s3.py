@@ -4,14 +4,14 @@ Utility to connect to, and interact with the s3 file storage system
 import logging as log
 import uuid
 
-import boto3
 import pandas as pd
 from joblib import load, dump
 
+from hip_data_tools.aws.common import AwsUtil
 from hip_data_tools.common import _generate_random_file_name
 
 
-class S3Util:
+class S3Util(AwsUtil):
     """
     Utility class for connecting to s3 and manipulate data in a pythonic way
     Args:
@@ -20,9 +20,8 @@ class S3Util:
     """
 
     def __init__(self, conn, bucket):
-        self.conn = conn
+        super().__init__(conn, "s3")
         self.bucket = bucket
-        self.boto_type = "s3"
 
     def download_file(self, local_file_path, s3_key):
         """
@@ -32,10 +31,7 @@ class S3Util:
             s3_key (string): Absolute path to save file to local
         Returns: None
         """
-        self._client().download_file(self.bucket, s3_key, local_file_path)
-
-    def _client(self):
-        return self.conn.client(self.boto_type)
+        self.get_client().download_file(self.bucket, s3_key, local_file_path)
 
     def upload_file(self, local_file_path, s3_key):
         """
@@ -45,7 +41,7 @@ class S3Util:
             s3_key (string): Absolute path within the s3 buck to upload the file
         Returns: None
         """
-        self._client().upload_file(local_file_path, self.bucket, s3_key)
+        self.get_client().upload_file(local_file_path, self.bucket, s3_key)
 
     def download_object_and_deserialse(self, s3_key, local_file_path=None):
         """
@@ -79,7 +75,7 @@ class S3Util:
         Creates the s3 bucket
         Returns: None
         """
-        self.conn.resource(self.boto_type).create_bucket(Bucket=self.bucket)
+        self.get_resource().create_bucket(Bucket=self.bucket)
 
     def upload_df_parquet(self, df, s3_key):
         """
@@ -118,7 +114,7 @@ class S3Util:
             file_suffix_filter (str): Filter out the files with this suffix
         Returns: NA
         """
-        s3 = self._resource()
+        s3 = self.get_resource()
         source_bucket = s3.Bucket(self.bucket)
         destination_bucket = s3.Bucket(destination_bucket_name)
         for obj in source_bucket.objects.filter(Prefix=source_dir):
@@ -133,10 +129,6 @@ class S3Util:
         if delete_after_copy:
             self.delete_recursive(source_dir)
 
-    def _resource(self):
-        s3 = boto3.resource(self.boto_type)
-        return s3
-
     def read_lines_as_list(self, key_prefix_filter):
         """
         Read lines from s3 files
@@ -144,7 +136,7 @@ class S3Util:
             key_prefix_filter (str): the key prefix under which all files will be read
         Returns: a list of strings representing lines read from all files
         """
-        s3 = self._resource()
+        s3 = self.get_resource()
         bucket = s3.Bucket(name=self.bucket)
         lines = []
         log.info("reading files from s3://%s/%s ", self.bucket, key_prefix_filter)
@@ -166,7 +158,8 @@ class S3Util:
         Returns: NA
         """
         log.info("Recursively deleting s3://%s/%s", self.bucket, key_prefix)
-        response = self._resource().Bucket(self.bucket).objects.filter(Prefix=key_prefix).delete()
+        response = self.get_resource().Bucket(self.bucket).objects.filter(
+            Prefix=key_prefix).delete()
         log.info(response)
 
     def list_objects(self, key_prefix):
@@ -188,11 +181,11 @@ class S3Util:
 
     def _list_object_page(self, key_prefix, continuation_token):
         if continuation_token is None:
-            return self._client().list_objects_v2(
+            return self.get_client().list_objects_v2(
                 Bucket=self.bucket,
                 Prefix=key_prefix,
             )
-        return self._client().list_objects_v2(
+        return self.get_client().list_objects_v2(
             Bucket=self.bucket,
             Prefix=key_prefix,
             ContinuationToken=continuation_token,
