@@ -1,7 +1,9 @@
 from abc import ABC
+from typing import Any
 
 import boto3 as boto
 from attr import dataclass
+from botocore.client import BaseClient
 
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
 
@@ -117,18 +119,33 @@ class AwsConnectionManager:
 
 
 class AwsUtil(ABC):
+    """
+    Common Aws class to use boto connection and resources
+    Args:
+        conn (AwsConnectionManager): Connection to use for accessing aws resources
+        boto_type: the type of boto client / resource to instantiate
+    """
+
     def __init__(self, conn: AwsConnectionManager, boto_type: str):
         self.conn = conn
         self._client = None
         self._resource = None
         self.boto_type = boto_type
 
-    def get_client(self):
+    def get_client(self) -> BaseClient:
+        """
+        returns a boto client and creates one if not present
+        Returns: BaseClient
+        """
         if self._client is None:
             self._client = self.conn.client(self.boto_type)
         return self._client
 
-    def get_resource(self):
+    def get_resource(self) -> Any:
+        """
+        returns a boto resporce and creates one if not present
+        Returns: Any
+        """
         if self._resource is None:
             self._resource = self.conn.resource(self.boto_type)
         return self._resource
