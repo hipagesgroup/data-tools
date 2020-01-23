@@ -213,12 +213,12 @@ class AthenaUtil(AwsUtil):
             ddl = ddl + "\n"
         return ddl
 
-    def get_table_data_location(self, table):
+    def get_table_data_location(self, table: str) -> tuple:
         """
         Retrieves the table's S3 data location using glue meta store
         Args:
             table (str): name of the table
-        Returns: a tuple of s3 bucket and key
+        Returns: tuple of s3 bucket and key
         """
         table = self._get_glue_table_metadata(table)
         location = table['Table']['StorageDescriptor']['Location']
@@ -226,7 +226,7 @@ class AthenaUtil(AwsUtil):
         key = "/".join(location.split("/")[3:])
         return (bucket, key)
 
-    def _get_glue_table_metadata(self, table):
+    def _get_glue_table_metadata(self, table: str) -> dict:
         glue = self.conn.client('glue')
         table = glue.get_table(DatabaseName=self.database, Name=table)
         return table
