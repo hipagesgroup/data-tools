@@ -192,9 +192,8 @@ class S3Util:
                 Bucket=self.bucket,
                 Prefix=key_prefix,
             )
-        else:
-            return self._client().list_objects_v2(
-                Bucket=self.bucket,
-                Prefix=key_prefix,
-                ContinuationToken=continuation_token,
-            )
+        return self._client().list_objects_v2(
+            Bucket=self.bucket,
+            Prefix=key_prefix,
+            ContinuationToken=continuation_token,
+        )
