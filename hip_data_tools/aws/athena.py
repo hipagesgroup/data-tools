@@ -215,7 +215,7 @@ class AthenaUtil(AwsUtil):
 
     def get_table_data_location(self, table):
         """
-        Retrieves the table data location s3 using glue meta store
+        Retrieves the table's S3 data location using glue meta store
         Args:
             table (str): name of the table
         Returns: a tuple of s3 bucket and key
