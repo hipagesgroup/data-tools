@@ -12,7 +12,6 @@ from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import ResultSet, Cluster, Session
 from cassandra.cqlengine import connection
 from cassandra.cqlengine.management import sync_table
-from cassandra.cqlengine.models import Model
 from cassandra.policies import LoadBalancingPolicy
 from cassandra.query import dict_factory, BatchStatement
 from pandas import DataFrame
@@ -22,6 +21,7 @@ from pandas._libs.tslibs.timestamps import Timestamp
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
 
 CASSANDRA_BATCH_LIMIT = 20
+"""Maximum number of prepared statements per per batch"""
 
 
 def get_ssl_context(cert_path: str) -> SSLContext:
@@ -295,7 +295,7 @@ class CassandraUtil:
         pbar = tqdm.tqdm(total=len(batches))
         log.info("Executing cassandra batches")
         for batch in batches:
-            results.append(self._session.execute(batch))
+            results.append(self._session.execute(batch, timeout=30.0))
             pbar.update(1)
 
         log.info("finished %s batches", len(results))
@@ -311,7 +311,7 @@ class CassandraUtil:
         """
         prepared_statement = self._session.prepare(self._cql_upsert_from_dict(data, table))
         batch = _prepare_batches(prepared_statement, _extract_rows_from_list_of_dict(data))
-        return self._session.execute(batch)
+        return self._session.execute(batch, timeout=30.0)
 
     def create_table_from_model(self, model_class):
         """
