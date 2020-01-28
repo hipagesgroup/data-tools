@@ -4,7 +4,6 @@ Module to deal with data transfer from S3 to Cassandra
 import logging as log
 
 from attr import dataclass
-from cassandra.query import dict_factory
 
 from hip_data_tools.apache.cassandra import CassandraUtil, CassandraConnectionManager, \
     CassandraConnectionSettings
@@ -57,7 +56,6 @@ class S3ToCassandra:
             log.info("The target table now contains %s rows", result)
 
     def upsert_object(self, key):
-        # TODO: Verify if file is parquet and throw error if it is not
         df = self._s3.download_df_parquet(s3_key=key)
         self._cassandra.upsert_dataframe(dataframe=df, table=self.settings.destination_table)
 
