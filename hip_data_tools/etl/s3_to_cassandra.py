@@ -78,7 +78,8 @@ class S3ToCassandra:
 
     def _upsert_object(self, key):
         data_frame = self._s3.download_df_parquet(s3_key=key)
-        self._cassandra.upsert_dataframe(dataframe=data_frame, table=self.settings.destination_table)
+        self._cassandra.upsert_dataframe(dataframe=data_frame,
+                                         table=self.settings.destination_table)
 
     def _list_source_files(self):
         if self.keys_to_transfer is None:
