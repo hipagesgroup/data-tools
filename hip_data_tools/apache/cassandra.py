@@ -2,7 +2,6 @@
 Utility for connecting to and transforming data in Cassandra clusters
 """
 import logging as log
-import math
 from ssl import SSLContext, PROTOCOL_TLSv1, CERT_REQUIRED
 
 import pandas as pd
@@ -47,15 +46,15 @@ PYTHON_TO_CASSANDRA_DATA_TYPE_MAP = {
 }
 
 
-def _get_data_frame_column_types(df):
-    df_col_dict = {}
-    for col in df:
-        df_col_dict[col] = type(df[col][0]).__name__
-    return df_col_dict
+def _get_data_frame_column_types(data_frame):
+    data_frame_col_dict = {}
+    for col in data_frame:
+        data_frame_col_dict[col] = type(data_frame[col][0]).__name__
+    return data_frame_col_dict
 
 
-def convert_dataframe_columns_to_cassandra(df):
-    column_dtype = _get_data_frame_column_types(df)
+def convert_dataframe_columns_to_cassandra(data_frame):
+    column_dtype = _get_data_frame_column_types(data_frame)
     cassandra_columns = {key: PYTHON_TO_CASSANDRA_DATA_TYPE_MAP[value] for (key, value) in
                          column_dtype.items()}
     return cassandra_columns
@@ -77,7 +76,7 @@ def _prepare_batches(prepared_statement, rows) -> list:
         batch.add(prepared_statement, row)
         itr += 1
     batches.append(batch)
-    log.info("created %s batches out of df of %s rows", len(batches), len(rows))
+    log.info("created %s batches out of data frame of %s rows", len(batches), len(rows))
     return batches
 
 
