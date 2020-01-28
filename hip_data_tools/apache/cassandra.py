@@ -304,7 +304,7 @@ class CassandraUtil:
         log.info("finished %s batches", len(results))
         return results
 
-    @retry(wait_exponential_multiplier=100, wait_exponential_max=100000)
+    @retry(wait_exponential_multiplier=1000, wait_exponential_max=100000)
     def _execute_batch(self, batch):
         return self._session.execute(batch, timeout=300.0)
 
