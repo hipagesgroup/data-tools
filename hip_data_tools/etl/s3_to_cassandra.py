@@ -48,9 +48,9 @@ class S3ToCassandra:
         Creates the destination cassandra table if not exists
         Returns: None
         """
-        df = self._s3.download_df_parquet(s3_key=self._list_source_files()[0])
+        data_frame = self._s3.download_df_parquet(s3_key=self._list_source_files()[0])
         self._cassandra.create_table_from_dataframe(
-            data_frame=df,
+            data_frame=data_frame,
             table_name=self.settings.destination_table,
             primary_key_column_list=self.settings.destination_table_primary_keys,
             table_options_statement=self.settings.destination_table_options_statement,
@@ -77,8 +77,8 @@ class S3ToCassandra:
             log.info("The target table now contains %s rows", result)
 
     def _upsert_object(self, key):
-        df = self._s3.download_df_parquet(s3_key=key)
-        self._cassandra.upsert_dataframe(dataframe=df, table=self.settings.destination_table)
+        data_frame = self._s3.download_df_parquet(s3_key=key)
+        self._cassandra.upsert_dataframe(dataframe=data_frame, table=self.settings.destination_table)
 
     def _list_source_files(self):
         if self.keys_to_transfer is None:
