@@ -116,7 +116,7 @@ def _clean_outgoing_values(val):
 
 
 def _cql_manage_column_lists(data_frame, primary_key_column_list):
-    if primary_key_column_list is None or len(primary_key_column_list) < 1:
+    if primary_key_column_list is None or not primary_key_column_list:
         raise Exception("please provide at least one primary key column")
     column_dict = convert_dataframe_columns_to_cassandra(data_frame)
     for key in primary_key_column_list:
