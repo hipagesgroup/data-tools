@@ -6,10 +6,11 @@ import csv
 import sys
 import time
 
+from hip_data_tools.aws.common import AwsUtil
 from hip_data_tools.common import LOG
 
 
-class AthenaUtil:
+class AthenaUtil(AwsUtil):
     """
     Utility class for connecting to athena and manipulate data in a pythonic way
 
@@ -21,6 +22,7 @@ class AthenaUtil:
     """
 
     def __init__(self, database, conn, output_key=None, output_bucket=None):
+        super().__init__(conn, "athena")
         self.database = database
         self.conn = conn
         self.output_key = output_key
@@ -37,7 +39,6 @@ class AthenaUtil:
                 "inputformat": "org.apache.hadoop.mapred.TextInputFormat"
             }
         }
-        self.boto_type = "athena"
 
     def run_query(self, query_string, return_result=False):
         """
@@ -51,7 +52,7 @@ class AthenaUtil:
         Returns (boolean): if return_result = True then returns result dictionary, else None
 
         """
-        athena = self.conn.client(self.boto_type)
+        athena = self.get_client()
         output_location = "s3://{bucket}/{key}".format(
             bucket=self.output_bucket,
             key=self.output_key)
@@ -92,7 +93,7 @@ class AthenaUtil:
         """
         LOG.info("Watching query with execution id - %s", execution_id)
         while True:
-            athena = self.conn.client(self.boto_type)
+            athena = self.get_client()
             stats = athena.get_query_execution(QueryExecutionId=execution_id)
             status = stats['QueryExecution']['Status']['State']
             if status in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
@@ -110,7 +111,7 @@ class AthenaUtil:
             [[val['VarCharValue'] for val in row['Data']] for row in results['ResultSet']['Rows']])
 
     def _get_query_result(self, execution_id, max_result_size=1000):
-        athena = self.conn.client(self.boto_type)
+        athena = self.get_client()
         results = athena.get_query_results(QueryExecutionId=execution_id,
                                            MaxResults=max_result_size)
         # TODO: Add ability to parse pages larger than 1000 rows
@@ -211,6 +212,22 @@ class AthenaUtil:
                 ddl = ddl + " " + column["VarCharValue"]
             ddl = ddl + "\n"
         return ddl
+
+    def get_table_data_location(self, table: str) -> tuple:
+        """
+        Retrieves the table's S3 data location using glue meta store
+        Args:
+            table (str): name of the table
+        Returns: tuple of s3 bucket and key
+        """
+        table = self._get_glue_table_metadata(table)
+        location = table['Table']['StorageDescriptor']['Location']
+        bucket = location.split("/")[2]
+        key = "/".join(location.split("/")[3:])
+        return (bucket, key)
+
+    def _get_glue_table_metadata(self, table: str) -> dict:
+        return self.conn.client('glue').get_table(DatabaseName=self.database, Name=table)
 
     def drop_table(self, table_name):
         """
