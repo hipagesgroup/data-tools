@@ -9,7 +9,7 @@ import tqdm
 from attr import dataclass
 from cassandra import ConsistencyLevel
 from cassandra.auth import PlainTextAuthProvider
-from cassandra.cluster import ResultSet, Cluster, Session
+from cassandra.cluster import Cluster, Session
 from cassandra.cqlengine import connection
 from cassandra.cqlengine.management import sync_table
 from cassandra.policies import LoadBalancingPolicy
@@ -17,6 +17,7 @@ from cassandra.query import dict_factory, BatchStatement
 from pandas import DataFrame
 from pandas._libs.tslibs.nattype import NaT
 from pandas._libs.tslibs.timestamps import Timestamp
+from retrying import retry
 
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
 
@@ -289,19 +290,25 @@ class CassandraUtil:
         """
         prepared_statement = self._session.prepare(
             self._cql_upsert_from_dataframe(dataframe, table))
-        results = []
-        batches = _prepare_batches(prepared_statement, _extract_rows_from_dataframe(dataframe))
 
+        batches = _prepare_batches(prepared_statement, _extract_rows_from_dataframe(dataframe))
+        return self._execute_batches(batches)
+
+    def _execute_batches(self, batches):
+        results = []
         pbar = tqdm.tqdm(total=len(batches))
         log.info("Executing cassandra batches")
         for batch in batches:
-            results.append(self._session.execute(batch, timeout=30.0))
+            results.append(self._execute_batch(batch))
             pbar.update(1)
-
         log.info("finished %s batches", len(results))
         return results
 
-    def upsert_dict(self, data: list, table: str) -> ResultSet:
+    @retry(wait_exponential_multiplier=100, wait_exponential_max=100000)
+    def _execute_batch(self, batch):
+        return self._session.execute(batch, timeout=300.0)
+
+    def upsert_dict(self, data: list, table: str) -> list:
         """
         Upsert a row into the cassandra table based on the dictionary key values
         Args:
@@ -310,8 +317,8 @@ class CassandraUtil:
         Returns: None
         """
         prepared_statement = self._session.prepare(self._cql_upsert_from_dict(data, table))
-        batch = _prepare_batches(prepared_statement, _extract_rows_from_list_of_dict(data))
-        return self._session.execute(batch, timeout=30.0)
+        batches = _prepare_batches(prepared_statement, _extract_rows_from_list_of_dict(data))
+        return self._execute_batches(batches)
 
     def create_table_from_model(self, model_class):
         """
