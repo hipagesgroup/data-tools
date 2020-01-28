@@ -10,7 +10,6 @@ from hip_data_tools.apache.cassandra import CassandraUtil, CassandraConnectionMa
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
 
-
 @dataclass
 class S3ToCassandraSettings:
     source_bucket: str

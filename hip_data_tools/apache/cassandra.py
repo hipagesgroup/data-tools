@@ -5,6 +5,7 @@ import logging as log
 from ssl import SSLContext, PROTOCOL_TLSv1, CERT_REQUIRED
 
 import pandas as pd
+import tqdm
 from attr import dataclass
 from cassandra import ConsistencyLevel
 from cassandra.auth import PlainTextAuthProvider
@@ -21,6 +22,7 @@ from pandas._libs.tslibs.timestamps import Timestamp
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
 
 CASSANDRA_BATCH_LIMIT = 20
+
 
 def get_ssl_context(cert_path: str) -> SSLContext:
     """
@@ -54,6 +56,12 @@ def _get_data_frame_column_types(data_frame):
 
 
 def convert_dataframe_columns_to_cassandra(data_frame):
+    """
+    Extracts a dictionary of column names and their cassandra data types from the dataframe
+    Args:
+        data_frame (DataFrame): the dataframe whose columns need to be extracted
+    Returns: dict
+    """
     column_dtype = _get_data_frame_column_types(data_frame)
     cassandra_columns = {key: PYTHON_TO_CASSANDRA_DATA_TYPE_MAP[value] for (key, value) in
                          column_dtype.items()}
@@ -68,6 +76,8 @@ def _prepare_batches(prepared_statement, rows) -> list:
     batches = []
     itr = 0
     batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
+    pbar = tqdm.tqdm(total=len(rows))
+    log.info("Preparing cassandra batches out of rows")
     for row in rows:
         if itr >= CASSANDRA_BATCH_LIMIT:
             batches.append(batch)
@@ -75,14 +85,21 @@ def _prepare_batches(prepared_statement, rows) -> list:
             itr = 0
         batch.add(prepared_statement, row)
         itr += 1
+        pbar.update(1)
     batches.append(batch)
     log.info("created %s batches out of data frame of %s rows", len(batches), len(rows))
     return batches
 
 
 def _extract_rows_from_dataframe(dataframe):
-    return [tuple([_clean_outgoing_values(val) for val in row]) for index, row in
-            dataframe.iterrows()]
+    (row, col) = dataframe.shape
+    pbar = tqdm.tqdm(total=row)
+    result = []
+    log.info("Converting Dataframe into List of tuples")
+    for index, row in dataframe.iterrows():
+        result.append(tuple([_clean_outgoing_values(val) for val in row]))
+        pbar.update(1)
+    return result
 
 
 def _extract_rows_from_list_of_dict(data):
@@ -101,12 +118,12 @@ def _cql_manage_column_lists(data_frame, primary_key_column_list):
     if primary_key_column_list is None or len(primary_key_column_list) < 1:
         raise Exception("please provide at least one primary key column")
     column_dict = convert_dataframe_columns_to_cassandra(data_frame)
-    for pk in primary_key_column_list:
-        if pk not in column_dict.keys():
+    for key in primary_key_column_list:
+        if key not in column_dict.keys():
             raise Exception(
-                f"The column {pk} is not in the column list, it cannot be specified as a primary "
+                f"The column {key} is not in the column list, it cannot be specified as a primary "
                 "key",
-                )
+            )
     column_list = [f"{k} {v}" for (k, v) in column_dict.items()]
     return column_list
 
@@ -272,11 +289,15 @@ class CassandraUtil:
         """
         prepared_statement = self._session.prepare(
             self._cql_upsert_from_dataframe(dataframe, table))
-        # Batch statement cannot contain more than 65535 statements, create sub batches
         results = []
         batches = _prepare_batches(prepared_statement, _extract_rows_from_dataframe(dataframe))
+
+        pbar = tqdm.tqdm(total=len(batches))
+        log.info("Executing cassandra batches")
         for batch in batches:
-            results.append(self._session.execute(batch, timeout=300.0))
+            results.append(self._session.execute(batch))
+            pbar.update(1)
+
         log.info("finished %s batches", len(results))
         return results
 
@@ -284,8 +305,8 @@ class CassandraUtil:
         """
         Upsert a row into the cassandra table based on the dictionary key values
         Args:
-            data (list[dict]):
-            table (str):
+            data (list[dict]): the data to be upserted
+            table (str): the table to upsert data into
         Returns: None
         """
         prepared_statement = self._session.prepare(self._cql_upsert_from_dict(data, table))
