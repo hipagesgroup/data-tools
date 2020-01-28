@@ -51,10 +51,9 @@ class S3ToCassandra:
         self.create_table()
         for key in self.list_source_files():
             self.upsert_object(key)
-            result = self._cassandra.execute(f"""
+            result = self._cassandra.read_dict(f"""
             SELECT COUNT(1) 
-            FROM {self.settings.destination_keyspace}.{self.settings.destination_table}""",
-                                             row_factory=dict_factory)
+            FROM {self.settings.destination_keyspace}.{self.settings.destination_table}""")
             log.info("The target table now contains %s rows", result)
 
     def upsert_object(self, key):
