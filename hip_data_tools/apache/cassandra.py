@@ -21,7 +21,7 @@ from retrying import retry
 
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
 
-CASSANDRA_BATCH_LIMIT = 20
+_CASSANDRA_BATCH_LIMIT = 20
 """Maximum number of prepared statements per per batch"""
 
 
@@ -38,7 +38,7 @@ def get_ssl_context(cert_path: str) -> SSLContext:
     return ssl_context
 
 
-PYTHON_TO_CASSANDRA_DATA_TYPE_MAP = {
+_PYTHON_TO_CASSANDRA_DATA_TYPE_MAP = {
     "Timestamp": "timestamp",
     "str": "varchar",
     "int64": "bigint",
@@ -64,7 +64,7 @@ def convert_dataframe_columns_to_cassandra(data_frame):
     Returns: dict
     """
     column_dtype = _get_data_frame_column_types(data_frame)
-    cassandra_columns = {key: PYTHON_TO_CASSANDRA_DATA_TYPE_MAP[value] for (key, value) in
+    cassandra_columns = {key: _PYTHON_TO_CASSANDRA_DATA_TYPE_MAP[value] for (key, value) in
                          column_dtype.items()}
     return cassandra_columns
 
@@ -80,7 +80,7 @@ def _prepare_batches(prepared_statement, rows) -> list:
     pbar = tqdm.tqdm(total=len(rows))
     log.info("Preparing cassandra batches out of rows")
     for row in rows:
-        if itr >= CASSANDRA_BATCH_LIMIT:
+        if itr >= _CASSANDRA_BATCH_LIMIT:
             batches.append(batch)
             batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
             itr = 0
