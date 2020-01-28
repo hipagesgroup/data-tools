@@ -382,6 +382,7 @@ class CassandraUtil:
         # protected _current_rows
         return self.execute(query, _pandas_factory, **kwargs)._current_rows
 
+    @retry(wait_exponential_multiplier=1000, wait_exponential_max=100000)
     def execute(self, query, row_factory, **kwargs):
         """
         Execute a cql command and retrieve data with the row factory
