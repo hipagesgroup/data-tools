@@ -270,7 +270,7 @@ class TestCassandraUtil(TestCase):
             table_options_statement=""
         )
         expected = """
-        CREATE TABLE test.test (
+        CREATE TABLE IF NOT EXISTS test.test (
             abc map, abc2 bigint, abc3 double,
             PRIMARY KEY (abc))
         ;
@@ -284,7 +284,7 @@ class TestCassandraUtil(TestCase):
             table_options_statement="WITH comments = 'some text that describes the table'"
         )
         expected = """
-        CREATE TABLE test.test (
+        CREATE TABLE IF NOT EXISTS test.test (
             abc map, abc2 bigint, abc3 double,
             PRIMARY KEY (abc, abc2))
         WITH comments = 'some text that describes the table';
