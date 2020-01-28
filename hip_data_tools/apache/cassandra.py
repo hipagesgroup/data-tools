@@ -105,9 +105,9 @@ def _cql_manage_column_lists(data_frame, primary_key_column_list):
     for pk in primary_key_column_list:
         if pk not in column_dict.keys():
             raise Exception(
-                "The column %s is not in the column list, it cannot be specified as a primary "
+                f"The column {pk} is not in the column list, it cannot be specified as a primary "
                 "key",
-                pk)
+                )
     column_list = [f"{k} {v}" for (k, v) in column_dict.items()]
     return column_list
 
