@@ -77,7 +77,7 @@ def _prepare_batches(prepared_statement, rows) -> list:
         batch.add(prepared_statement, row)
         itr += 1
     batches.append(batch)
-    log.warning("created %s batches out of df of %s rows", len(batches), len(rows))
+    log.info("created %s batches out of df of %s rows", len(batches), len(rows))
     return batches
 
 
@@ -278,7 +278,7 @@ class CassandraUtil:
         batches = _prepare_batches(prepared_statement, _extract_rows_from_dataframe(dataframe))
         for batch in batches:
             results.append(self._session.execute(batch, timeout=300.0))
-        log.warning("finished %s batches", len(results))
+        log.info("finished %s batches", len(results))
         return results
 
     def upsert_dict(self, data: list, table: str) -> ResultSet:

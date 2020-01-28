@@ -55,7 +55,7 @@ class S3ToCassandra:
             SELECT COUNT(1) 
             FROM {self.settings.destination_keyspace}.{self.settings.destination_table}""",
                                              row_factory=dict_factory)
-            log.warning("The target table now contains %s rows", result)
+            log.info("The target table now contains %s rows", result)
 
     def upsert_object(self, key):
         # TODO: Verify if file is parquet and throw error if it is not
@@ -65,5 +65,5 @@ class S3ToCassandra:
     def list_source_files(self):
         if self.keys_to_transfer is None:
             self.keys_to_transfer = self._s3.list_objects(self.settings.source_key_prefix)
-            log.warning("Listed and cached %s source files", len(self.keys_to_transfer))
+            log.info("Listed and cached %s source files", len(self.keys_to_transfer))
         return self.keys_to_transfer
