@@ -320,11 +320,11 @@ class CassandraUtil:
 
     def _execute_batches(self, batches):
         results = []
-        pbar = tqdm.tqdm(total=len(batches))
+        pbar = tqdm.tqdm(total=len(batches))  # Setup a progress bar for the loop.
         log.info("Executing cassandra batches")
         for batch in batches:
             results.append(self._execute_batch(batch))
-            pbar.update(1)
+            pbar.update(1)  # Update progress on the progress bar
         log.info("finished %s batches", len(results))
         return results
 
