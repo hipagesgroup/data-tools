@@ -122,13 +122,19 @@ def _clean_outgoing_values(val):
     return val
 
 
+class ValidationError(Exception):
+    def __init__(self, message, errors):
+        super().__init__(message)
+        self.errors = errors
+
+
 def _cql_manage_column_lists(data_frame, primary_key_column_list):
     if primary_key_column_list is None or not primary_key_column_list:
-        raise Exception("please provide at least one primary key column")
+        raise ValidationError("please provide at least one primary key column")
     column_dict = convert_dataframe_columns_to_cassandra(data_frame)
     for key in primary_key_column_list:
         if key not in column_dict.keys():
-            raise Exception(
+            raise ValidationError(
                 f"The column {key} is not in the column list, it cannot be specified as a primary "
                 "key",
             )
