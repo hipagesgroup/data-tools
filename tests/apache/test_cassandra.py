@@ -9,8 +9,9 @@ from pandas import DataFrame
 from pandas._libs.tslibs.nattype import NaT
 from pandas.util.testing import assert_frame_equal
 
-from hip_data_tools.apache.cassandra import CassandraUtil, _extract_rows_from_dataframe, \
-    _clean_outgoing_values, _extract_rows_from_list_of_dict, CassandraSecretsManager
+from hip_data_tools.apache.cassandra import CassandraUtil, dataframe_to_cassandra_tuples, \
+    _standardize_datatype, dicts_to_cassandra_tuples, CassandraSecretsManager, \
+    _get_data_frame_column_types, get_cql_columns_from_dataframe
 
 
 class TestCassandraUtil(TestCase):
@@ -97,15 +98,15 @@ class TestCassandraUtil(TestCase):
         self.assertEqual(actual.strip(), expected.strip())
 
     def test___clean_outgoing_values__should_do_its_cleaning(self):
-        actual = _clean_outgoing_values(NaT)
+        actual = _standardize_datatype(NaT)
         self.assertEqual(actual, None)
 
         expected = "some val"
-        actual = _clean_outgoing_values(expected)
+        actual = _standardize_datatype(expected)
         self.assertEqual(actual, expected)
 
         expected = 1
-        actual = _clean_outgoing_values(expected)
+        actual = _standardize_datatype(expected)
         self.assertEqual(actual, expected)
 
     def test___extract_rows_from_list_of_dict__should_form_correct_matrix(self):
@@ -128,7 +129,7 @@ class TestCassandraUtil(TestCase):
                 "created_at": None,
                 "description": "this is from a dict"
             }, ]
-        actual = _extract_rows_from_list_of_dict(data)
+        actual = dicts_to_cassandra_tuples(data)
         expected = [
             (100, 1234, datetime.datetime(2020, 1, 22), 'this is from a dict'),
             (200, 5678, datetime.datetime(2020, 1, 22), 'this is from a dict'),
@@ -157,7 +158,7 @@ class TestCassandraUtil(TestCase):
                 "description": "this is from a dict"
             }, ]
         df = DataFrame(data)
-        actual = _extract_rows_from_dataframe(df)
+        actual = dataframe_to_cassandra_tuples(df)
         expected = [
             (100, 1234, datetime.datetime(2020, 1, 22, 1, 2), 'this is from a dict'),
             (200, 5678, datetime.datetime(2020, 1, 4, 0), 'this is from a dict'),
@@ -177,3 +178,135 @@ class TestCassandraUtil(TestCase):
         actual = CassandraSecretsManager()
         self.assertEqual(actual.username, "abc")
         self.assertEqual(actual.password, "def")
+
+    def test__get_data_frame_column_types__should_work(self):
+        data = [
+            {
+                "example_type": 100,
+                "example_id": 1234,
+                "created_at": datetime.datetime(2020, 1, 22, 1, 2),
+                "description": "this is from a dict",
+                "abc": {"something": "foo"},
+                "abc2": -1,
+                "abc3": 0.23456,
+            },
+            {
+                "example_type": 100,
+                "example_id": 1234,
+                "created_at": datetime.datetime(2020, 1, 22, 1, 2),
+                "description": "this is from a dict",
+                "abc": {"something": "foo"},
+                "abc2": -1,
+                "abc3": 0.23456,
+            },
+        ]
+        df = DataFrame(data)
+        result = _get_data_frame_column_types(df)
+        self.assertDictEqual(result, {'created_at': 'Timestamp',
+                                      'description': 'str',
+                                      'example_id': 'int64',
+                                      'example_type': 'int64',
+                                      'abc': 'dict',
+                                      'abc2': 'int64',
+                                      'abc3': 'float64',
+                                      })
+
+    def test__convert_dataframe_columns_to_cassandra__should_work(self):
+        data = [
+            {
+                "example_type": 100,
+                "example_id": 1234,
+                "created_at": datetime.datetime(2020, 1, 22, 1, 2),
+                "description": "this is from a dict",
+                "abc": {"something": "foo"},
+                "abc2": -1,
+                "abc3": 0.23456,
+            },
+            {
+                "example_type": 100,
+                "example_id": 1234,
+                "created_at": datetime.datetime(2020, 1, 22, 1, 2),
+                "description": "this is from a dict",
+                "abc": {"something": "foo"},
+                "abc2": -1,
+                "abc3": 0.23456,
+            },
+        ]
+        df = DataFrame(data)
+        result = get_cql_columns_from_dataframe(df)
+        self.assertDictEqual(result, {'abc': 'map',
+                                      'abc2': 'bigint',
+                                      'abc3': 'double',
+                                      'created_at': 'timestamp',
+                                      'description': 'varchar',
+                                      'example_id': 'bigint',
+                                      'example_type': 'bigint',
+                                      })
+
+    def test___dataframe_to_cassandra_ddl_should_produce_proper_cql(self):
+        data = [
+            {
+                "abc": {"something": "foo"},
+                "abc2": -1,
+                "abc3": 0.23456,
+            },
+            {
+                "abc": {"something": "foo"},
+                "abc2": -1,
+                "abc3": 0.23456,
+            },
+        ]
+        df = DataFrame(data)
+        mock_cassandra_util = Mock()
+        mock_cassandra_util.keyspace = "test"
+        actual = CassandraUtil._dataframe_to_cassandra_ddl(
+            mock_cassandra_util, df,
+            primary_key_column_list=["abc"],
+            table_name="test",
+            table_options_statement=""
+        )
+        expected = """
+        CREATE TABLE IF NOT EXISTS test.test (
+            abc map, abc2 bigint, abc3 double,
+            PRIMARY KEY (abc))
+        ;
+        """
+        self.assertEqual(actual, expected)
+
+        actual = CassandraUtil._dataframe_to_cassandra_ddl(
+            mock_cassandra_util, df,
+            primary_key_column_list=["abc", "abc2"],
+            table_name="test",
+            table_options_statement="WITH comments = 'some text that describes the table'"
+        )
+        expected = """
+        CREATE TABLE IF NOT EXISTS test.test (
+            abc map, abc2 bigint, abc3 double,
+            PRIMARY KEY (abc, abc2))
+        WITH comments = 'some text that describes the table';
+        """
+        self.assertEqual(actual, expected)
+
+    def test__prepare_batches__should_provide_correct_number_of_batches(self):
+        input = [
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+        ]
+
+        expected = ["MockBatch", "MockBatch", "MockBatch"]
+        mock_cassandra_util = Mock()
+        mock_cassandra_util._prepare_batch = Mock(return_value="MockBatch")
+        prepared_statement = Mock()
+        actual = CassandraUtil.prepare_batches(mock_cassandra_util, prepared_statement, input)
+        self.assertEqual(actual, expected)

@@ -55,6 +55,8 @@ setup(
         'confluent-kafka==1.1.0',
         "pyarrow==0.14.1",
         "cassandra-driver==3.21.0",
+        "tqdm",
+        "retrying",
     ],
     test_suite="tests",
     tests_require=[

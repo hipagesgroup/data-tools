@@ -1,22 +1,35 @@
 """
 Utility for connecting to and transforming data in Cassandra clusters
 """
+import logging as log
+import os
 from ssl import SSLContext, PROTOCOL_TLSv1, CERT_REQUIRED
 
 import pandas as pd
+import tqdm
 from attr import dataclass
 from cassandra import ConsistencyLevel
 from cassandra.auth import PlainTextAuthProvider
-from cassandra.cluster import ResultSet, Cluster, Session
+from cassandra.cluster import Cluster, Session
 from cassandra.cqlengine import connection
 from cassandra.cqlengine.management import sync_table
 from cassandra.policies import LoadBalancingPolicy
-from cassandra.query import dict_factory, BatchStatement
+from cassandra.query import dict_factory, BatchStatement, PreparedStatement
 from pandas import DataFrame
 from pandas._libs.tslibs.nattype import NaT
 from pandas._libs.tslibs.timestamps import Timestamp
+from retrying import retry
 
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
+
+_CASSANDRA_BATCH_LIMIT: int = 20
+"""Maximum number of prepared statements per per batch"""
+
+_RETRY_WAIT_MULTIPLIER_MS: int = int(os.getenv("CASSANDRA_RETRY_WAIT_MULTIPLIER_MS", "1000"))
+"""Exponential backoff settings for connections to cassandra"""
+
+_RETRY_WAIT_MAX_MS: int = int(os.getenv("CASSANDRA_RETRY_WAIT_MAX_MS", "100000"))
+"""Exponential backoff settings for connections to cassandra"""
 
 
 def get_ssl_context(cert_path: str) -> SSLContext:
@@ -30,6 +43,107 @@ def get_ssl_context(cert_path: str) -> SSLContext:
     ssl_context.load_verify_locations(cert_path)
     ssl_context.verify_mode = CERT_REQUIRED
     return ssl_context
+
+
+_PYTHON_TO_CASSANDRA_DATA_TYPE_MAP = {
+    "Timestamp": "timestamp",
+    "str": "varchar",
+    "int64": "bigint",
+    "int32": "int",
+    "dict": "map",
+    "float64": "double",
+    "UUID": "UUID",
+}
+"""Dictionary mapping of python and pandas data types to Cassandra data types"""
+
+
+def _get_data_frame_column_types(data_frame):
+    data_frame_col_dict = {}
+    for col in data_frame:
+        data_frame_col_dict[col] = type(data_frame[col][0]).__name__
+    return data_frame_col_dict
+
+
+def get_cql_columns_from_dataframe(data_frame):
+    """
+    Extracts a dictionary of column names and their cassandra data types from the dataframe
+    Args:
+        data_frame (DataFrame): the dataframe whose columns need to be extracted
+    Returns: dict
+    """
+    column_dtype = _get_data_frame_column_types(data_frame)
+    return {key: _PYTHON_TO_CASSANDRA_DATA_TYPE_MAP[value] for (key, value) in column_dtype.items()}
+
+
+def _pandas_factory(colnames, rows):
+    return pd.DataFrame(rows, columns=colnames)
+
+
+def _chunk_list(lst: list, size: int) -> list:
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), size):
+        yield lst[i:i + size]
+
+
+def dataframe_to_cassandra_tuples(dataframe: DataFrame) -> list:
+    """
+    The Cassandra api uses tuples to send data for it's prepared statements, this method converts
+    the rows of a dataframe into a list of tuples. It also converts the Pandas specific datatypes
+    like Timestamp and NaN to python datatypes like datetime and None
+    Args:
+        dataframe (DataFrame): the dataframe to be converted to a list of tuples
+    Returns: list[tuple]
+    """
+    return [tuple([_standardize_datatype(val) for val in row]) for index, row in
+            dataframe.iterrows()]
+
+
+def dicts_to_cassandra_tuples(data: list) -> list:
+    """
+    The Cassandra api uses tuples to send data for it's prepared statements, this method converts
+    the list of dictionaries into a list of tuples
+    Args:
+        data (list[dict]): the list of dictonaries to be converted into a list of tuples
+    Returns: list[tuple]
+    """
+    return [tuple(dct.values()) for dct in data]
+
+
+def _standardize_datatype(val):
+    if isinstance(val, Timestamp):
+        return val.to_pydatetime()
+    if val is NaT:
+        return None
+    return val
+
+
+class ValidationError(Exception):
+    """
+    Exception class to raise validation issues
+    Args:
+        message (str): the error message
+    """
+
+    def __init__(self, message):
+        super().__init__(message)
+
+
+def _cql_manage_column_lists(data_frame, primary_key_column_list):
+    column_dict = get_cql_columns_from_dataframe(data_frame)
+    column_list = [f"{k} {v}" for (k, v) in column_dict.items()]
+    _validate_primary_key_list(column_dict, primary_key_column_list)
+    return column_list
+
+
+def _validate_primary_key_list(column_dict, primary_key_column_list):
+    if primary_key_column_list is None or not primary_key_column_list:
+        raise ValidationError("please provide at least one primary key column")
+    for key in primary_key_column_list:
+        if key not in column_dict.keys():
+            raise ValidationError(
+                f"The column {key} is not in the column list, it cannot be specified as a primary "
+                "key",
+            )
 
 
 class CassandraSecretsManager(SecretsManager):
@@ -153,34 +267,6 @@ class CassandraConnectionManager:
             default_keyspace=default_keyspace, )
 
 
-def _pandas_factory(colnames, rows):
-    return pd.DataFrame(rows, columns=colnames)
-
-
-def _prepare_batch(prepared_statement, rows) -> BatchStatement:
-    batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
-    for row in rows:
-        batch.add(prepared_statement, row)
-    return batch
-
-
-def _extract_rows_from_dataframe(dataframe):
-    return [tuple([_clean_outgoing_values(val) for val in row]) for index, row in
-            dataframe.iterrows()]
-
-
-def _extract_rows_from_list_of_dict(data):
-    return [tuple(dct.values()) for dct in data]
-
-
-def _clean_outgoing_values(val):
-    if isinstance(val, Timestamp):
-        return val.to_pydatetime()
-    if val is NaT:
-        return None
-    return val
-
-
 class CassandraUtil:
     """
     Class to connect to and then retrieve, transform and upload data from and to cassandra
@@ -189,6 +275,7 @@ class CassandraUtil:
     def __init__(self, keyspace: str, conn: CassandraConnectionManager):
         self.keyspace = keyspace
         self._conn = conn
+        self.consistency_level = ConsistencyLevel.QUORUM
         self._session = self._conn.get_session(self.keyspace)
 
     def _cql_upsert_from_dict(self, data, table):
@@ -197,7 +284,7 @@ class CassandraUtil:
         ({", ".join(data[0])}) 
         VALUES ({", ".join(['?' for key in data[0]])});
             """
-        print(upsert_sql)
+        log.info(upsert_sql)
         return upsert_sql
 
     def _cql_upsert_from_dataframe(self, dataframe, table):
@@ -206,10 +293,10 @@ class CassandraUtil:
         ({", ".join(list(dataframe.columns.values))}) 
         VALUES ({", ".join(['?' for key in dataframe.columns.values])});
             """
-        print(upsert_sql)
+        log.info(upsert_sql)
         return upsert_sql
 
-    def upsert_dataframe(self, dataframe: DataFrame, table: str) -> None:
+    def upsert_dataframe(self, dataframe: DataFrame, table: str) -> list:
         """
         Upload all data from a DataFrame onto a cassandra table
         Args:
@@ -221,21 +308,37 @@ class CassandraUtil:
         """
         prepared_statement = self._session.prepare(
             self._cql_upsert_from_dataframe(dataframe, table))
-        batch = _prepare_batch(prepared_statement,
-                               _extract_rows_from_dataframe(dataframe))
-        return self._session.execute(batch)
 
-    def upsert_dict(self, data: list, table: str) -> ResultSet:
+        batches = self.prepare_batches(prepared_statement, dataframe_to_cassandra_tuples(dataframe))
+        return self._execute_batches(batches)
+
+    def _execute_batches(self, batches):
+        results = []
+        pbar = tqdm.tqdm(total=len(batches))  # Setup a progress bar for the loop.
+        log.info("Executing cassandra batches")
+        for batch in batches:
+            results.append(self._execute_batch(batch))
+            pbar.update(1)  # Update progress on the progress bar
+        log.info("finished %s batches", len(results))
+        return results
+
+    @retry(wait_exponential_multiplier=_RETRY_WAIT_MULTIPLIER_MS,
+           wait_exponential_max=_RETRY_WAIT_MAX_MS)
+    def _execute_batch(self, batch):
+        log.info("Executing query: %s", batch)
+        return self._session.execute(batch, timeout=300.0)
+
+    def upsert_dict(self, data: list, table: str) -> list:
         """
         Upsert a row into the cassandra table based on the dictionary key values
         Args:
-            data (list[dict]):
-            table (str):
+            data (list[dict]): the data to be upserted
+            table (str): the table to upsert data into
         Returns: None
         """
         prepared_statement = self._session.prepare(self._cql_upsert_from_dict(data, table))
-        batch = _prepare_batch(prepared_statement, _extract_rows_from_list_of_dict(data))
-        return self._session.execute(batch)
+        batches = self.prepare_batches(prepared_statement, dicts_to_cassandra_tuples(data))
+        return self._execute_batches(batches)
 
     def create_table_from_model(self, model_class):
         """
@@ -246,6 +349,38 @@ class CassandraUtil:
         """
         self._conn.setup_connection(default_keyspace=self.keyspace)
         sync_table(model_class)
+
+    def create_table_from_dataframe(self, data_frame, table_name, primary_key_column_list,
+                                    table_options_statement=""):
+        """
+        Create a new table in cassandra based on a pandas DataFrame
+        Args:
+            data_frame (DataFrame): the data frame to be synced
+            table_name (str): name of the table to create
+            primary_key_column_list (lost[str]): list of columns in the data frame that constitute
+            primary key for new table
+            table_options_statement (str): a cql valid WITH statement to specify table options as
+            specified in https://docs.datastax.com/en/dse/6.0/cql/cql/cql_reference/cql_commands
+            /cqlCreateTable.html#table_optionsŒ
+
+        Returns: ResultSet
+
+        """
+        cql = self._dataframe_to_cassandra_ddl(data_frame, primary_key_column_list, table_name,
+                                               table_options_statement)
+        return self.execute(cql, row_factory=dict_factory)
+
+    def _dataframe_to_cassandra_ddl(self, data_frame, primary_key_column_list, table_name,
+                                    table_options_statement):
+        column_list = _cql_manage_column_lists(data_frame, primary_key_column_list)
+        cql = f"""
+        CREATE TABLE IF NOT EXISTS {self.keyspace}.{table_name} (
+            {", ".join(column_list)},
+            PRIMARY KEY ({", ".join(primary_key_column_list)}))
+        {table_options_statement};
+        """
+        log.info(cql)
+        return cql
 
     def read_dict(self, query, **kwargs) -> list:
         """
@@ -276,6 +411,31 @@ class CassandraUtil:
             **kwargs: Kwargs to match the session.execute command in cassandra
         Returns: ResultSet
         """
+        log.info("Executing query: %s", query)
         if row_factory is not None:
             self._session.row_factory = row_factory
         return self._session.execute(query, **kwargs)
+
+    def prepare_batches(self, prepared_statement: PreparedStatement, tuples: list) -> list:
+        """
+        Prepares a list of cassandra batched Statements out of a list of tuples and prepared
+        statement
+        Args:
+            prepared_statement (PreparedStatement): the statement to be used for batching
+            tuples list[tuple]: the data to be inserted
+        Returns: list[BatchStatement]
+        """
+        batches = []
+        log.info("Preparing cassandra batches out of rows")
+        batches_of_tuples = _chunk_list(tuples, _CASSANDRA_BATCH_LIMIT)
+        for tpl in batches_of_tuples:
+            batch = self._prepare_batch(prepared_statement, tpl)
+            batches.append(batch)
+        log.info("created %s batches out of list of %s tuples", len(batches), len(tuples))
+        return batches
+
+    def _prepare_batch(self, prepared_statement, tuples):
+        batch = BatchStatement(consistency_level=self.consistency_level)
+        for tpl in tuples:
+            batch.add(prepared_statement, tpl)
+        return batch
