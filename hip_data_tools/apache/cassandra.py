@@ -14,7 +14,7 @@ from cassandra.cluster import Cluster, Session
 from cassandra.cqlengine import connection
 from cassandra.cqlengine.management import sync_table
 from cassandra.policies import LoadBalancingPolicy
-from cassandra.query import dict_factory, BatchStatement
+from cassandra.query import dict_factory, BatchStatement, PreparedStatement
 from pandas import DataFrame
 from pandas._libs.tslibs.nattype import NaT
 from pandas._libs.tslibs.timestamps import Timestamp
@@ -79,22 +79,25 @@ def _pandas_factory(colnames, rows):
     return pd.DataFrame(rows, columns=colnames)
 
 
-def _prepare_batches(prepared_statement, rows) -> list:
+def _chunk_list(lst: list, size: int) -> list:
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), size):
+        yield lst[i:i + size]
+
+
+def _prepare_batches(prepared_statement: PreparedStatement, tuples: list) -> list:
     batches = []
-    itr = 0
-    batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
-    pbar = tqdm.tqdm(total=len(rows))
+    pbar = tqdm.tqdm(total=len(tuples))  # create a progress bar for the loop
     log.info("Preparing cassandra batches out of rows")
-    for row in rows:
-        if itr >= _CASSANDRA_BATCH_LIMIT:
-            batches.append(batch)
-            batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
-            itr = 0
-        batch.add(prepared_statement, row)
-        itr += 1
-        pbar.update(1)
-    batches.append(batch)
-    log.info("created %s batches out of data frame of %s rows", len(batches), len(rows))
+    batches_of_tuples = _chunk_list(tuples, _CASSANDRA_BATCH_LIMIT)
+    for tuples in batches_of_tuples:
+        batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
+        for tpl in tuples:
+            batch.add(prepared_statement, tpl)
+            pbar.update(1)  # update progress bar
+        batches.append(batch)
+
+    log.info("created %s batches out of list of %s tuples", len(batches), len(tuples))
     return batches
 
 
