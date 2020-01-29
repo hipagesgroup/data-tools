@@ -25,10 +25,10 @@ from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
 _CASSANDRA_BATCH_LIMIT: int = 20
 """Maximum number of prepared statements per per batch"""
 
-_RETRY_WAIT_MULTIPLIER_MS: int = os.getenv("CASSANDRA_RETRY_WAIT_MULTIPLIER_MS", 1000)
+_RETRY_WAIT_MULTIPLIER_MS: int = int(os.getenv("CASSANDRA_RETRY_WAIT_MULTIPLIER_MS", "1000"))
 """Exponential backoff settings for connections to cassandra"""
 
-_RETRY_WAIT_MAX_MS: int = os.getenv("CASSANDRA_RETRY_WAIT_MAX_MS", 100000)
+_RETRY_WAIT_MAX_MS: int = int(os.getenv("CASSANDRA_RETRY_WAIT_MAX_MS", "100000"))
 """Exponential backoff settings for connections to cassandra"""
 
 
@@ -118,6 +118,12 @@ def _standardize_datatype(val):
 
 
 class ValidationError(Exception):
+    """
+    Exception class to raise validation issues
+    Args:
+        message (str): the error message
+    """
+
     def __init__(self, message):
         super().__init__(message)
 
@@ -422,8 +428,8 @@ class CassandraUtil:
         batches = []
         log.info("Preparing cassandra batches out of rows")
         batches_of_tuples = _chunk_list(tuples, _CASSANDRA_BATCH_LIMIT)
-        for tuples in batches_of_tuples:
-            batch = self._prepare_batch(prepared_statement, tuples)
+        for tpl in batches_of_tuples:
+            batch = self._prepare_batch(prepared_statement, tpl)
             batches.append(batch)
         log.info("created %s batches out of list of %s tuples", len(batches), len(tuples))
         return batches
