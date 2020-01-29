@@ -325,6 +325,7 @@ class CassandraUtil:
     @retry(wait_exponential_multiplier=_RETRY_WAIT_MULTIPLIER_MS,
            wait_exponential_max=_RETRY_WAIT_MAX_MS)
     def _execute_batch(self, batch):
+        log.info("Executing query: %s", batch)
         return self._session.execute(batch, timeout=300.0)
 
     def upsert_dict(self, data: list, table: str) -> list:
@@ -412,6 +413,7 @@ class CassandraUtil:
             **kwargs: Kwargs to match the session.execute command in cassandra
         Returns: ResultSet
         """
+        log.info("Executing query: %s", query)
         if row_factory is not None:
             self._session.row_factory = row_factory
         return self._session.execute(query, **kwargs)
