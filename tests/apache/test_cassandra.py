@@ -5,17 +5,13 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 import pandas as pd
-from cassandra.cluster import DCAwareRoundRobinPolicy
 from pandas import DataFrame
 from pandas._libs.tslibs.nattype import NaT
 from pandas.util.testing import assert_frame_equal
 
 from hip_data_tools.apache.cassandra import CassandraUtil, dataframe_to_cassandra_tuples, \
     _standardize_datatype, dicts_to_cassandra_tuples, CassandraSecretsManager, \
-    _get_data_frame_column_types, get_cql_columns_from_dataframe, \
-    CassandraConnectionManager, \
-    CassandraConnectionSettings
-from hip_data_tools.common import DictKeyValueSource
+    _get_data_frame_column_types, get_cql_columns_from_dataframe
 
 
 class TestCassandraUtil(TestCase):
@@ -289,4 +285,28 @@ class TestCassandraUtil(TestCase):
             PRIMARY KEY (abc, abc2))
         WITH comments = 'some text that describes the table';
         """
+        self.assertEqual(actual, expected)
+
+    def test__prepare_batches__should_provide_correct_number_of_batches(self):
+        input = [
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+            ("abc", 123, "def"), ("abc", 123, "def"), ("abc", 123, "def"),
+        ]
+
+        expected = ["MockBatch", "MockBatch", "MockBatch"]
+        mock_cassandra_util = Mock()
+        mock_cassandra_util._prepare_batch = Mock(return_value="MockBatch")
+        prepared_statement = Mock()
+        actual = CassandraUtil.prepare_batches(mock_cassandra_util, prepared_statement, input)
         self.assertEqual(actual, expected)

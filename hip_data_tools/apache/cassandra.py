@@ -85,22 +85,6 @@ def _chunk_list(lst: list, size: int) -> list:
         yield lst[i:i + size]
 
 
-def _prepare_batches(prepared_statement: PreparedStatement, tuples: list) -> list:
-    batches = []
-    pbar = tqdm.tqdm(total=len(tuples))  # create a progress bar for the loop
-    log.info("Preparing cassandra batches out of rows")
-    batches_of_tuples = _chunk_list(tuples, _CASSANDRA_BATCH_LIMIT)
-    for tuples in batches_of_tuples:
-        batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
-        for tpl in tuples:
-            batch.add(prepared_statement, tpl)
-            pbar.update(1)  # update progress bar
-        batches.append(batch)
-
-    log.info("created %s batches out of list of %s tuples", len(batches), len(tuples))
-    return batches
-
-
 def dataframe_to_cassandra_tuples(dataframe: DataFrame) -> list:
     """
     The Cassandra api uses tuples to send data for it's prepared statements, this method converts
@@ -285,6 +269,7 @@ class CassandraUtil:
     def __init__(self, keyspace: str, conn: CassandraConnectionManager):
         self.keyspace = keyspace
         self._conn = conn
+        self.consistency_level = ConsistencyLevel.QUORUM
         self._session = self._conn.get_session(self.keyspace)
 
     def _cql_upsert_from_dict(self, data, table):
@@ -318,7 +303,7 @@ class CassandraUtil:
         prepared_statement = self._session.prepare(
             self._cql_upsert_from_dataframe(dataframe, table))
 
-        batches = _prepare_batches(prepared_statement, dataframe_to_cassandra_tuples(dataframe))
+        batches = self.prepare_batches(prepared_statement, dataframe_to_cassandra_tuples(dataframe))
         return self._execute_batches(batches)
 
     def _execute_batches(self, batches):
@@ -345,7 +330,7 @@ class CassandraUtil:
         Returns: None
         """
         prepared_statement = self._session.prepare(self._cql_upsert_from_dict(data, table))
-        batches = _prepare_batches(prepared_statement, dicts_to_cassandra_tuples(data))
+        batches = self.prepare_batches(prepared_statement, dicts_to_cassandra_tuples(data))
         return self._execute_batches(batches)
 
     def create_table_from_model(self, model_class):
@@ -424,3 +409,27 @@ class CassandraUtil:
         if row_factory is not None:
             self._session.row_factory = row_factory
         return self._session.execute(query, **kwargs)
+
+    def prepare_batches(self, prepared_statement: PreparedStatement, tuples: list) -> list:
+        """
+        Prepares a list of cassandra batched Statements out of a list of tuples and prepared
+        statement
+        Args:
+            prepared_statement (PreparedStatement): the statement to be used for batching
+            tuples list[tuple]: the data to be inserted
+        Returns: list[BatchStatement]
+        """
+        batches = []
+        log.info("Preparing cassandra batches out of rows")
+        batches_of_tuples = _chunk_list(tuples, _CASSANDRA_BATCH_LIMIT)
+        for tuples in batches_of_tuples:
+            batch = self._prepare_batch(prepared_statement, tuples)
+            batches.append(batch)
+        log.info("created %s batches out of list of %s tuples", len(batches), len(tuples))
+        return batches
+
+    def _prepare_batch(self, prepared_statement, tuples):
+        batch = BatchStatement(consistency_level=self.consistency_level)
+        for tpl in tuples:
+            batch.add(prepared_statement, tpl)
+        return batch
