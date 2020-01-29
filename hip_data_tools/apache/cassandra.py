@@ -54,6 +54,7 @@ _PYTHON_TO_CASSANDRA_DATA_TYPE_MAP = {
     "float64": "double",
     "UUID": "UUID",
 }
+"""Dictionary mapping of python and pandas data types to Cassandra data types"""
 
 
 def _get_data_frame_column_types(data_frame):
@@ -63,7 +64,7 @@ def _get_data_frame_column_types(data_frame):
     return data_frame_col_dict
 
 
-def convert_dataframe_columns_to_cassandra(data_frame):
+def get_cql_columns_from_dataframe(data_frame):
     """
     Extracts a dictionary of column names and their cassandra data types from the dataframe
     Args:
@@ -71,9 +72,7 @@ def convert_dataframe_columns_to_cassandra(data_frame):
     Returns: dict
     """
     column_dtype = _get_data_frame_column_types(data_frame)
-    cassandra_columns = {key: _PYTHON_TO_CASSANDRA_DATA_TYPE_MAP[value] for (key, value) in
-                         column_dtype.items()}
-    return cassandra_columns
+    return {key: _PYTHON_TO_CASSANDRA_DATA_TYPE_MAP[value] for (key, value) in column_dtype.items()}
 
 
 def _pandas_factory(colnames, rows):
@@ -99,22 +98,31 @@ def _prepare_batches(prepared_statement, rows) -> list:
     return batches
 
 
-def _extract_rows_from_dataframe(dataframe):
-    (row, col) = dataframe.shape
-    pbar = tqdm.tqdm(total=row)
-    result = []
-    log.info("Converting Dataframe into List of tuples")
-    for index, row in dataframe.iterrows():
-        result.append(tuple([_clean_outgoing_values(val) for val in row]))
-        pbar.update(1)
-    return result
+def dataframe_to_cassandra_tuples(dataframe: DataFrame) -> list:
+    """
+    The Cassandra api uses tuples to send data for it's prepared statements, this method converts
+    the rows of a dataframe into a list of tuples. It also converts the Pandas specific datatypes
+    like Timestamp and NaN to python datatypes like datetime and None
+    Args:
+        dataframe (DataFrame): the dataframe to be converted to a list of tuples
+    Returns: list[tuple]
+    """
+    return [tuple([_standardize_datatype(val) for val in row]) for index, row in
+            dataframe.iterrows()]
 
 
-def _extract_rows_from_list_of_dict(data):
+def dicts_to_cassandra_tuples(data: list) -> list:
+    """
+    The Cassandra api uses tuples to send data for it's prepared statements, this method converts
+    the list of dictionaries into a list of tuples
+    Args:
+        data (list[dict]): the list of dictonaries to be converted into a list of tuples
+    Returns: list[tuple]
+    """
     return [tuple(dct.values()) for dct in data]
 
 
-def _clean_outgoing_values(val):
+def _standardize_datatype(val):
     if isinstance(val, Timestamp):
         return val.to_pydatetime()
     if val is NaT:
@@ -128,7 +136,7 @@ class ValidationError(Exception):
 
 
 def _cql_manage_column_lists(data_frame, primary_key_column_list):
-    column_dict = convert_dataframe_columns_to_cassandra(data_frame)
+    column_dict = get_cql_columns_from_dataframe(data_frame)
     column_list = [f"{k} {v}" for (k, v) in column_dict.items()]
     _validate_primary_key_list(column_dict, primary_key_column_list)
     return column_list
@@ -307,7 +315,7 @@ class CassandraUtil:
         prepared_statement = self._session.prepare(
             self._cql_upsert_from_dataframe(dataframe, table))
 
-        batches = _prepare_batches(prepared_statement, _extract_rows_from_dataframe(dataframe))
+        batches = _prepare_batches(prepared_statement, dataframe_to_cassandra_tuples(dataframe))
         return self._execute_batches(batches)
 
     def _execute_batches(self, batches):
@@ -334,7 +342,7 @@ class CassandraUtil:
         Returns: None
         """
         prepared_statement = self._session.prepare(self._cql_upsert_from_dict(data, table))
-        batches = _prepare_batches(prepared_statement, _extract_rows_from_list_of_dict(data))
+        batches = _prepare_batches(prepared_statement, dicts_to_cassandra_tuples(data))
         return self._execute_batches(batches)
 
     def create_table_from_model(self, model_class):

@@ -10,9 +10,9 @@ from pandas import DataFrame
 from pandas._libs.tslibs.nattype import NaT
 from pandas.util.testing import assert_frame_equal
 
-from hip_data_tools.apache.cassandra import CassandraUtil, _extract_rows_from_dataframe, \
-    _clean_outgoing_values, _extract_rows_from_list_of_dict, CassandraSecretsManager, \
-    _get_data_frame_column_types, convert_dataframe_columns_to_cassandra, \
+from hip_data_tools.apache.cassandra import CassandraUtil, dataframe_to_cassandra_tuples, \
+    _standardize_datatype, dicts_to_cassandra_tuples, CassandraSecretsManager, \
+    _get_data_frame_column_types, get_cql_columns_from_dataframe, \
     CassandraConnectionManager, \
     CassandraConnectionSettings
 from hip_data_tools.common import DictKeyValueSource
@@ -102,15 +102,15 @@ class TestCassandraUtil(TestCase):
         self.assertEqual(actual.strip(), expected.strip())
 
     def test___clean_outgoing_values__should_do_its_cleaning(self):
-        actual = _clean_outgoing_values(NaT)
+        actual = _standardize_datatype(NaT)
         self.assertEqual(actual, None)
 
         expected = "some val"
-        actual = _clean_outgoing_values(expected)
+        actual = _standardize_datatype(expected)
         self.assertEqual(actual, expected)
 
         expected = 1
-        actual = _clean_outgoing_values(expected)
+        actual = _standardize_datatype(expected)
         self.assertEqual(actual, expected)
 
     def test___extract_rows_from_list_of_dict__should_form_correct_matrix(self):
@@ -133,7 +133,7 @@ class TestCassandraUtil(TestCase):
                 "created_at": None,
                 "description": "this is from a dict"
             }, ]
-        actual = _extract_rows_from_list_of_dict(data)
+        actual = dicts_to_cassandra_tuples(data)
         expected = [
             (100, 1234, datetime.datetime(2020, 1, 22), 'this is from a dict'),
             (200, 5678, datetime.datetime(2020, 1, 22), 'this is from a dict'),
@@ -162,7 +162,7 @@ class TestCassandraUtil(TestCase):
                 "description": "this is from a dict"
             }, ]
         df = DataFrame(data)
-        actual = _extract_rows_from_dataframe(df)
+        actual = dataframe_to_cassandra_tuples(df)
         expected = [
             (100, 1234, datetime.datetime(2020, 1, 22, 1, 2), 'this is from a dict'),
             (200, 5678, datetime.datetime(2020, 1, 4, 0), 'this is from a dict'),
@@ -237,7 +237,7 @@ class TestCassandraUtil(TestCase):
             },
         ]
         df = DataFrame(data)
-        result = convert_dataframe_columns_to_cassandra(df)
+        result = get_cql_columns_from_dataframe(df)
         self.assertDictEqual(result, {'abc': 'map',
                                       'abc2': 'bigint',
                                       'abc3': 'double',
