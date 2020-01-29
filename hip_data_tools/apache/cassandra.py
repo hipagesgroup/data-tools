@@ -284,7 +284,7 @@ class CassandraUtil:
         ({", ".join(data[0])}) 
         VALUES ({", ".join(['?' for key in data[0]])});
             """
-        log.info(upsert_sql)
+        log.debug(upsert_sql)
         return upsert_sql
 
     def _cql_upsert_from_dataframe(self, dataframe, table):
@@ -293,7 +293,7 @@ class CassandraUtil:
         ({", ".join(list(dataframe.columns.values))}) 
         VALUES ({", ".join(['?' for key in dataframe.columns.values])});
             """
-        log.info(upsert_sql)
+        log.debug(upsert_sql)
         return upsert_sql
 
     def upsert_dataframe(self, dataframe: DataFrame, table: str) -> list:
@@ -325,7 +325,7 @@ class CassandraUtil:
     @retry(wait_exponential_multiplier=_RETRY_WAIT_MULTIPLIER_MS,
            wait_exponential_max=_RETRY_WAIT_MAX_MS)
     def _execute_batch(self, batch):
-        log.info("Executing query: %s", batch)
+        log.debug("Executing query: %s", batch)
         return self._session.execute(batch, timeout=300.0)
 
     def upsert_dict(self, data: list, table: str) -> list:
@@ -379,7 +379,7 @@ class CassandraUtil:
             PRIMARY KEY ({", ".join(primary_key_column_list)}))
         {table_options_statement};
         """
-        log.info(cql)
+        log.debug(cql)
         return cql
 
     def read_dict(self, query, **kwargs) -> list:
@@ -411,7 +411,7 @@ class CassandraUtil:
             **kwargs: Kwargs to match the session.execute command in cassandra
         Returns: ResultSet
         """
-        log.info("Executing query: %s", query)
+        log.debug("Executing query: %s", query)
         if row_factory is not None:
             self._session.row_factory = row_factory
         return self._session.execute(query, **kwargs)
@@ -426,7 +426,7 @@ class CassandraUtil:
         Returns: list[BatchStatement]
         """
         batches = []
-        log.info("Preparing cassandra batches out of rows")
+        log.debug("Preparing cassandra batches out of rows")
         batches_of_tuples = _chunk_list(tuples, _CASSANDRA_BATCH_LIMIT)
         for tpl in batches_of_tuples:
             batch = self._prepare_batch(prepared_statement, tpl)
