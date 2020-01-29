@@ -2,6 +2,7 @@
 Utility for connecting to and transforming data in Cassandra clusters
 """
 import logging as log
+import os
 from ssl import SSLContext, PROTOCOL_TLSv1, CERT_REQUIRED
 
 import pandas as pd
@@ -21,8 +22,14 @@ from retrying import retry
 
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
 
-_CASSANDRA_BATCH_LIMIT = 20
+_CASSANDRA_BATCH_LIMIT: int = 20
 """Maximum number of prepared statements per per batch"""
+
+_RETRY_WAIT_MULTIPLIER_MS: int = os.getenv("CASSANDRA_RETRY_WAIT_MULTIPLIER_MS", 1000)
+"""Exponential backoff settings for connections to cassandra"""
+
+_RETRY_WAIT_MAX_MS: int = os.getenv("CASSANDRA_RETRY_WAIT_MAX_MS", 100000)
+"""Exponential backoff settings for connections to cassandra"""
 
 
 def get_ssl_context(cert_path: str) -> SSLContext:
@@ -304,7 +311,8 @@ class CassandraUtil:
         log.info("finished %s batches", len(results))
         return results
 
-    @retry(wait_exponential_multiplier=1000, wait_exponential_max=100000)
+    @retry(wait_exponential_multiplier=_RETRY_WAIT_MULTIPLIER_MS,
+           wait_exponential_max=_RETRY_WAIT_MAX_MS)
     def _execute_batch(self, batch):
         return self._session.execute(batch, timeout=300.0)
 
@@ -382,7 +390,8 @@ class CassandraUtil:
         # protected _current_rows
         return self.execute(query, _pandas_factory, **kwargs)._current_rows
 
-    @retry(wait_exponential_multiplier=1000, wait_exponential_max=100000)
+    @retry(wait_exponential_multiplier=_RETRY_WAIT_MULTIPLIER_MS,
+           wait_exponential_max=_RETRY_WAIT_MAX_MS)
     def execute(self, query, row_factory, **kwargs):
         """
         Execute a cql command and retrieve data with the row factory

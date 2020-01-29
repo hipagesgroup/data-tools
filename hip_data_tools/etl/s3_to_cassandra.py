@@ -71,11 +71,6 @@ class S3ToCassandra:
         """
         for key in self._list_source_files():
             self._upsert_object(key)
-            result = self._cassandra.read_dict(f"""
-            SELECT COUNT(1) 
-            FROM {self.settings.destination_keyspace}.{self.settings.destination_table}""",
-                                               timeout=300.0)
-            log.info("The target table now contains %s rows", result)
 
     def _upsert_object(self, key):
         data_frame = self._s3.download_df_parquet(s3_key=key)
