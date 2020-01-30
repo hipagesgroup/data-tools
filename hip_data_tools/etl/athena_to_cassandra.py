@@ -1,5 +1,5 @@
 """
-stuff
+handle ETL of data from Athena to Cassandra
 """
 from attr import dataclass
 
