@@ -34,23 +34,28 @@ class S3ToCassandra:
 
     def __init__(self, settings: S3ToCassandraSettings):
         self.settings = settings
-        self._cassandra = CassandraUtil(
+        self.keys_to_transfer = None
+
+    def _get_cassandra_util(self):
+        return CassandraUtil(
             keyspace=self.settings.destination_keyspace,
-            conn=CassandraConnectionManager(settings=self.settings.destination_connection_settings),
+            conn=CassandraConnectionManager(
+                settings=self.settings.destination_connection_settings),
         )
-        self._s3 = S3Util(
+
+    def _get_s3_util(self):
+        return S3Util(
             bucket=self.settings.source_bucket,
             conn=AwsConnectionManager(self.settings.source_connection_settings),
         )
-        self.keys_to_transfer = None
 
     def create_table(self):
         """
         Creates the destination cassandra table if not exists
         Returns: None
         """
-        data_frame = self._s3.download_df_parquet(s3_key=self.list_source_files()[0])
-        self._cassandra.create_table_from_dataframe(
+        data_frame = self._get_s3_util().download_df_parquet(s3_key=self.list_source_files()[0])
+        self._get_cassandra_util().create_table_from_dataframe(
             data_frame=data_frame,
             table_name=self.settings.destination_table,
             primary_key_column_list=self.settings.destination_table_primary_keys,
@@ -74,12 +79,17 @@ class S3ToCassandra:
             self._upsert_object(key)
 
     def _upsert_object(self, key):
-        data_frame = self._s3.download_df_parquet(s3_key=key)
-        self._cassandra.upsert_dataframe(dataframe=data_frame,
-                                         table=self.settings.destination_table)
+        data_frame = self._get_s3_util().download_df_parquet(s3_key=key)
+        self._get_cassandra_util().upsert_dataframe(dataframe=data_frame,
+                                                    table=self.settings.destination_table)
 
     def list_source_files(self):
+        """
+        Lists all the files that are encompassed under the s3 location in settings
+        Returns: list[str]
+        """
         if self.keys_to_transfer is None:
-            self.keys_to_transfer = self._s3.list_objects(self.settings.source_key_prefix)
+            self.keys_to_transfer = self._get_s3_util().list_objects(
+                self.settings.source_key_prefix)
             log.info("Listed and cached %s source files", len(self.keys_to_transfer))
         return self.keys_to_transfer

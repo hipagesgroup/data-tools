@@ -293,7 +293,7 @@ class CassandraUtil:
         log.debug(upsert_sql)
         return upsert_sql
 
-    def upsert_dataframe(self, dataframe: DataFrame, table: str, batch_size: int=2) -> list:
+    def upsert_dataframe(self, dataframe: DataFrame, table: str, batch_size: int = 2) -> list:
         """
         Upload all data from a DataFrame onto a cassandra table
         Args:
@@ -328,7 +328,7 @@ class CassandraUtil:
         log.debug("Executing query: %s", batch)
         return self._session.execute(batch, timeout=300.0)
 
-    def upsert_dict(self, data: list, table: str, batch_size: int=2) -> list:
+    def upsert_dict(self, data: list, table: str, batch_size: int = 2) -> list:
         """
         Upsert a row into the cassandra table based on the dictionary key values
         Args:
