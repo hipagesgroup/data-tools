@@ -22,9 +22,6 @@ from retrying import retry
 
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
 
-_CASSANDRA_BATCH_LIMIT: int = 20
-"""Maximum number of prepared statements per per batch"""
-
 _RETRY_WAIT_MULTIPLIER_MS: int = int(os.getenv("CASSANDRA_RETRY_WAIT_MULTIPLIER_MS", "1000"))
 """Exponential backoff settings for connections to cassandra"""
 
@@ -296,7 +293,7 @@ class CassandraUtil:
         log.debug(upsert_sql)
         return upsert_sql
 
-    def upsert_dataframe(self, dataframe: DataFrame, table: str) -> list:
+    def upsert_dataframe(self, dataframe: DataFrame, table: str, batch_size: int=2) -> list:
         """
         Upload all data from a DataFrame onto a cassandra table
         Args:
@@ -304,12 +301,14 @@ class CassandraUtil:
             table (str): the table to upsert data into
             table. If None then the DataFrame column names that match cassandra table anme will be
             upserted else ignored
+            batch_size (int): limit on the number of prepared statements in the batch
         Returns: ResultSet
         """
         prepared_statement = self._session.prepare(
             self._cql_upsert_from_dataframe(dataframe, table))
 
-        batches = self.prepare_batches(prepared_statement, dataframe_to_cassandra_tuples(dataframe))
+        batches = self.prepare_batches(prepared_statement, dataframe_to_cassandra_tuples(dataframe),
+                                       batch_size)
         return self._execute_batches(batches)
 
     def _execute_batches(self, batches):
@@ -323,21 +322,24 @@ class CassandraUtil:
         return results
 
     @retry(wait_exponential_multiplier=_RETRY_WAIT_MULTIPLIER_MS,
-           wait_exponential_max=_RETRY_WAIT_MAX_MS)
+           wait_exponential_max=_RETRY_WAIT_MAX_MS,
+           )
     def _execute_batch(self, batch):
         log.debug("Executing query: %s", batch)
         return self._session.execute(batch, timeout=300.0)
 
-    def upsert_dict(self, data: list, table: str) -> list:
+    def upsert_dict(self, data: list, table: str, batch_size: int=2) -> list:
         """
         Upsert a row into the cassandra table based on the dictionary key values
         Args:
             data (list[dict]): the data to be upserted
             table (str): the table to upsert data into
+            batch_size (int): limit on the number of prepared statements in the batch
         Returns: None
         """
         prepared_statement = self._session.prepare(self._cql_upsert_from_dict(data, table))
-        batches = self.prepare_batches(prepared_statement, dicts_to_cassandra_tuples(data))
+        batches = self.prepare_batches(prepared_statement, dicts_to_cassandra_tuples(data),
+                                       batch_size)
         return self._execute_batches(batches)
 
     def create_table_from_model(self, model_class):
@@ -416,18 +418,20 @@ class CassandraUtil:
             self._session.row_factory = row_factory
         return self._session.execute(query, **kwargs)
 
-    def prepare_batches(self, prepared_statement: PreparedStatement, tuples: list) -> list:
+    def prepare_batches(self, prepared_statement: PreparedStatement, tuples: list,
+                        batch_size: int) -> list:
         """
         Prepares a list of cassandra batched Statements out of a list of tuples and prepared
         statement
         Args:
             prepared_statement (PreparedStatement): the statement to be used for batching
-            tuples list[tuple]: the data to be inserted
+            tuples (list[tuple]): the data to be inserted
+            batch_size (int): limit on the number of prepared statements in the batch
         Returns: list[BatchStatement]
         """
         batches = []
         log.debug("Preparing cassandra batches out of rows")
-        batches_of_tuples = _chunk_list(tuples, _CASSANDRA_BATCH_LIMIT)
+        batches_of_tuples = _chunk_list(tuples, batch_size)
         for tpl in batches_of_tuples:
             batch = self._prepare_batch(prepared_statement, tpl)
             batches.append(batch)

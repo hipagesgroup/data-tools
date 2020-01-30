@@ -21,6 +21,7 @@ class S3ToCassandraSettings:
     destination_table: str
     destination_table_primary_keys: list
     destination_table_options_statement: str
+    destination_batch_size: int
     destination_connection_settings: CassandraConnectionSettings
 
 
@@ -48,7 +49,7 @@ class S3ToCassandra:
         Creates the destination cassandra table if not exists
         Returns: None
         """
-        data_frame = self._s3.download_df_parquet(s3_key=self._list_source_files()[0])
+        data_frame = self._s3.download_df_parquet(s3_key=self.list_source_files()[0])
         self._cassandra.create_table_from_dataframe(
             data_frame=data_frame,
             table_name=self.settings.destination_table,
@@ -69,7 +70,7 @@ class S3ToCassandra:
         Upsert all files from s3 sequentially into cassandra
         Returns: None
         """
-        for key in self._list_source_files():
+        for key in self.list_source_files():
             self._upsert_object(key)
 
     def _upsert_object(self, key):
@@ -77,7 +78,7 @@ class S3ToCassandra:
         self._cassandra.upsert_dataframe(dataframe=data_frame,
                                          table=self.settings.destination_table)
 
-    def _list_source_files(self):
+    def list_source_files(self):
         if self.keys_to_transfer is None:
             self.keys_to_transfer = self._s3.list_objects(self.settings.source_key_prefix)
             log.info("Listed and cached %s source files", len(self.keys_to_transfer))
