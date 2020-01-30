@@ -308,5 +308,6 @@ class TestCassandraUtil(TestCase):
         mock_cassandra_util = Mock()
         mock_cassandra_util._prepare_batch = Mock(return_value="MockBatch")
         prepared_statement = Mock()
-        actual = CassandraUtil.prepare_batches(mock_cassandra_util, prepared_statement, input)
+        actual = CassandraUtil.prepare_batches(mock_cassandra_util, prepared_statement, input,
+                                               batch_size=20)
         self.assertEqual(actual, expected)
