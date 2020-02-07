@@ -57,6 +57,7 @@ setup(
         "cassandra-driver==3.21.0",
         "tqdm",
         "retrying",
+        "arrow",
     ],
     test_suite="tests",
     tests_require=[

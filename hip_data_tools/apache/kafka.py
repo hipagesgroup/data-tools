@@ -595,7 +595,7 @@ class KafkaS3BatchExporter:
                 self.partition_msgs_by_kafka_ts(data_list, interval):
                 log.debug("data path : %s", s3_path)
 
-                self._s3_client.upload_df_parquet(msg_df, s3_path)
+                self._s3_client.upload_dataframe_as_parquet(msg_df, s3_path)
 
     def partition_msgs_by_kafka_ts(self, list_of_dicts, interval):
         """

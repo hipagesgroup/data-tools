@@ -1,8 +1,10 @@
+import json
 import os
 import uuid
 from unittest import TestCase
 
 import pandas as pd
+from botocore.exceptions import ClientError
 from moto import mock_s3
 from pandas.util.testing import assert_frame_equal
 
@@ -13,106 +15,217 @@ from hip_data_tools.aws.s3 import S3Util
 class TestS3Util(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.sample_file_location = "./test_sample.txt"
-        cls.sample_file_content = str(uuid.uuid4())
-        with open(cls.sample_file_location, 'w+') as f:
-            f.write(cls.sample_file_content)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.sample_file_location = "./test_sample.txt"
-        os.remove(cls.sample_file_location)
-        cls.sample_file_location = "./test_sample.txtre"
-        os.remove(cls.sample_file_location)
-
-    @mock_s3
-    def test_should__upload_then_download_file_from_s3__when_using_s3util(self):
-        bucket = "TEST_BUCKET"
+        cls.bucket = "TEST_BUCKET"
         conn = AwsConnectionManager(
             AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(),
                                   profile=None))
-        s3u = S3Util(conn=conn, bucket=bucket)
-        s3u.create_bucket()
+        cls.s3 = S3Util(conn=conn, bucket=cls.bucket)
+
+    def create_sample_file(self, file):
+        sample_file_content = str(uuid.uuid4())
+        with open(file, 'w+') as f:
+            f.write(sample_file_content)
+
+    def clean_test_files(self, file):
+        os.remove(file)
+
+    @mock_s3
+    def test_should__upload_then_download_file_from_s3__when_using_s3util(self):
+        self.s3.create_bucket()
+        sample_file = "./sample1.txt"
+        self.create_sample_file(sample_file)
         upload_key = "temp.txt"
-        s3u.upload_file(local_file_path=self.sample_file_location, s3_key=upload_key)
-        redown_file = "{}re".format(self.sample_file_location)
-        s3u.download_file(local_file_path=redown_file, s3_key=upload_key)
+        self.s3.upload_file(local_file_path=self.sample_file_location, s3_key=upload_key)
+        self.clean_test_files(sample_file)
+        redown_file = f"{self.sample_file_location}re"
+        self.s3.download_file(local_file_path=redown_file, s3_key=upload_key)
         with open(redown_file, 'r') as f:
             redown_content = f.read()
-
+        self.clean_test_files(redown_file)
         self.assertEqual(self.sample_file_content, redown_content)
 
     @mock_s3
     def test_should__serialise_deserialise_file_to_from_s3__when_using_s3util(self):
-        bucket = "TEST_BUCKET2"
-        conn = AwsConnectionManager(
-            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(),
-                                  profile=None))
-        s3u = S3Util(conn=conn, bucket=bucket)
-        s3u.create_bucket()
+        self.s3.create_bucket()
         upload_key = "temp.pickle"
         test_object = {"this": "is good"}
-        s3u.serialise_and_upload_object(obj=test_object, s3_key=upload_key)
-        actual_object = s3u.download_object_and_deserialse(s3_key=upload_key)
+        self.s3.serialise_and_upload_object(obj=test_object, s3_key=upload_key)
+        actual_object = self.s3.download_object_and_deserialise(s3_key=upload_key)
         self.assertEqual(test_object, actual_object)
 
     @mock_s3
     def test_should__upload_dataframe_and_download_parquet__when_using_s3util(self):
-        bucket = "TEST_BUCKET3"
-        conn = AwsConnectionManager(
-            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(),
-                                  profile=None))
-        s3u = S3Util(conn=conn, bucket=bucket)
-        s3u.create_bucket()
-        upload_key = "temp.pickle"
+        self.s3.create_bucket()
+        upload_key = "temp2.pickle"
         test_object = pd.DataFrame([1, 2, 3, 4], columns=["one"])
-        s3u.upload_df_parquet(df=test_object, s3_key=upload_key)
-        redown_df = s3u.download_df_parquet(upload_key)
+        self.s3.upload_dataframe_as_parquet(dataframe=test_object, s3_key=upload_key)
+        redown_df = self.s3.download_parquet_as_dataframe(upload_key)
         assert_frame_equal(test_object, redown_df)
 
     @mock_s3
-    def test_should__copy_file_from_one_bucket_to_another__when_valid_locations_are_given(self):
-        conn = AwsConnectionManager(
-            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(),
-                                  profile=None))
-        source_bucket_name = "test"
-        dest_bucket_name = "test-scratchpad"
-
-        s3_util_for_source = S3Util(conn=conn, bucket=source_bucket_name)
-        s3_util_for_destination = S3Util(conn=conn, bucket=dest_bucket_name)
-
-        s3_util_for_source.create_bucket()
-        s3_util_for_destination.create_bucket()
-
-        tmp_file_path = "/tmp/testfile.txt"
-        dirname = os.path.dirname(tmp_file_path)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-        with open(tmp_file_path, "w+") as file:
-            file.write(str("Test file content"))
-
-        s3_util_for_source.upload_file(tmp_file_path, "test/testfile.txt")
-
-        s3_util_for_source.move_recursive_to_different_bucket(source_dir="test/",
-                                                              destination_bucket_name=dest_bucket_name,
-                                                              destination_dir=dest_bucket_name +
-                                                                              "/test_copy/")
-        actual = s3_util_for_destination.read_lines_as_list("test_copy")[0]
-
-        expected = "Test file content"
-        self.assertEqual(actual, expected)
+    def test__list_objects_should_provide_a_complete_list(self):
+        self.s3.create_bucket()
+        sample_file = "./sample8765.txt"
+        self.create_sample_file(sample_file)
+        for itr in range(1500):
+            self.s3.upload_file(sample_file, f"some/{itr}.abc")
+        self.clean_test_files(sample_file)
+        keys = self.s3.get_keys("some")
+        self.assertEqual(len(keys), 1500)
+        keys = self.s3.get_keys("some/111")
+        self.assertEqual(len(keys), 11)
 
     @mock_s3
-    def test__list_objects_should_provide_a_complete_list(self):
-        conn = AwsConnectionManager(
-            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(),
-                                  profile=None))
-        s3 = S3Util(conn=conn, bucket="test")
-        s3.create_bucket()
-        for itr in range(1500):
-            s3.upload_file(self.sample_file_location, f"some/{itr}.abc")
+    def test_should__upload_then_download_file_from_s3__when_using_s3util(self):
+        self.s3.create_bucket()
+        upload_key = "temp.txt"
+        sample_file = "./sample4.txt"
+        self.create_sample_file(sample_file)
+        self.s3.upload_file(local_file_path=sample_file, s3_key=upload_key)
+        redown_file = f"{sample_file}re"
+        self.s3.download_file(local_file_path=redown_file, s3_key=upload_key)
+        with open(redown_file, 'r') as f:
+            redown_content = f.read()
+        self.clean_test_files(sample_file)
+        self.clean_test_files(redown_file)
+        self.assertEqual(self.sample_file_content, redown_content)
 
-        keys = s3.list_objects("some")
-        self.assertEqual(len(keys), 1500)
-        keys = s3.list_objects("some/111")
-        self.assertEqual(len(keys), 11)
+    @mock_s3
+    def test_should__upload_then_download_directory_from_s3__when_using_s3util(self):
+        self.s3.create_bucket()
+        sample_file = "./sample5.txt"
+        self.create_sample_file(sample_file)
+        self.s3.upload_file(local_file_path=sample_file,
+                            s3_key="test/test_sample_for_download_dir.txt")
+        redown_file = f"{sample_file}re"
+        self.s3.download_directory(source_key="test", file_suffix=".txt")
+        with open(redown_file, 'r') as f:
+            redown_content = f.read()
+        with open(sample_file, 'r') as f:
+            sample_file_content = f.read()
+        self.clean_test_files(sample_file)
+        self.clean_test_files(redown_file)
+        self.assertEqual(sample_file_content, redown_content)
+
+    @mock_s3
+    def test_should__serialise_deserialise_file_to_from_s3__when_using_s3util(self):
+        self.s3.create_bucket()
+        upload_key = "temp.pickle"
+        test_object = {"this": "is good"}
+        self.s3.serialise_and_upload_object(obj=test_object, s3_key=upload_key)
+        actual_object = self.s3.download_object_and_deserialise(s3_key=upload_key)
+        self.assertEqual(test_object, actual_object)
+
+    @mock_s3
+    def test_should__upload_dataframe_and_download_parquet__when_using_s3util(self):
+        self.s3.create_bucket()
+        upload_key = "temp.pickle"
+        test_object = pd.DataFrame([1, 2, 3, 4], columns=["one"])
+        self.s3.upload_dataframe_as_parquet(dataframe=test_object, s3_key=upload_key)
+        redown_df = self.s3.download_parquet_as_dataframe(upload_key)
+        assert_frame_equal(test_object, redown_df)
+
+    @mock_s3
+    def test_should__delete_recursive__when_using_s3util(self):
+        self.s3.create_bucket()
+        sample_file = "./sample6.txt"
+        self.create_sample_file(sample_file)
+        self.s3.upload_file(local_file_path=sample_file,
+                            s3_key="test6/test_delete_recursive.txt")
+        self.s3.delete_recursive("test")
+        self.clean_test_files(sample_file)
+        with self.assertRaises(ClientError):
+            self.s3.download_file(local_file_path="something", s3_key="test6/")
+
+    @mock_s3
+    def test_should__delete_recursive_match_suffix__when_using_s3util(self):
+        self.s3.create_bucket()
+        sample_file = "./sample7.txt"
+        self.create_sample_file(sample_file)
+        self.s3.upload_file(local_file_path=sample_file,
+                            s3_key="test7/test_delete_suffix.txt")
+        self.s3.delete_recursive_match_suffix(s3_key_prefix="test", suffix="txt")
+        self.clean_test_files(sample_file)
+        with self.assertRaises(ClientError):
+            self.s3.download_file(local_file_path="something",
+                                  s3_key="test7/")
+
+    @mock_s3
+    def test_should__save_dict__when_using_s3util(self):
+        self.s3.create_bucket()
+        upload_key = "test/test_json_sample.json"
+        json_list = []
+        json_list += [{
+            "test_field": "test_value"
+        }]
+        self.s3.upload_json(s3_key=upload_key, json_list=json_list)
+        redown_file = f"./{upload_key}"
+        self.s3.download_file(local_file_path=redown_file, s3_key=upload_key)
+        with open(redown_file, 'r') as f:
+            redown_content = f.read()
+        expected = """
+[
+  {
+    "test_field": "test_value"
+  }
+]        
+        """.strip()
+        self.assertEqual(expected, redown_content)
+
+    @mock_s3
+    def test_should__read_dict__when_using_s3util(self):
+        self.s3.create_bucket()
+        upload_key = "test/test_json_sample.json"
+        json_list = []
+        json_list += [{
+            "test_field": "test_value"
+        }]
+        self.s3.upload_json(s3_key=upload_key, json_list=json_list)
+        actual = json.dumps(self.s3.download_json(s3_key=upload_key))
+        expected = """[{"test_field": "test_value"}]"""
+        self.assertEqual(expected, actual.strip())
+
+    @mock_s3
+    def test_should__read_all_lines__when_using_s3util(self):
+        self.s3.create_bucket()
+        upload_key = "test/test_json_sample.json"
+        json_list = []
+        json_list += [{
+            "test_field": "test_value"
+        }]
+        self.s3.upload_json(s3_key=upload_key, json_list=json_list)
+        actual = self.s3.read_lines_as_list(s3_key_prefix=upload_key)[2]
+        expected = """ "test_field": "test_value" """.strip()
+        self.assertEqual(expected, actual.strip())
+
+    @mock_s3
+    def test_should__get_all_keys__when_using_s3util(self):
+        self.s3.create_bucket()
+        upload_key = "test/test_json_sample.json"
+        expected = upload_key
+        result_list = self.s3.get_keys(s3_key_prefix=upload_key)
+        self.assertEqual(1, len(result_list))
+        self.assertEqual(expected, result_list[0])
+
+    @mock_s3
+    def test_should__upload_binary_stream__when_using_s3util(self):
+        self.s3.create_bucket()
+        upload_key = "test/binary_file.obj"
+        binary_data = b"test data"
+        self.s3.upload_binary_stream(stream=binary_data, key=upload_key)
+        self.s3.download_file(local_file_path="./binary_file.obj",
+                              s3_key=upload_key)
+        with open("./binary_file.obj", 'rb') as f:
+            actual = f.read()
+        self.assertEqual(actual, binary_data)
+
+    @mock_s3
+    def test_should__rename_file__when_using_s3util(self):
+        self.s3.create_bucket()
+        upload_key = "test/test_json_sample.json"
+        self.s3.rename_file(s3_key=upload_key,
+                            new_file_name="test_json_sample_renamed.json")
+        renamed_key = "test/test_json_sample_renamed.json"
+        expected = renamed_key
+        result_list = self.s3.get_keys(s3_key_prefix=renamed_key)
+        self.assertEqual(expected, result_list[0])
