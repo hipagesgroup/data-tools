@@ -58,6 +58,7 @@ setup(
         "tqdm",
         "retrying",
         "arrow",
+        "s3fs",
     ],
     test_suite="tests",
     tests_require=[
