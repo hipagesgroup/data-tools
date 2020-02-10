@@ -217,7 +217,7 @@ class S3Util(AwsUtil):
         log.debug("uploading with a multiprocessing pool of %s processes", pool_size)
 
         Pool(pool_size).starmap(_multi_process_upload_file, upload_data)
-        log.info("Saved csv chunks at s3://%s/%s", self.bucket, target_key)
+        log.info("Upload of directory complete at s3://%s/%s", self.bucket, target_key)
 
     def delete_recursive_match_suffix(self, key_prefix: str, suffix: str) -> None:
         """
