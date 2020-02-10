@@ -30,55 +30,55 @@ class S3Util(AwsUtil):
         super().__init__(conn, "s3")
         self.bucket = bucket
 
-    def download_file(self, local_file_path: str, s3_key: str) -> None:
+    def download_file(self, local_file_path: str, key: str) -> None:
         """
         Downloads a file from a path on s3 to a local path on disk
         Args:
             local_file_path (str): Absolute path on s3.
-            s3_key (str): Absolute path to save file to local.
+            key (str): Absolute path to save file to local.
         Returns: None
         """
-        self.get_client().download_file(self.bucket, s3_key, local_file_path)
+        self.get_client().download_file(self.bucket, key, local_file_path)
 
-    def upload_file(self, local_file_path: str, s3_key: str, remove_local: bool = True) -> None:
+    def upload_file(self, local_file_path: str, key: str, remove_local: bool = True) -> None:
         """
         Uploads a file from local to s3
         Args:
             local_file_path (str): Absolute local path to the file to upload
-            s3_key (str): Absolute path within the s3 buck to upload the file
+            key (str): Absolute path within the s3 buck to upload the file
             remove_local (boolean): remove file from local fs after transfer
         Returns: None
         """
-        self.get_client().upload_file(local_file_path, self.bucket, s3_key)
+        self.get_client().upload_file(local_file_path, self.bucket, key)
         if remove_local:
             os.remove(local_file_path)
 
-    def download_object_and_deserialise(self, s3_key: str, local_file_path: str = None):
+    def download_object_and_deserialise(self, key: str, local_file_path: str = None):
         """
         Download a serialised object from S3 and deserialize
         Args:
-            s3_key (string): Absolute path on s3 to the file
+            key (string): Absolute path on s3 to the file
             local_file_path (string): The deserialized object
         Returns: object
         """
         if local_file_path is None:
             local_file_path = "/tmp/tmp_file{}".format(str(uuid.uuid4()))
 
-        self.download_file(s3_key=s3_key, local_file_path=local_file_path)
+        self.download_file(key=key, local_file_path=local_file_path)
         return load(local_file_path)
 
-    def serialise_and_upload_object(self, obj: Any, s3_key: str) -> None:
+    def serialise_and_upload_object(self, obj: Any, key: str) -> None:
         """
         Serialise any object to disk, and then upload to S3
         Args:
             obj (object): Any serialisable object
-            s3_key (string): The absolute path on s3 to upload the file to
+            key (string): The absolute path on s3 to upload the file to
         Returns: None
         """
 
         random_tmp_file_nm = _generate_random_file_name()
         dump(obj, random_tmp_file_nm)
-        self.upload_file(local_file_path=random_tmp_file_nm, s3_key=s3_key)
+        self.upload_file(local_file_path=random_tmp_file_nm, key=key)
 
     def create_bucket(self) -> None:
         """
@@ -89,48 +89,48 @@ class S3Util(AwsUtil):
 
     def upload_dataframe_as_parquet(self,
                                     dataframe: DataFrame,
-                                    s3_key: str,
+                                    key: str,
                                     file_name: str = "data") -> None:
         """
         Exports a datafame to a parquet file on s3
         Args:
             dataframe (DataFrame): dataframe to export
-            s3_key (str): The absolute path on s3 to upload the file to
+            key (str): The absolute path on s3 to upload the file to
             file_name (str): the name of the file at destination
         Returns: None
         """
-        destination = "s3://{}/{}/{}.parquet".format(self.bucket, s3_key, file_name)
+        destination = "s3://{}/{}/{}.parquet".format(self.bucket, key, file_name)
         dataframe.to_parquet(fname=destination)
 
     def download_parquet_as_dataframe(self,
-                                      s3_key: str,
+                                      key: str,
                                       engine: str = 'auto',
                                       columns: List[str] = None,
                                       **kwargs) -> DataFrame:
         """
         Exports a datafame to a parquet file on s3
         Args:
-            s3_key (str): The absolute path on s3 to upload the file to
+            key (str): The absolute path on s3 to upload the file to
             engine (str): parquet engine
             columns (lis[str]): list of columns default None to extrapolate from dataframe
         Returns: DataFrame
         """
         random_tmp_file_nm = _generate_random_file_name()
-        self.download_file(random_tmp_file_nm, s3_key)
+        self.download_file(random_tmp_file_nm, key)
         return pd.read_parquet(random_tmp_file_nm, engine=engine, columns=columns, **kwargs)
 
-    def read_lines_as_list(self, s3_key_prefix: str) -> List[str]:
+    def read_lines_as_list(self, key_prefix: str) -> List[str]:
         """
         Read lines from s3 files
         Args:
-            s3_key_prefix (str): the key prefix under which all files will be read
+            key_prefix (str): the key prefix under which all files will be read
         Returns: list[str] lines read from all files
         """
         s3 = self.get_resource()
         bucket = s3.Bucket(name=self.bucket)
         lines = []
-        log.info("reading files from s3://%s/%s ", self.bucket, s3_key_prefix)
-        file_metadata = bucket.objects.filter(Prefix=s3_key_prefix)
+        log.info("reading files from s3://%s/%s ", self.bucket, key_prefix)
+        file_metadata = bucket.objects.filter(Prefix=key_prefix)
         for file in file_metadata:
             obj = s3.Object(self.bucket, file.key)
             data = obj.get()["Body"].read().decode("utf-8")
@@ -140,29 +140,29 @@ class S3Util(AwsUtil):
         log.info("Read %d lines from %d s3 files", len(flat_lines), len(lines))
         return flat_lines
 
-    def delete_recursive(self, s3_key_prefix: str) -> None:
+    def delete_recursive(self, key_prefix: str) -> None:
         """
         Recursively delete all keys with given prefix from the named bucket
         Args:
-            s3_key_prefix (str): Key prefix under which all files will be deleted
+            key_prefix (str): Key prefix under which all files will be deleted
         Returns: NA
         """
-        log.info("Recursively deleting s3://%s/%s", self.bucket, s3_key_prefix)
+        log.info("Recursively deleting s3://%s/%s", self.bucket, key_prefix)
         response = self.get_resource().Bucket(self.bucket).objects.filter(
-            Prefix=s3_key_prefix).delete()
+            Prefix=key_prefix).delete()
         log.info(response)
 
-    def get_keys(self, s3_key_prefix: str) -> List[str]:
+    def get_keys(self, key_prefix: str) -> List[str]:
         """
         returns a list of all objects unser a given key prefix
         Args:
-            s3_key_prefix (str): Key Prefix under which all objects are to be listed
+            key_prefix (str): Key Prefix under which all objects are to be listed
         Returns: list[str]
         """
         continuation_token = None
         keys = []
         while True:
-            result = self._list_object_page(s3_key_prefix, continuation_token)
+            result = self._list_object_page(key_prefix, continuation_token)
 
             keys = keys + [content.get('Key', None) for content in result.get('Contents', [])]
             if 'NextContinuationToken' not in result:
@@ -219,18 +219,18 @@ class S3Util(AwsUtil):
         Pool(pool_size).starmap(_multi_process_upload_file, upload_data)
         log.info("Saved csv chunks at s3://%s/%s", self.bucket, target_key)
 
-    def delete_recursive_match_suffix(self, s3_key_prefix: str, suffix: str) -> None:
+    def delete_recursive_match_suffix(self, key_prefix: str, suffix: str) -> None:
         """
         Recursively delete all keys with given key prefix and suffix from the bucket
         Args:
-            s3_key_prefix (str): Key prefix under which all files will be deleted.
+            key_prefix (str): Key prefix under which all files will be deleted.
             suffix (str): suffix of the subset of files in the given prefix directory to be deleted
         Returns: None
         """
         if not suffix:
             raise ValueError("suffix must not be empty")
         s3 = self.get_resource()
-        for obj in s3.Bucket(self.bucket).objects.filter(Prefix=s3_key_prefix):
+        for obj in s3.Bucket(self.bucket).objects.filter(Prefix=key_prefix):
             if obj.key.endswith(suffix):
                 log.info("deleting s3://%s/%s", self.bucket, obj.key)
                 response = obj.delete()
@@ -253,63 +253,63 @@ class S3Util(AwsUtil):
                 filename = f"{local_directory}/{key_path[-1]}"
                 self.download_file(
                     local_file_path=filename,
-                    s3_key=obj.key)
+                    key=obj.key)
 
-    def upload_json(self, s3_key: str, json_list: List[dict]) -> None:
+    def upload_json(self, key: str, json_list: List[dict]) -> None:
         """
         Save the json/dict data structure onto s3 as a file without using temporary local files
         Args:
-            s3_key: target key of the file on s3
+            key: target key of the file on s3
             json_list: a list of dictionaries that are saved as newline json in a file
         Returns: None
         """
         s3 = self.get_resource()
-        s3.Object(self.bucket, s3_key).put(
+        s3.Object(self.bucket, key).put(
             Body=(bytes(json.dumps(json_list, indent=2).encode('UTF-8')))
         )
 
-    def download_json(self, s3_key: str) -> dict:
+    def download_json(self, key: str) -> dict:
         """
         Read a file with json in a file on s3
         Args:
-            s3_key: location of the file to read
+            key: location of the file to read
         Returns: dict
         """
         s3 = self.get_resource()
         json_content = json.loads(
-            s3.Object(self.bucket, s3_key).get()['Body'].read().decode('utf-8')
+            s3.Object(self.bucket, key).get()['Body'].read().decode('utf-8')
         )
         return json_content
 
-    def downlaod_strings(self, s3_key: str) -> List[str]:
+    def downlaod_strings(self, key: str) -> List[str]:
         """
         Read lines from s3 files
         Args:
-            s3_key: the key for the file which contains strings
+            key: the key for the file which contains strings
         Returns: List[str]
         """
         s3 = self.get_resource()
-        obj = s3.Object(self.bucket, s3_key)
+        obj = s3.Object(self.bucket, key)
         data = obj.get()['Body'].read().decode('utf-8')
         lines = data.splitlines()
         return lines
 
     def get_keys_modified_in_range(self,
-                                   s3_key_prefix: str,
+                                   key_prefix: str,
                                    start_date: arrow,
                                    end_date: arrow) -> List[str]:
         """
         Sense if there were any files changed or added in the given time period under the given key
         prefix and return a list of keys
         Args:
-            s3_key_prefix: the key prefix under which all files will be sensed
+            key_prefix: the key prefix under which all files will be sensed
             start_date: start of the duration in which the s3 objects were modified
             end_date: end of the duration in which the s3 objects were modified
         Returns: List[str]
         """
-        log.info("sensing files from s3://%s/%s \n between %s to %s", self.bucket, s3_key_prefix,
+        log.info("sensing files from s3://%s/%s \n between %s to %s", self.bucket, key_prefix,
                  start_date, end_date)
-        metadata = self.get_object_metadata(s3_key_prefix)
+        metadata = self.get_object_metadata(key_prefix)
         lines = []
         for file in metadata:
             if start_date < arrow.get(file.last_modified) <= end_date:
@@ -330,6 +330,13 @@ class S3Util(AwsUtil):
         return metadata
 
     def upload_binary_stream(self, stream: bytes, key: str) -> None:
+        """
+        Upload a binary stream of data as an s3 object's body
+        Args:
+            stream: the stream of bytes tobe uploaded
+            key: s3 key at which thios stream is to be uploaded
+        Returns: None
+        """
         s3 = self.get_resource()
         obj = s3.Object(self.bucket, key)
         obj.put(Body=stream)
@@ -357,33 +364,33 @@ class S3Util(AwsUtil):
         if delete_after_copy:
             self.delete_recursive(source_dir)
 
-    def rename_file(self, s3_key: str, new_file_name: str) -> None:
+    def rename_file(self, key: str, new_file_name: str) -> None:
         """
         Rename a file on s3
         Args:
-            s3_key: Current key of the file
+            key: Current key of the file
             new_file_name: new file name to be cjhanged for the file
         Returns: None
         """
         s3 = self.get_resource()
-        full_new_file_path = s3_key.rpartition('/')[0] + '/' + new_file_name
-        log.info("Renaming source: %s to %s", s3_key, full_new_file_path)
+        full_new_file_path = key.rpartition('/')[0] + '/' + new_file_name
+        log.info("Renaming source: %s to %s", key, full_new_file_path)
         s3.Object(self.bucket, full_new_file_path).copy_from(
-            CopySource={'Bucket': self.bucket, 'Key': s3_key})
-        s3.Object(self.bucket, s3_key).delete()
+            CopySource={'Bucket': self.bucket, 'Key': key})
+        s3.Object(self.bucket, key).delete()
 
-    def download_strings_from_directory(self, s3_key_prefix: str) -> List[str]:
+    def download_strings_from_directory(self, key_prefix: str) -> List[str]:
         """
         Read lines from s3 files
         Args:
-            s3_key_prefix: the key prefix under which all files will be read
+            key_prefix: the key prefix under which all files will be read
         Returns: List[str]
         """
         s3 = self.get_resource()
         bucket = s3.Bucket(name=self.bucket)
         lines = []
-        log.info("reading files from s3://%s/%s", self.bucket, s3_key_prefix)
-        file_metadata = bucket.objects.filter(Prefix=s3_key_prefix)
+        log.info("reading files from s3://%s/%s", self.bucket, key_prefix)
+        file_metadata = bucket.objects.filter(Prefix=key_prefix)
         for file in file_metadata:
             obj = s3.Object(self.bucket, file.key)
             data = obj.get()['Body'].read().decode('utf-8')
@@ -409,4 +416,4 @@ def _multi_process_upload_file(settings: AwsConnectionSettings, filename: str, b
     S3Util(
         conn=AwsConnectionManager(settings),
         bucket=bucket
-    ).upload_file(local_file_path=filename, s3_key=key)
+    ).upload_file(local_file_path=filename, key=key)

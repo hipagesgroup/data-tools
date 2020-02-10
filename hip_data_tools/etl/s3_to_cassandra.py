@@ -55,7 +55,7 @@ class S3ToCassandra:
         Returns: None
         """
         data_frame = self._get_s3_util().download_parquet_as_dataframe(
-            s3_key=self.list_source_files()[0])
+            key=self.list_source_files()[0])
         self._get_cassandra_util().create_table_from_dataframe(
             data_frame=data_frame,
             table_name=self.settings.destination_table,
@@ -80,7 +80,7 @@ class S3ToCassandra:
             self._upsert_object(key)
 
     def _upsert_object(self, key):
-        data_frame = self._get_s3_util().download_parquet_as_dataframe(s3_key=key)
+        data_frame = self._get_s3_util().download_parquet_as_dataframe(key=key)
         self._get_cassandra_util().upsert_dataframe(dataframe=data_frame,
                                                     table=self.settings.destination_table)
 
