@@ -272,7 +272,7 @@ class S3Util(AwsUtil):
 
     def download_json(self, key: str) -> dict:
         """
-        Read a file with json in a file on s3
+        Read a file in json format from s3
         Args:
             key: location of the file to read
         Returns: dict
