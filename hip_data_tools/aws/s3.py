@@ -227,6 +227,8 @@ class S3Util(AwsUtil):
             suffix (str): suffix of the subset of files in the given prefix directory to be deleted
         Returns: None
         """
+        if not key_prefix:
+            raise ValueError("key_prefix must not be empty")
         if not suffix:
             raise ValueError("suffix must not be empty")
         s3 = self.get_resource()
