@@ -201,7 +201,7 @@ class S3Util(AwsUtil):
         if overwrite:
             log.info("Cleaning existing flies on s3")
             self.delete_recursive(f"{target_key}/")
-        log.info(f"searching for files to upload in {source_directory}")
+        log.info("searching for files to upload in %s", source_directory)
         path_list = Path(source_directory).glob(f'**/*.{extension}')
         itr = 0
         upload_data = []
@@ -214,10 +214,10 @@ class S3Util(AwsUtil):
             itr = itr + 1
             upload_data += [(self.conn.settings, path_in_str, self.bucket, destination_key)]
         pool_size = min(16, max(1, int(len(upload_data) / 3)))  # limit pool size between 1 and 16
-        log.debug("uploading with a multiprocessing pool of {} processes".format(pool_size))
+        log.debug("uploading with a multiprocessing pool of %s processes", pool_size)
 
         Pool(pool_size).starmap(_multi_process_upload_file, upload_data)
-        log.info(f"Saved csv chunks at s3://{self.bucket}/{target_key}")
+        log.info("Saved csv chunks at s3://%s/%s", self.bucket, target_key)
 
     def delete_recursive_match_suffix(self, s3_key_prefix: str, suffix: str) -> None:
         """
@@ -232,9 +232,9 @@ class S3Util(AwsUtil):
         s3 = self.get_resource()
         for obj in s3.Bucket(self.bucket).objects.filter(Prefix=s3_key_prefix):
             if obj.key.endswith(suffix):
-                log.info(f"deleting s3://{self.bucket}/{obj.key}")
+                log.info(f"deleting s3://%s/%s", self.bucket, obj.key)
                 response = obj.delete()
-                log.info(response)
+                log.info("Response: %s ", response)
 
     def download_directory(self, source_key: str, file_suffix: str, local_directory: str) -> None:
         """
@@ -246,7 +246,7 @@ class S3Util(AwsUtil):
         Returns: None
         """
         s3 = self.get_resource()
-        log.info(f"Downloading s3://{self.bucket}/{source_key} to {local_directory}")
+        log.info(f"Downloading s3://%s/%s to %s", self.bucket, source_key, local_directory)
         for obj in s3.Bucket(self.bucket).objects.filter(Prefix=source_key):
             key_path = obj.key.split("/")
             if obj.key.endswith(file_suffix):
@@ -307,15 +307,14 @@ class S3Util(AwsUtil):
             end_date: end of the duration in which the s3 objects were modified
         Returns: List[str]
         """
-        log.info(
-            "sensing files from s3://{bucket}/{key} \n between {start_date} to {end_date}".format(
-                bucket=self.bucket, key=s3_key_prefix, start_date=start_date, end_date=end_date))
+        log.info("sensing files from s3://%s/%s \n between %s to %s", self.bucket, s3_key_prefix,
+                 start_date, end_date)
         metadata = self.get_object_metadata(s3_key_prefix)
         lines = []
         for file in metadata:
             if start_date < arrow.get(file.last_modified) <= end_date:
                 lines += [file.key]
-        log.info("found {} s3 files changed".format(len(lines)))
+        log.info("found %s s3 files changed", len(lines))
         return lines
 
     def get_object_metadata(self, key_prefix: str) -> List:
@@ -352,7 +351,7 @@ class S3Util(AwsUtil):
         for obj in bucket.objects.filter(Prefix=source_dir):
             # replace the prefix
             new_key = destination_dir + obj.key[len(source_dir):]
-            log.info("Moving s3 object from : \n{} \nto: \n{}".format(obj.key, new_key))
+            log.info("Moving s3 object from : \n%s \nto: \n%s", obj.key, new_key)
             new_obj = bucket.Object(new_key)
             new_obj.copy({'Bucket': self.bucket, 'Key': obj.key})
         if delete_after_copy:
@@ -368,8 +367,7 @@ class S3Util(AwsUtil):
         """
         s3 = self.get_resource()
         full_new_file_path = s3_key.rpartition('/')[0] + '/' + new_file_name
-        log.info("Renaming source: " + s3_key)
-        log.info("Renaming destination: " + full_new_file_path)
+        log.info("Renaming source: %s to %s", s3_key, full_new_file_path)
         s3.Object(self.bucket, full_new_file_path).copy_from(
             CopySource={'Bucket': self.bucket, 'Key': s3_key})
         s3.Object(self.bucket, s3_key).delete()
@@ -384,7 +382,7 @@ class S3Util(AwsUtil):
         s3 = self.get_resource()
         bucket = s3.Bucket(name=self.bucket)
         lines = []
-        log.info(f"reading files from s3://{self.bucket}/{s3_key_prefix}")
+        log.info(f"reading files from s3://%s/%s", self.bucket, s3_key_prefix)
         file_metadata = bucket.objects.filter(Prefix=s3_key_prefix)
         for file in file_metadata:
             obj = s3.Object(self.bucket, file.key)
@@ -392,7 +390,7 @@ class S3Util(AwsUtil):
             lines.append(data.splitlines())
         # Flatten the list of lists
         flat_lines = [item for sublist in lines for item in sublist]
-        log.info("read {} lines from {} s3 files".format(len(flat_lines), len(lines)))
+        log.info("read %s lines from %s s3 files", len(flat_lines), len(lines))
         return flat_lines
 
 
