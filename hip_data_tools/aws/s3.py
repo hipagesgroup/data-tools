@@ -243,7 +243,7 @@ class S3Util(AwsUtil):
         Download an entire directory from s3 onto local file system
         Args:
             source_key (str): key prefix of the directory to be downloaded from s3
-            file_suffix (str): suffix to sunset the files to be downloaded
+            file_suffix (str): suffix to filter a subset under the source_key to be downloaded
             local_directory (str): local absolute path to store all the files
         Returns: None
         """
