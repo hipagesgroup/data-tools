@@ -352,7 +352,7 @@ class S3Util(AwsUtil):
         Args:
             source_dir: Source key prefix representing the directory to move
             destination_dir: destination key prefix
-            delete_after_copy: option to remove the files from source after successful copy
+            delete_after_copy: removes the files from source after successful copy if set to true
         Returns: None
         """
         s3 = self.get_resource()
