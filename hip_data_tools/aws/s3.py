@@ -17,6 +17,8 @@ from pandas import DataFrame
 from hip_data_tools.aws.common import AwsUtil, AwsConnectionManager, AwsConnectionSettings
 from hip_data_tools.common import _generate_random_file_name
 
+UTF8 = 'utf-8'
+
 
 class S3Util(AwsUtil):
     """
@@ -119,11 +121,12 @@ class S3Util(AwsUtil):
         self.download_file(random_tmp_file_nm, key)
         return pd.read_parquet(random_tmp_file_nm, engine=engine, columns=columns, **kwargs)
 
-    def read_lines_as_list(self, key_prefix: str) -> List[str]:
+    def read_lines_as_list(self, key_prefix: str, encoding: str = UTF8) -> List[str]:
         """
         Read lines from s3 files
         Args:
             key_prefix (str): the key prefix under which all files will be read
+            encoding: the character encoding to use for encoding / decoding content
         Returns: list[str] lines read from all files
         """
         s3 = self.get_resource()
@@ -133,7 +136,7 @@ class S3Util(AwsUtil):
         file_metadata = bucket.objects.filter(Prefix=key_prefix)
         for file in file_metadata:
             obj = s3.Object(self.bucket, file.key)
-            data = obj.get()["Body"].read().decode("utf-8")
+            data = obj.get()["Body"].read().decode(encoding)
             lines.append(data.splitlines())
         # Flatten the list of lists
         flat_lines = [item for sublist in lines for item in sublist]
@@ -254,42 +257,45 @@ class S3Util(AwsUtil):
                     local_file_path=filename,
                     key=obj.key)
 
-    def upload_json(self, key: str, json_list: List[dict]) -> None:
+    def upload_json(self, key: str, json_list: List[dict], encoding: str = UTF8) -> None:
         """
         Save the json/dict data structure onto s3 as a file without using temporary local files
         Args:
             key: target key of the file on s3
             json_list: a list of dictionaries that are saved as newline json in a file
+            encoding: the character encoding to use for encoding / decoding content
         Returns: None
         """
         s3 = self.get_resource()
         s3.Object(self.bucket, key).put(
-            Body=(bytes(json.dumps(json_list, indent=2).encode('UTF-8')))
+            Body=(bytes(json.dumps(json_list, indent=2).encode(encoding)))
         )
 
-    def download_json(self, key: str) -> dict:
+    def download_json(self, key: str, encoding: str = UTF8) -> dict:
         """
         Read a file in json format from s3
         Args:
             key: location of the file to read
+            encoding: the character encoding to use for encoding / decoding content
         Returns: dict
         """
         s3 = self.get_resource()
         json_content = json.loads(
-            s3.Object(self.bucket, key).get()['Body'].read().decode('utf-8')
+            s3.Object(self.bucket, key).get()['Body'].read().decode(encoding)
         )
         return json_content
 
-    def download_strings(self, key: str) -> List[str]:
+    def download_strings(self, key: str, encoding: str = UTF8) -> List[str]:
         """
         Read lines from s3 files
         Args:
             key: the key for the file which contains strings
+            encoding: the character encoding to use for encoding / decoding content
         Returns: List[str]
         """
         s3 = self.get_resource()
         obj = s3.Object(self.bucket, key)
-        data = obj.get()['Body'].read().decode('utf-8')
+        data = obj.get()['Body'].read().decode(encoding)
         lines = data.splitlines()
         return lines
 
@@ -378,11 +384,12 @@ class S3Util(AwsUtil):
             CopySource={'Bucket': self.bucket, 'Key': key})
         s3.Object(self.bucket, key).delete()
 
-    def download_strings_from_directory(self, key_prefix: str) -> List[str]:
+    def download_strings_from_directory(self, key_prefix: str, encoding: str = UTF8) -> List[str]:
         """
         Read lines from s3 files
         Args:
             key_prefix: the key prefix under which all files will be read
+            encoding: the character encoding to use for encoding / decoding content
         Returns: List[str]
         """
         s3 = self.get_resource()
@@ -392,7 +399,7 @@ class S3Util(AwsUtil):
         file_metadata = bucket.objects.filter(Prefix=key_prefix)
         for file in file_metadata:
             obj = s3.Object(self.bucket, file.key)
-            data = obj.get()['Body'].read().decode('utf-8')
+            data = obj.get()['Body'].read().decode(encoding)
             lines.append(data.splitlines())
         # Flatten the list of lists
         flat_lines = [item for sublist in lines for item in sublist]
@@ -405,7 +412,7 @@ def _multi_process_upload_file(settings: AwsConnectionSettings, filename: str, b
     """
     A standalone copy of the method making it simple to pickle in a multi processing pool
     Args:
-        conn: the s3 connection manager to use for upload
+        settings: the s3 connection settings to use for upload
         filename: local file name of the file to be uploaded.
         bucket: the s3 bucket to upload file to.
         key: the s3 key to use while uploading the file
