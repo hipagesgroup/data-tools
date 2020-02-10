@@ -283,7 +283,7 @@ class S3Util(AwsUtil):
         )
         return json_content
 
-    def downlaod_strings(self, key: str) -> List[str]:
+    def download_strings(self, key: str) -> List[str]:
         """
         Read lines from s3 files
         Args:
