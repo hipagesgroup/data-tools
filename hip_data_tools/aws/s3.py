@@ -99,7 +99,7 @@ class S3Util(AwsUtil):
             file_name (str): the name of the file at destination
         Returns: None
         """
-        destination = "s3://{}/{}/{}.parquet".format(self.bucket, key, file_name)
+        destination = f"s3://{self.bucket}/{key}/{file_name}.parquet"
         dataframe.to_parquet(fname=destination)
 
     def download_parquet_as_dataframe(self,
