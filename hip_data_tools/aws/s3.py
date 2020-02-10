@@ -46,7 +46,7 @@ class S3Util(AwsUtil):
         Args:
             local_file_path (str): Absolute local path to the file to upload
             key (str): Absolute path within the s3 buck to upload the file
-            remove_local (boolean): remove file from local fs after transfer
+            remove_local (bool): remove file from local fs after transfer
         Returns: None
         """
         self.get_client().upload_file(local_file_path, self.bucket, key)
@@ -57,8 +57,8 @@ class S3Util(AwsUtil):
         """
         Download a serialised object from S3 and deserialize
         Args:
-            key (string): Absolute path on s3 to the file
-            local_file_path (string): The deserialized object
+            key (str): Absolute path on s3 to the file
+            local_file_path (str): The deserialized object
         Returns: object
         """
         if local_file_path is None:
@@ -71,8 +71,8 @@ class S3Util(AwsUtil):
         """
         Serialise any object to disk, and then upload to S3
         Args:
-            obj (object): Any serialisable object
-            key (string): The absolute path on s3 to upload the file to
+            obj (Any): Any serialisable object
+            key (str): The absolute path on s3 to upload the file to
         Returns: None
         """
 
@@ -170,7 +170,7 @@ class S3Util(AwsUtil):
             continuation_token = result['NextContinuationToken']
         return keys
 
-    def _list_object_page(self, key_prefix, continuation_token):
+    def _list_object_page(self, key_prefix: str, continuation_token: str):
         if continuation_token is None:
             return self.get_client().list_objects_v2(
                 Bucket=self.bucket,
