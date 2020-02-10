@@ -331,8 +331,8 @@ class S3Util(AwsUtil):
 
     def upload_binary_stream(self, stream: bytes, key: str) -> None:
         s3 = self.get_resource()
-        object = s3.Object(self.bucket, key)
-        object.put(Body=stream)
+        obj = s3.Object(self.bucket, key)
+        obj.put(Body=stream)
 
     def move_recursive(self,
                        source_dir: str,
