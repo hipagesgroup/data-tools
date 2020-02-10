@@ -335,8 +335,8 @@ class S3Util(AwsUtil):
         """
         Upload a binary stream of data as an s3 object's body
         Args:
-            stream: the stream of bytes tobe uploaded
-            key: s3 key at which thios stream is to be uploaded
+            stream: the stream of bytes to be uploaded
+            key: s3 key at which this stream is to be uploaded
         Returns: None
         """
         s3 = self.get_resource()
@@ -352,7 +352,7 @@ class S3Util(AwsUtil):
         Args:
             source_dir: Source key prefix representing the directory to move
             destination_dir: destination key prefix
-            delete_after_copy: option to remove the files from source after successful copy
+            delete_after_copy: removes the files from source after successful copy if set to true
         Returns: None
         """
         s3 = self.get_resource()
@@ -371,7 +371,7 @@ class S3Util(AwsUtil):
         Rename a file on s3
         Args:
             key: Current key of the file
-            new_file_name: new file name to be cjhanged for the file
+            new_file_name: target file name
         Returns: None
         """
         s3 = self.get_resource()
@@ -410,8 +410,8 @@ def _multi_process_upload_file(settings: AwsConnectionSettings, filename: str, b
     Args:
         conn: the s3 connection manager to use for upload
         filename: local file name of the file to be uploaded.
-        bucket: the s3 bucket to upload file to .
-        key: the s3 key to use whiole uploading the file
+        bucket: the s3 bucket to upload file to.
+        key: the s3 key to use while uploading the file
     Returns: None
     """
     log.info("Uploading File %s to s3://%s/%s", filename, bucket, key)
