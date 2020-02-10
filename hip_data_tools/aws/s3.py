@@ -194,7 +194,7 @@ class S3Util(AwsUtil):
             source_directory (str): Local source directory's absolute path.
             extension (str): the file extension of files in that directory to be uploaded.
             target_key (str): Target location on the s3 bucket for files to be uploaded.
-            overwrite (bool): overwrite files on s3 or not
+            overwrite (bool): overwrites files on s3 if set to true.
             rename (bool): renames the file when uploading to s3 if set to true.
         Returns: None
         """
