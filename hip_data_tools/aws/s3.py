@@ -371,7 +371,7 @@ class S3Util(AwsUtil):
         Rename a file on s3
         Args:
             key: Current key of the file
-            new_file_name: new file name to be cjhanged for the file
+            new_file_name: target file name
         Returns: None
         """
         s3 = self.get_resource()
