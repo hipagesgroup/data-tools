@@ -9,7 +9,7 @@ from moto import mock_s3
 from pandas.util.testing import assert_frame_equal
 
 from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
-from hip_data_tools.aws.s3 import S3Util
+from hip_data_tools.aws.s3 import S3Util, _multi_process_upload_file
 
 
 class TestS3Util(TestCase):
@@ -91,7 +91,7 @@ class TestS3Util(TestCase):
         self.assertEqual(original_content, redown_content)
 
     @mock_s3
-    def test_should__upload_then_download_directory_from_s3__when_using_s3util(self):
+    def test_should__upload_then_download_file_from_s3__when_using_s3util(self):
         self.s3.create_bucket()
         sample_file = "./sample5.txt"
         upload_key = "test_sample_for_download.txt"
@@ -232,3 +232,24 @@ class TestS3Util(TestCase):
         expected = f"test/{renamed}"
         result_list = self.s3.get_keys(s3_key_prefix="test")
         self.assertEqual(expected, result_list[0])
+
+    @mock_s3
+    def test___multi_process_upload_file_works_like_upload_file(self):
+        self.s3.create_bucket()
+        sample_file = "./sample567.txt"
+        self.create_sample_file(sample_file)
+        self.s3.upload_file(
+            local_file_path=sample_file,
+            s3_key="test9/compare.txt"
+        )
+        sample_file = "./sample568.txt"
+        self.create_sample_file(sample_file)
+        _multi_process_upload_file(
+            settings=self.s3.conn.settings,
+            filename=sample_file,
+            bucket=self.s3.bucket,
+            key="test10/compare.txt"
+        )
+        uplaoded = self.s3.get_keys('')
+        print(f"got keys {uplaoded}")
+        self.assertListEqual(uplaoded, ['test10/compare.txt', 'test9/compare.txt'])

@@ -11,11 +11,10 @@ from typing import List, Any
 
 import arrow
 import pandas as pd
-from botocore.client import BaseClient
 from joblib import load, dump
 from pandas import DataFrame
 
-from hip_data_tools.aws.common import AwsUtil
+from hip_data_tools.aws.common import AwsUtil, AwsConnectionManager, AwsConnectionSettings
 from hip_data_tools.common import _generate_random_file_name
 
 
@@ -27,7 +26,7 @@ class S3Util(AwsUtil):
         bucket (string): S3 bucket name where these operations will take place
     """
 
-    def __init__(self, conn, bucket):
+    def __init__(self, conn: AwsConnectionManager, bucket: str):
         super().__init__(conn, "s3")
         self.bucket = bucket
 
@@ -120,7 +119,6 @@ class S3Util(AwsUtil):
         self.download_file(random_tmp_file_nm, s3_key)
         return pd.read_parquet(random_tmp_file_nm, engine=engine, columns=columns, **kwargs)
 
-
     def read_lines_as_list(self, s3_key_prefix: str) -> List[str]:
         """
         Read lines from s3 files
@@ -165,7 +163,8 @@ class S3Util(AwsUtil):
         keys = []
         while True:
             result = self._list_object_page(s3_key_prefix, continuation_token)
-            keys = keys + [content['Key'] for content in result['Contents']]
+
+            keys = keys + [content.get('Key', None) for content in result.get('Contents', [])]
             if 'NextContinuationToken' not in result:
                 break
             continuation_token = result['NextContinuationToken']
@@ -213,7 +212,7 @@ class S3Util(AwsUtil):
                 filename = f"file-{str(uuid.uuid4())}.{extension}"
             destination_key = f"{target_key}/{filename}"
             itr = itr + 1
-            upload_data += [(self.get_client(), path_in_str, self.bucket, destination_key)]
+            upload_data += [(self.conn.settings, path_in_str, self.bucket, destination_key)]
         pool_size = min(16, max(1, int(len(upload_data) / 3)))  # limit pool size between 1 and 16
         log.debug("uploading with a multiprocessing pool of {} processes".format(pool_size))
 
@@ -397,15 +396,19 @@ class S3Util(AwsUtil):
         return flat_lines
 
 
-def _multi_process_upload_file(client: BaseClient, filename: str, bucket: str, key: str) -> None:
+def _multi_process_upload_file(settings: AwsConnectionSettings, filename: str, bucket: str,
+                               key: str) -> None:
     """
     A standalone copy of the method making it simple to pickle in a multi processing pool
     Args:
-        client: the s3 boto client to use while uploading a file.
+        conn: the s3 connection manager to use for upload
         filename: local file name of the file to be uploaded.
         bucket: the s3 bucket to upload file to .
         key: the s3 key to use whiole uploading the file
     Returns: None
     """
-    client.upload_file(filename, bucket, key)
-    os.remove(filename)
+    log.info("Uploading File %s to s3://%s/%s", filename, bucket, key)
+    S3Util(
+        conn=AwsConnectionManager(settings),
+        bucket=bucket
+    ).upload_file(local_file_path=filename, s3_key=key)
