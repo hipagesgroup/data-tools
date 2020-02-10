@@ -199,7 +199,7 @@ class S3Util(AwsUtil):
         Returns: None
         """
         if overwrite:
-            log.info("Cleaning existing flies on s3")
+            log.info("Cleaning existing files on s3")
             self.delete_recursive(f"{target_key}/")
         log.info("searching for files to upload in %s", source_directory)
         path_list = Path(source_directory).glob(f'**/*.{extension}')
