@@ -335,7 +335,7 @@ class S3Util(AwsUtil):
         """
         Upload a binary stream of data as an s3 object's body
         Args:
-            stream: the stream of bytes tobe uploaded
+            stream: the stream of bytes to be uploaded
             key: s3 key at which thios stream is to be uploaded
         Returns: None
         """
