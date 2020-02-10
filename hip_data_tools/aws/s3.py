@@ -411,7 +411,7 @@ def _multi_process_upload_file(settings: AwsConnectionSettings, filename: str, b
         conn: the s3 connection manager to use for upload
         filename: local file name of the file to be uploaded.
         bucket: the s3 bucket to upload file to.
-        key: the s3 key to use whiole uploading the file
+        key: the s3 key to use while uploading the file
     Returns: None
     """
     log.info("Uploading File %s to s3://%s/%s", filename, bucket, key)
