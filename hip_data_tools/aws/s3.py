@@ -232,7 +232,7 @@ class S3Util(AwsUtil):
         s3 = self.get_resource()
         for obj in s3.Bucket(self.bucket).objects.filter(Prefix=s3_key_prefix):
             if obj.key.endswith(suffix):
-                log.info(f"deleting s3://%s/%s", self.bucket, obj.key)
+                log.info("deleting s3://%s/%s", self.bucket, obj.key)
                 response = obj.delete()
                 log.info("Response: %s ", response)
 
@@ -246,7 +246,7 @@ class S3Util(AwsUtil):
         Returns: None
         """
         s3 = self.get_resource()
-        log.info(f"Downloading s3://%s/%s to %s", self.bucket, source_key, local_directory)
+        log.info("Downloading s3://%s/%s to %s", self.bucket, source_key, local_directory)
         for obj in s3.Bucket(self.bucket).objects.filter(Prefix=source_key):
             key_path = obj.key.split("/")
             if obj.key.endswith(file_suffix):
@@ -382,7 +382,7 @@ class S3Util(AwsUtil):
         s3 = self.get_resource()
         bucket = s3.Bucket(name=self.bucket)
         lines = []
-        log.info(f"reading files from s3://%s/%s", self.bucket, s3_key_prefix)
+        log.info("reading files from s3://%s/%s", self.bucket, s3_key_prefix)
         file_metadata = bucket.objects.filter(Prefix=s3_key_prefix)
         for file in file_metadata:
             obj = s3.Object(self.bucket, file.key)
