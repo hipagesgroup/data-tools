@@ -213,10 +213,7 @@ class S3Util(AwsUtil):
             destination_key = f"{target_key}/{filename}"
             itr = itr + 1
             upload_data += [(self.conn.settings, path_in_str, self.bucket, destination_key)]
-        pool_size = min(16, max(1, int(len(upload_data) / 3)))  # limit pool size between 1 and 16
-        log.debug("uploading with a multiprocessing pool of %s processes", pool_size)
-
-        Pool(pool_size).starmap(_multi_process_upload_file, upload_data)
+        Pool().starmap(_multi_process_upload_file, upload_data)  # Use all available cores
         log.info("Upload of directory complete at s3://%s/%s", self.bucket, target_key)
 
     def delete_recursive_match_suffix(self, key_prefix: str, suffix: str) -> None:
