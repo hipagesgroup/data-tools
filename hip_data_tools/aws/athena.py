@@ -21,7 +21,7 @@ class AthenaUtil(AwsUtil):
         output_bucket (string): the s3 bucket where the results of athena queries will be stored
     """
 
-    def __init__(self, database, conn, output_key=None, output_bucket=None):
+    def __init__(self, database, conn, output_key, output_bucket):
         super().__init__(conn, "athena")
         self.database = database
         self.conn = conn
