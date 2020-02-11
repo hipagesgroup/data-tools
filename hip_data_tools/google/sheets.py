@@ -5,9 +5,9 @@ from hip_data_tools.aws.athena import AthenaUtil
 
 class SheetUtil:
 
-    def __init__(self, credentials, database, connection):
+    def __init__(self, credentials, database, connection, output_bucket):
         self.gc = gspread.authorize(credentials)
-        self.au = AthenaUtil(database=database, conn=connection)
+        self.au = AthenaUtil(database=database, conn=connection, output_bucket=output_bucket)
 
     def _get_value_matrix(self, workbook_name, sheet_name, cell_range='', skip_top_rows_count=0):
         worksheet = self.gc.open(workbook_name).worksheet(sheet_name)
@@ -66,8 +66,10 @@ class SheetUtil:
         """
         values_matrix = self._get_value_matrix(workbook_name=workbook_name, sheet_name=sheet_name,
                                                skip_top_rows_count=skip_top_rows_count)
+        print("The value matrix:\n {}".format(values_matrix))
         table_settings = self._get_table_settings(table_name=table_name, field_names=field_names, s3_bucket=s3_bucket,
                                                   s3_dir=s3_dir)
         self.au.create_table(table_settings)
         insert_query = self._get_the_insert_query(table_name=table_name, values_matrix=values_matrix)
+        print("The insert query:\n {}".format(insert_query))
         self.au.run_query(query_string=insert_query)

@@ -1,6 +1,8 @@
 from unittest import TestCase
 
 from oauth2client.service_account import ServiceAccountCredentials
+
+from hip_data_tools.aws.common import AwsConnectionSettings, AwsSecretsManager, AwsConnectionManager
 from hip_data_tools.google.sheets import SheetUtil
 
 
@@ -12,14 +14,16 @@ class TestS3Util(TestCase):
 
         credentials = ServiceAccountCredentials.from_json_keyfile_name(
             '../resources/key-file.json', scope)
-        cls.sheet_util = SheetUtil(credentials=credentials, database='test', connection=None)
+        # TODO remove this
+        conn = AwsConnectionManager(AwsConnectionSettings(region="ap-southeast-2", secrets_manager=None, profile="default"))
+        cls.sheet_util = SheetUtil(credentials=credentials, database='dev', connection=conn, output_bucket="au-com-hipages-data-scratchpad")
 
     @classmethod
     def tearDownClass(cls):
         return
 
     def test_should__return_the_values_in_a_given_google_sheet__when_using_sheetUtil(self):
-        self.skipTest("This test needs a key file")
+        # self.skipTest("This test needs a key file")
         workbook_name = 'Tradie Acquisition Targets'
         sheet_name = 'Sheet1'
         actual = self.sheet_util._get_value_matrix(workbook_name, sheet_name)
@@ -100,3 +104,21 @@ class TestS3Util(TestCase):
         """
         actual = self.sheet_util._get_the_insert_query(table_name, values_matix)
         self.assertEqual(actual.strip(), expected.strip())
+
+    def test_should__load_sheet_to_athena__when_using_sheetUtil(self):
+        workbook_name = 'Tradie Acquisition Targets'
+        sheet_name = 'Sheet1'
+        table_name = 'test_sheets'
+        field_names = ['Jan_18', 'Feb_18', 'Mar_18', 'Apr_18', 'May_18', 'Jun_18', 'Jul_18', 'Aug_18', 'Sep_18',
+                       'Oct_18',
+                       'Nov_18', 'Dec_18', 'Jan_19', 'Feb_19', 'Mar_19', 'Apr_19', 'May_19', 'Jun_19', 'Jul_19',
+                       'Aug_19',
+                       'Sep_19', 'Oct_19', 'Nov_19', 'Dec_19', 'Jan_20', 'Feb_20', 'Mar_20', 'Apr_20', 'May_20',
+                       'Jun_20']
+        # TODO use different bucket
+        s3_bucket = 'au-com-hipages-data-scratchpad'
+        s3_dir = 'sheets'
+        skip_top_rows_count = 1
+        self.sheet_util.load_sheet_to_athena(workbook_name=workbook_name, sheet_name=sheet_name, table_name=table_name,
+                                             field_names=field_names, s3_bucket=s3_bucket, s3_dir=s3_dir,
+                                             skip_top_rows_count=skip_top_rows_count)
