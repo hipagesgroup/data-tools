@@ -69,17 +69,17 @@ class S3ToCassandra:
         Returns: None
         """
         self.create_table()
-        self.upsert_all()
+        self.upsert_all_files()
 
-    def upsert_all(self):
+    def upsert_all_files(self):
         """
         Upsert all files from s3 sequentially into cassandra
         Returns: None
         """
         for key in self.list_source_files():
-            self._upsert_object(key)
+            self.upsert_file(key)
 
-    def _upsert_object(self, key):
+    def upsert_file(self, key):
         data_frame = self._get_s3_util().download_parquet_as_dataframe(key=key)
         self._get_cassandra_util().upsert_dataframe(dataframe=data_frame,
                                                     table=self.settings.destination_table)
