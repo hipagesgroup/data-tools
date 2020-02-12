@@ -60,6 +60,7 @@ setup(
         "arrow",
         "s3fs",
         "oauth2client",
+        "gspread",
     ],
     test_suite="tests",
     tests_require=[
