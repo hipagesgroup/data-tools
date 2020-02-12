@@ -2,21 +2,21 @@ from unittest import TestCase
 
 from oauth2client.service_account import ServiceAccountCredentials
 
-from hip_data_tools.aws.common import AwsConnectionSettings, AwsSecretsManager, AwsConnectionManager
+from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
+from hip_data_tools.google.common import GoogleApiConnectionManager, GoogleApiConnectionSettings
 from hip_data_tools.google.sheets import SheetUtil
 
 
 class TestS3Util(TestCase):
     @classmethod
     def setUpClass(cls):
-        scope = ['https://spreadsheets.google.com/feeds',
-                 'https://www.googleapis.com/auth/drive']
-
-        credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            '../resources/key-file.json', scope)
+        credentials = GoogleApiConnectionManager(
+            GoogleApiConnectionSettings(key_file_path='../resources/key-file.json')).credentials(service='sheet')
         # TODO remove this
-        conn = AwsConnectionManager(AwsConnectionSettings(region="ap-southeast-2", secrets_manager=None, profile="default"))
-        cls.sheet_util = SheetUtil(credentials=credentials, database='dev', connection=conn, output_bucket="au-com-hipages-data-scratchpad")
+        conn = AwsConnectionManager(
+            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=None, profile="default"))
+        cls.sheet_util = SheetUtil(credentials=credentials, database='dev', connection=conn,
+                                   output_bucket="au-com-hipages-data-scratchpad")
 
     @classmethod
     def tearDownClass(cls):
