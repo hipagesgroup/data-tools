@@ -1,16 +1,12 @@
 from unittest import TestCase
 
 from hip_data_tools.etl.google_sheet_to_athena import GoogleSheetToAthena, GoogleSheetsToAthenaSettings
-from hip_data_tools.google.common import GoogleApiConnectionManager, GoogleApiConnectionSettings
-from hip_data_tools.google.sheets import SheetUtil
 
 
 class TestS3Util(TestCase):
     @classmethod
     def setUpClass(cls):
-        credentials = GoogleApiConnectionManager(
-            GoogleApiConnectionSettings(key_file_path='../resources/key-file.json')).credentials(service='sheet')
-        cls.sheet_util = SheetUtil(credentials=credentials)
+        return
 
     @classmethod
     def tearDownClass(cls):
