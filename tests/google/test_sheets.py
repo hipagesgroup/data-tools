@@ -15,8 +15,7 @@ class TestS3Util(TestCase):
     def tearDownClass(cls):
         return
 
-    def test_should__return_the_values_in_a_given_google_sheet__when_using_sheetUtil(self):
-        self.skipTest("This test needs a key file")
+    def integration_test_should__return_the_values_in_a_given_google_sheet__when_using_sheetUtil(self):
         workbook_name = 'Tradie Acquisition Targets'
         sheet_name = 'Sheet1'
         actual = self.sheet_util.get_value_matrix(workbook_name, sheet_name)

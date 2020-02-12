@@ -16,8 +16,7 @@ class TestS3Util(TestCase):
     def tearDownClass(cls):
         return
 
-    def test_should__load_sheet_to_athena__when_using_sheetUtil(self):
-        self.skipTest("This is an integration test")
+    def integration_test_should__load_sheet_to_athena__when_using_sheetUtil(self):
         util = GoogleSheetToAthena(GoogleSheetsToAthenaSettings(
             key_file_path='../resources/key-file.json',
             workbook_name='Tradie Acquisition Targets',
