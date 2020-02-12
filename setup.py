@@ -59,6 +59,7 @@ setup(
         "retrying",
         "arrow",
         "s3fs",
+        "oauth2client",
     ],
     test_suite="tests",
     tests_require=[
