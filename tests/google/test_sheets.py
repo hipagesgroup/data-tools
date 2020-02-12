@@ -1,8 +1,5 @@
 from unittest import TestCase
 
-from oauth2client.service_account import ServiceAccountCredentials
-
-from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.google.common import GoogleApiConnectionManager, GoogleApiConnectionSettings
 from hip_data_tools.google.sheets import SheetUtil
 
@@ -12,11 +9,7 @@ class TestS3Util(TestCase):
     def setUpClass(cls):
         credentials = GoogleApiConnectionManager(
             GoogleApiConnectionSettings(key_file_path='../resources/key-file.json')).credentials(service='sheet')
-        # TODO remove this
-        conn = AwsConnectionManager(
-            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=None, profile="default"))
-        cls.sheet_util = SheetUtil(credentials=credentials, database='dev', connection=conn,
-                                   output_bucket="au-com-hipages-data-scratchpad")
+        cls.sheet_util = SheetUtil(credentials=credentials)
 
     @classmethod
     def tearDownClass(cls):
@@ -26,7 +19,7 @@ class TestS3Util(TestCase):
         # self.skipTest("This test needs a key file")
         workbook_name = 'Tradie Acquisition Targets'
         sheet_name = 'Sheet1'
-        actual = self.sheet_util._get_value_matrix(workbook_name, sheet_name)
+        actual = self.sheet_util.get_value_matrix(workbook_name, sheet_name)
         expected = [['Jan-18', 'Feb-18', 'Mar-18', 'Apr-18', 'May-18', 'Jun-18', 'Jul-18', 'Aug-18', 'Sep-18', 'Oct-18',
                      'Nov-18', 'Dec-18', 'Jan-19', 'Feb-19', 'Mar-19', 'Apr-19', 'May-19', 'Jun-19', 'Jul-19', 'Aug-19',
                      'Sep-19', 'Oct-19', 'Nov-19', 'Dec-19', 'Jan-20', 'Feb-20', 'Mar-20', 'Apr-20', 'May-20',
@@ -46,7 +39,7 @@ class TestS3Util(TestCase):
                        'Jun-20']
         s3_bucket = "test"
         s3_dir = "abc"
-        actual = self.sheet_util._get_table_settings(table_name, field_names, s3_bucket, s3_dir)
+        actual = self.sheet_util.get_table_settings(table_name, field_names, s3_bucket, s3_dir)
         expected = {
             "table": "abc",
             "exists": True,
@@ -102,23 +95,5 @@ class TestS3Util(TestCase):
         expected = """
             INSERT INTO test_table VALUES ('4,092', '3,192', '3,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600', '3,570', '3,210', '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541', '3,128', '2,020', '3,678', '3,522', '3,534', '3,078', '3,114', '3,206'), ('6,343', '4,192', '9,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600', '3,570', '3,210', '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541', '3,128', '2,020', '3,678', '3,522', '3,534', '3,078', '3,114', '8,206')
         """
-        actual = self.sheet_util._get_the_insert_query(table_name, values_matix)
+        actual = self.sheet_util.get_the_insert_query(table_name, values_matix)
         self.assertEqual(actual.strip(), expected.strip())
-
-    def test_should__load_sheet_to_athena__when_using_sheetUtil(self):
-        workbook_name = 'Tradie Acquisition Targets'
-        sheet_name = 'Sheet1'
-        table_name = 'test_sheets'
-        field_names = ['Jan_18', 'Feb_18', 'Mar_18', 'Apr_18', 'May_18', 'Jun_18', 'Jul_18', 'Aug_18', 'Sep_18',
-                       'Oct_18',
-                       'Nov_18', 'Dec_18', 'Jan_19', 'Feb_19', 'Mar_19', 'Apr_19', 'May_19', 'Jun_19', 'Jul_19',
-                       'Aug_19',
-                       'Sep_19', 'Oct_19', 'Nov_19', 'Dec_19', 'Jan_20', 'Feb_20', 'Mar_20', 'Apr_20', 'May_20',
-                       'Jun_20']
-        # TODO use different bucket
-        s3_bucket = 'au-com-hipages-data-scratchpad'
-        s3_dir = 'sheets'
-        skip_top_rows_count = 1
-        self.sheet_util.load_sheet_to_athena(workbook_name=workbook_name, sheet_name=sheet_name, table_name=table_name,
-                                             field_names=field_names, s3_bucket=s3_bucket, s3_dir=s3_dir,
-                                             skip_top_rows_count=skip_top_rows_count)
