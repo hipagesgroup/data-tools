@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, mock
 
 from hip_data_tools.google.common import GoogleApiConnectionManager, GoogleApiConnectionSettings
 from hip_data_tools.google.sheets import SheetUtil
@@ -7,8 +7,7 @@ from hip_data_tools.google.sheets import SheetUtil
 class TestS3Util(TestCase):
     @classmethod
     def setUpClass(cls):
-        credentials = GoogleApiConnectionManager(
-            GoogleApiConnectionSettings(key_file_path='../resources/key-file.json')).credentials(service='sheet')
+        credentials = mock.Mock()
         cls.sheet_util = SheetUtil(credentials=credentials)
 
     @classmethod
@@ -16,9 +15,12 @@ class TestS3Util(TestCase):
         return
 
     def integration_test_should__return_the_values_in_a_given_google_sheet__when_using_sheetUtil(self):
+        credentials = GoogleApiConnectionManager(
+            GoogleApiConnectionSettings(key_file_path='../resources/key-file.json')).credentials(service='sheet')
+        sheet_util = SheetUtil(credentials=credentials)
         workbook_name = 'Tradie Acquisition Targets'
         sheet_name = 'Sheet1'
-        actual = self.sheet_util.get_value_matrix(workbook_name, sheet_name)
+        actual = sheet_util.get_value_matrix(workbook_name, sheet_name)
         expected = [['Jan-18', 'Feb-18', 'Mar-18', 'Apr-18', 'May-18', 'Jun-18', 'Jul-18', 'Aug-18', 'Sep-18', 'Oct-18',
                      'Nov-18', 'Dec-18', 'Jan-19', 'Feb-19', 'Mar-19', 'Apr-19', 'May-19', 'Jun-19', 'Jul-19', 'Aug-19',
                      'Sep-19', 'Oct-19', 'Nov-19', 'Dec-19', 'Jan-20', 'Feb-20', 'Mar-20', 'Apr-20', 'May-20',
