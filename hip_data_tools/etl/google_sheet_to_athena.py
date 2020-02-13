@@ -57,6 +57,53 @@ class GoogleSheetToAthena:
                 AwsConnectionSettings(region=self.settings.region, secrets_manager=self.settings.secrets_manager,
                                       profile=self.settings.profile)))
 
+    def get_table_settings(self, table_name, field_names, s3_bucket, s3_dir):
+        """
+        Get the table settings dictionary
+        Args:
+            table_name (string): name of the athena table
+            field_names (list): list of field names
+            s3_bucket (string): s3 bucket name
+            s3_dir (string): s3 directory
+        Returns: table settings dictionary
+
+        """
+        table_settings = {
+            "table": table_name,
+            "exists": True,
+            "partitions": [],
+            "columns": [],
+            "storage_format_selector": "parquet",
+            "s3_bucket": s3_bucket,
+            "s3_dir": s3_dir,
+            "encryption": False
+        }
+        columns = []
+        for field_name in field_names:
+            columns.append({"column": field_name, "type": "string"})
+        table_settings["columns"] = columns
+
+        return table_settings
+
+    def get_the_insert_query(self, table_name, values_matrix):
+        """
+        Get the insert query for the athena table using the values matrix
+        Args:
+            table_name (string): name of the athena table
+            values_matrix (array): values of the google sheet
+        Returns: insert query for the athena table
+
+        """
+        if not values_matrix:
+            return "INSERT INTO {table_name} VALUES ()".format(table_name=table_name)
+        insert_query = "INSERT INTO {table_name} VALUES ".format(table_name=table_name)
+        values = ""
+        for value in values_matrix:
+            values += "({}), ".format(', '.join(["'{}'".format(val) for val in value]))
+        values = values[:-2]
+        insert_query += values
+        return insert_query
+
     def load_sheet_to_athena(self, overwrite_table=False):
         """
         Method to load google sheet to athena
@@ -72,11 +119,11 @@ class GoogleSheetToAthena:
                                                     sheet_name=self.settings.sheet_name,
                                                     skip_top_rows_count=self.settings.skip_top_rows_count)
         log.info("The value matrix:\n %s", values_matrix)
-        table_settings = sheet_util.get_table_settings(table_name=self.settings.table_name,
-                                                       field_names=self.settings.field_names,
-                                                       s3_bucket=self.settings.s3_bucket,
-                                                       s3_dir=self.settings.s3_dir)
+        table_settings = self.get_table_settings(table_name=self.settings.table_name,
+                                                 field_names=self.settings.field_names,
+                                                 s3_bucket=self.settings.s3_bucket,
+                                                 s3_dir=self.settings.s3_dir)
         athena_util.create_table(table_settings)
-        insert_query = sheet_util.get_the_insert_query(table_name=self.settings.table_name, values_matrix=values_matrix)
+        insert_query = self.get_the_insert_query(table_name=self.settings.table_name, values_matrix=values_matrix)
         log.info("The insert query:\n %s", insert_query)
         athena_util.run_query(query_string=insert_query)
