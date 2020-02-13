@@ -119,11 +119,11 @@ class GoogleSheetToAthena:
                                                     sheet_name=self.settings.sheet_name,
                                                     skip_top_rows_count=self.settings.skip_top_rows_count)
         log.info("The value matrix:\n %s", values_matrix)
-        table_settings = self.get_table_settings(table_name=self.settings.table_name,
-                                                 field_names=self.settings.field_names,
-                                                 s3_bucket=self.settings.s3_bucket,
-                                                 s3_dir=self.settings.s3_dir)
+        table_settings = self._get_table_settings(table_name=self.settings.table_name,
+                                                  field_names=self.settings.field_names,
+                                                  s3_bucket=self.settings.s3_bucket,
+                                                  s3_dir=self.settings.s3_dir)
         athena_util.create_table(table_settings)
-        insert_query = self.get_the_insert_query(table_name=self.settings.table_name, values_matrix=values_matrix)
+        insert_query = self._get_the_insert_query(table_name=self.settings.table_name, values_matrix=values_matrix)
         log.info("The insert query:\n %s", insert_query)
         athena_util.run_query(query_string=insert_query)
