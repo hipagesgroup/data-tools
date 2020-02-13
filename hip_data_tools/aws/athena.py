@@ -182,7 +182,7 @@ class AthenaUtil(AwsUtil):
                        s3_bucket=table_settings["s3_bucket"],
                        s3_dir=table_settings["s3_dir"],
                        table_properties=table_properties)
-        print("Query from table settings:\n {}".format(sql))
+        LOG.info("Query from table settings:\n %s", sql)
         return sql
 
     def create_table(self, table_settings):

@@ -9,8 +9,9 @@ from hip_data_tools.aws.athena import AthenaUtil
 from hip_data_tools.aws.common import AwsConnectionManager, AwsSecretsManager
 from hip_data_tools.aws.common import AwsConnectionSettings
 from hip_data_tools.aws.s3 import S3Util
-from hip_data_tools.google.common import GoogleApiConnectionManager, GoogleApiConnectionSettings
-from hip_data_tools.google.sheets import SheetUtil
+from hip_data_tools.google.common import GoogleApiConnectionSettings
+from hip_data_tools.google.sheets.common import GoogleSheetConnectionManager
+from hip_data_tools.google.sheets.sheets import SheetUtil
 
 
 @dataclass
@@ -42,8 +43,8 @@ class GoogleSheetToAthena:
         self.keys_to_transfer = None
 
     def _get_sheets_util(self):
-        return SheetUtil(credentials=GoogleApiConnectionManager(
-            GoogleApiConnectionSettings(key_file_path=self.settings.key_file_path)).credentials(service='sheet'))
+        return SheetUtil(conn_manager=GoogleSheetConnectionManager(
+            GoogleApiConnectionSettings(key_file_path=self.settings.key_file_path)))
 
     def _get_athena_util(self):
         return AthenaUtil(database=self.settings.database, conn=AwsConnectionManager(

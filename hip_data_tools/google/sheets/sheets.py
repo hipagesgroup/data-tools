@@ -1,24 +1,24 @@
-import gspread
+from hip_data_tools.google.sheets.common import GoogleSheetConnectionManager
 
 
 class SheetUtil:
     """
     Utility class for connecting to google sheets
     Args:
-        credentials (ServiceAccountCredentials): credentials to read google sheets
+        conn_manager (GoogleSheetConnectionManager): connection to read google sheets
     """
 
-    def __init__(self, credentials):
-        self.gc = gspread.authorize(credentials)
+    def __init__(self, conn_manager: GoogleSheetConnectionManager):
+        self.gc = conn_manager.get_connection()
 
     def get_value_matrix(self, workbook_name, sheet_name, cell_range='', skip_top_rows_count=0):
         """
         Get the values of the sheet as a 2D array
         Args:
-            workbook_name (string): name of the workbook
-            sheet_name (string): name of the sheet
-            cell_range (string): range of the cells that need to be selected
-            skip_top_rows_count (integer):
+            workbook_name (string): name of the workbook (eg: Tradie Acquisition Targets)
+            sheet_name (string): name of the sheet (eg: sheet1)
+            cell_range (string): range of the cells that need to be selected (eg: 'A1:B7') - this is optional
+            skip_top_rows_count (integer): (eg: 2)
         Returns: values of the sheet as a 2D array
 
         """

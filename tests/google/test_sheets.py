@@ -1,23 +1,23 @@
 from unittest import TestCase, mock
 
-from hip_data_tools.google.common import GoogleApiConnectionManager, GoogleApiConnectionSettings
-from hip_data_tools.google.sheets import SheetUtil
+from hip_data_tools.google.common import GoogleApiConnectionSettings
+from hip_data_tools.google.sheets.common import GoogleSheetConnectionManager
+from hip_data_tools.google.sheets.sheets import SheetUtil
 
 
 class TestS3Util(TestCase):
     @classmethod
     def setUpClass(cls):
-        credentials = mock.Mock()
-        cls.sheet_util = SheetUtil(credentials=credentials)
+        connection_manager = mock.Mock()
+        cls.sheet_util = SheetUtil(conn_manager=connection_manager)
 
     @classmethod
     def tearDownClass(cls):
         return
 
     def integration_test_should__return_the_values_in_a_given_google_sheet__when_using_sheetUtil(self):
-        credentials = GoogleApiConnectionManager(
-            GoogleApiConnectionSettings(key_file_path='../resources/key-file.json')).credentials(service='sheet')
-        sheet_util = SheetUtil(credentials=credentials)
+        sheet_util = SheetUtil(conn_manager=GoogleSheetConnectionManager(
+            GoogleApiConnectionSettings(key_file_path='../resources/key-file.json')))
         workbook_name = 'Tradie Acquisition Targets'
         sheet_name = 'Sheet1'
         actual = sheet_util.get_value_matrix(workbook_name, sheet_name)
