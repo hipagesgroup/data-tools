@@ -57,7 +57,7 @@ class GoogleSheetToAthena:
                 AwsConnectionSettings(region=self.settings.region, secrets_manager=self.settings.secrets_manager,
                                       profile=self.settings.profile)))
 
-    def get_table_settings(self, table_name, field_names, s3_bucket, s3_dir):
+    def _get_table_settings(self, table_name, field_names, s3_bucket, s3_dir):
         """
         Get the table settings dictionary
         Args:
@@ -85,7 +85,7 @@ class GoogleSheetToAthena:
 
         return table_settings
 
-    def get_the_insert_query(self, table_name, values_matrix):
+    def _get_the_insert_query(self, table_name, values_matrix):
         """
         Get the insert query for the athena table using the values matrix
         Args:

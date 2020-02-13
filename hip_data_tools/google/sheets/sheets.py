@@ -17,7 +17,7 @@ class SheetUtil:
         Args:
             workbook_name (string): name of the workbook (eg: Tradie Acquisition Targets)
             sheet_name (string): name of the sheet (eg: sheet1)
-            cell_range (string): range of the cells that need to be selected (eg: 'A1:B7') - this is optional
+            cell_range[optional] (string): range of the cells that need to be selected (eg: 'A1:B7')
             skip_top_rows_count (integer): (eg: 2)
         Returns: values of the sheet as a 2D array
 
@@ -33,4 +33,3 @@ class SheetUtil:
             for cell in worksheet.range(cell_range):
                 list_of_lists.append(cell.value)
             return list_of_lists
-

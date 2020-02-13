@@ -44,7 +44,7 @@ class TestS3Util(TestCase):
                        'Jun-20']
         s3_bucket = "test"
         s3_dir = "abc"
-        actual = self.util.get_table_settings(table_name, field_names, s3_bucket, s3_dir)
+        actual = self.util._get_table_settings(table_name, field_names, s3_bucket, s3_dir)
         expected = {
             "table": "abc",
             "exists": True,
@@ -100,5 +100,5 @@ class TestS3Util(TestCase):
         expected = """
                 INSERT INTO test_table VALUES ('4,092', '3,192', '3,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600', '3,570', '3,210', '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541', '3,128', '2,020', '3,678', '3,522', '3,534', '3,078', '3,114', '3,206'), ('6,343', '4,192', '9,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600', '3,570', '3,210', '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541', '3,128', '2,020', '3,678', '3,522', '3,534', '3,078', '3,114', '8,206')
             """
-        actual = self.util.get_the_insert_query(table_name, values_matix)
+        actual = self.util._get_the_insert_query(table_name, values_matix)
         self.assertEqual(actual.strip(), expected.strip())

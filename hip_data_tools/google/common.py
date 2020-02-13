@@ -8,6 +8,9 @@ class GoogleApiConnectionSettings:
 
 
 class GoogleApiConnectionManager:
+    """
+    Google API connection manager abstract class
+    """
 
     def __init__(self, settings: GoogleApiConnectionSettings):
         self.settings = settings
@@ -19,4 +22,11 @@ class GoogleApiConnectionManager:
         Get the credentials for a given google service
         Returns (ServiceAccountCredentials): credentials object to authorize google services
         """
-        return None
+        return
+
+    def get_connection(self):
+        """
+        Get the credentials for google service
+        Returns: authorised connection for google service
+        """
+        return
