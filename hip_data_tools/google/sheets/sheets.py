@@ -9,7 +9,7 @@ class SheetUtil:
     """
 
     def __init__(self, conn_manager: GoogleSheetConnectionManager):
-        self.gc = conn_manager.get_connection()
+        self.google_sheet_connection = conn_manager.get_connection()
 
     def get_value_matrix(self, workbook_name, sheet_name, row_range='', skip_top_rows_count=0):
         """
@@ -21,7 +21,7 @@ class SheetUtil:
             skip_top_rows_count (integer): (eg: 2)
         Returns: values of the sheet as a 2D array
         """
-        worksheet = self.gc.open(workbook_name).worksheet(sheet_name)
+        worksheet = self.google_sheet_connection.open(workbook_name).worksheet(sheet_name)
         list_of_lists = []
 
         if not row_range:
