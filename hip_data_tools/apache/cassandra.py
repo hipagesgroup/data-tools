@@ -4,6 +4,7 @@ Utility for connecting to and transforming data in Cassandra clusters
 import logging as log
 import os
 from ssl import SSLContext, PROTOCOL_TLSv1, CERT_REQUIRED
+from typing import List
 
 import pandas as pd
 from attr import dataclass
@@ -12,6 +13,7 @@ from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster, Session
 from cassandra.cqlengine import connection
 from cassandra.cqlengine.management import sync_table
+from cassandra.datastax.graph import Result
 from cassandra.policies import LoadBalancingPolicy
 from cassandra.query import dict_factory, BatchStatement, PreparedStatement
 from pandas import DataFrame
@@ -274,16 +276,16 @@ class CassandraUtil:
         self.consistency_level = ConsistencyLevel.QUORUM
         self._session = self._conn.get_session(self.keyspace)
 
-    def _cql_upsert_from_dict(self, data, table):
+    def _cql_upsert_from_dict(self, data: dict, table: str):
         upsert_sql = f"""
         INSERT INTO {self.keyspace}.{table} 
-        ({", ".join(data[0])}) 
-        VALUES ({", ".join(['?' for key in data[0]])});
+        ({", ".join(data)}) 
+        VALUES ({", ".join(['?' for key in data])});
             """
         log.debug(upsert_sql)
         return upsert_sql
 
-    def _cql_upsert_from_dataframe(self, dataframe, table):
+    def _cql_upsert_from_dataframe(self, dataframe: DataFrame, table: str):
         upsert_sql = f"""
         INSERT INTO {self.keyspace}.{table} 
         ({", ".join(list(dataframe.columns.values))}) 
@@ -292,7 +294,11 @@ class CassandraUtil:
         log.debug(upsert_sql)
         return upsert_sql
 
-    def upsert_dataframe(self, dataframe: DataFrame, table: str, batch_size: int = 2) -> list:
+    def upsert_dataframe(self,
+                         dataframe: DataFrame,
+                         table: str,
+                         batch_size: int = 2
+                         ) -> List[Result]:
         """
         Upload all data from a DataFrame onto a cassandra table
         Args:
@@ -310,7 +316,7 @@ class CassandraUtil:
                                        batch_size)
         return self._execute_batches(batches)
 
-    def _execute_batches(self, batches):
+    def _execute_batches(self, batches: List):
         results = []
         log.info("Executing cassandra batches")
         for batch in batches:
@@ -325,7 +331,11 @@ class CassandraUtil:
         log.debug("Executing query: %s", batch)
         return self._session.execute(batch, timeout=300.0)
 
-    def upsert_dict(self, data: list, table: str, batch_size: int = 2) -> list:
+    def upsert_dictonary_list(self,
+                              data: List[dict],
+                              table: str,
+                              batch_size: int = 2
+                              ) -> List[Result]:
         """
         Upsert a row into the cassandra table based on the dictionary key values
         Args:
@@ -334,7 +344,7 @@ class CassandraUtil:
             batch_size (int): limit on the number of prepared statements in the batch
         Returns: None
         """
-        prepared_statement = self._session.prepare(self._cql_upsert_from_dict(data, table))
+        prepared_statement = self._session.prepare(self._cql_upsert_from_dict(data[0], table))
         batches = self.prepare_batches(prepared_statement, dicts_to_cassandra_tuples(data),
                                        batch_size)
         return self._execute_batches(batches)
@@ -349,7 +359,10 @@ class CassandraUtil:
         self._conn.setup_connection(default_keyspace=self.keyspace)
         sync_table(model_class)
 
-    def create_table_from_dataframe(self, data_frame, table_name, primary_key_column_list,
+    def create_table_from_dataframe(self,
+                                    data_frame: DataFrame,
+                                    table_name: str,
+                                    primary_key_column_list: List[str],
                                     table_options_statement=""):
         """
         Create a new table in cassandra based on a pandas DataFrame
@@ -365,12 +378,14 @@ class CassandraUtil:
         Returns: ResultSet
 
         """
-        cql = self._dataframe_to_cassandra_ddl(data_frame, primary_key_column_list, table_name,
-                                               table_options_statement)
+        cql = self._dataframe_to_cassandra_ddl(**locals())
         return self.execute(cql, row_factory=dict_factory)
 
-    def _dataframe_to_cassandra_ddl(self, data_frame, primary_key_column_list, table_name,
-                                    table_options_statement):
+    def _dataframe_to_cassandra_ddl(self,
+                                    data_frame: DataFrame,
+                                    primary_key_column_list: List[str],
+                                    table_name: str,
+                                    table_options_statement: str = ""):
         column_list = _cql_manage_column_lists(data_frame, primary_key_column_list)
         cql = f"""
         CREATE TABLE IF NOT EXISTS {self.keyspace}.{table_name} (
@@ -381,7 +396,7 @@ class CassandraUtil:
         log.debug(cql)
         return cql
 
-    def read_dict(self, query, **kwargs) -> list:
+    def read_as_dictonary_list(self, query: str, **kwargs) -> List[dict]:
         """
         Read the results of a query in form of a list of dict
         Args:
@@ -390,7 +405,7 @@ class CassandraUtil:
         """
         return self.execute(query, dict_factory, **kwargs).current_rows
 
-    def read_dataframe(self, query, **kwargs) -> DataFrame:
+    def read_as_dataframe(self, query: str, **kwargs) -> DataFrame:
         """
         Read the result of a query in form of a pandas DataFrame
         Args:
@@ -401,7 +416,7 @@ class CassandraUtil:
         # protected _current_rows
         return self.execute(query, _pandas_factory, **kwargs)._current_rows
 
-    def execute(self, query, row_factory, **kwargs):
+    def execute(self, query: str, row_factory: callable, **kwargs) -> Result:
         """
         Execute a cql command and retrieve data with the row factory
         Args:
@@ -415,8 +430,8 @@ class CassandraUtil:
             self._session.row_factory = row_factory
         return self._session.execute(query, **kwargs)
 
-    def prepare_batches(self, prepared_statement: PreparedStatement, tuples: list,
-                        batch_size: int) -> list:
+    def prepare_batches(self, prepared_statement: PreparedStatement, tuples: List[tuple],
+                        batch_size: int) -> List:
         """
         Prepares a list of cassandra batched Statements out of a list of tuples and prepared
         statement
