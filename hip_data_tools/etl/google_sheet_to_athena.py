@@ -19,6 +19,7 @@ class GoogleSheetsToAthenaSettings:
     """Google sheets to Athena ETL settings"""
     workbook_name: str
     sheet_name: str
+    cell_range: str
     table_name: str
     field_names: list
     s3_bucket: str
@@ -107,6 +108,8 @@ class GoogleSheetToAthena:
     def load_sheet_to_athena(self, overwrite_table=False):
         """
         Method to load google sheet to athena
+        Args:
+            overwrite_table (boolean): if this is true, it drops the existing athena table and clear the s3 location
         :return: None
         """
         sheet_util = self._get_sheets_util()
@@ -117,6 +120,7 @@ class GoogleSheetToAthena:
             s3_util.delete_recursive(self.settings.s3_dir)
         values_matrix = sheet_util.get_value_matrix(workbook_name=self.settings.workbook_name,
                                                     sheet_name=self.settings.sheet_name,
+                                                    row_range=self.settings.cell_range,
                                                     skip_top_rows_count=self.settings.skip_top_rows_count)
         log.info("The value matrix:\n %s", values_matrix)
         table_settings = self._get_table_settings(table_name=self.settings.table_name,

@@ -10,6 +10,7 @@ class TestS3Util(TestCase):
             key_file_path='../resources/key-file.json',
             workbook_name='Tradie Acquisition Targets',
             sheet_name='Sheet1',
+            cell_range='2:3',
             table_name='test_sheets',
             field_names=['Jan_18', 'Feb_18', 'Mar_18', 'Apr_18', 'May_18', 'Jun_18', 'Jul_18', 'Aug_18', 'Sep_18',
                          'Oct_18',
@@ -31,7 +32,7 @@ class TestS3Util(TestCase):
     def tearDownClass(cls):
         return
 
-    def integration_test_should__load_sheet_to_athena__when_using_sheetUtil(self):
+    def integrate_test_should__load_sheet_to_athena__when_using_sheetUtil(self):
         self.util.load_sheet_to_athena()
 
     def test_should__return_the_table_settings__when_using_sheetUtil(self):
