@@ -54,7 +54,7 @@ class TestS3Util(TestCase):
                        'Jun_20:string']
         s3_bucket = "test"
         s3_dir = "abc"
-        actual = self.util._get_table_settings(table_name, field_names, s3_bucket, s3_dir)
+        actual = self.util._get_table_settings()
         expected = {'columns': [{'column': 'Jan_18', 'type': 'STRING'},
                                 {'column': 'Feb_18', 'type': 'STRING'},
                                 {'column': 'Mar_18', 'type': 'STRING'},
@@ -87,15 +87,14 @@ class TestS3Util(TestCase):
                                 {'column': 'Jun_20', 'type': 'STRING'}],
                     'encryption': False,
                     'exists': True,
-                    'partitions': [],
-                    's3_bucket': 'test',
-                    's3_dir': 'abc',
+                    'partitions': [{'column': 'start_date', 'type': 'string'}],
+                    's3_bucket': 'au-com-hipages-data-scratchpad',
+                    's3_dir': 'sheets',
                     'storage_format_selector': 'parquet',
-                    'table': 'abc'}
-        self.assertEqual(actual, expected)
+                    'table': 'test_sheets'}
+        self.assertEqual(expected, actual)
 
     def test_should__return_the_insert_query__when_using_sheetUtil(self):
-        table_name = "test_table"
         values_matix = [
             ['4,092', '3,192', '3,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600', '3,570', '3,210',
              '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541',
@@ -104,7 +103,7 @@ class TestS3Util(TestCase):
              '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541',
              '3,128', '2,020', '3,678', '3,522', '3,534', '3,078', '3,114', '8,206']]
         expected = """
-                INSERT INTO test_table VALUES ('4,092', '3,192', '3,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600', '3,570', '3,210', '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541', '3,128', '2,020', '3,678', '3,522', '3,534', '3,078', '3,114', '3,206'), ('6,343', '4,192', '9,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600', '3,570', '3,210', '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541', '3,128', '2,020', '3,678', '3,522', '3,534', '3,078', '3,114', '8,206')
-            """
-        actual = self.util._get_the_insert_query(table_name, values_matix)
-        self.assertEqual(actual.strip(), expected.strip())
+                INSERT INTO test_sheets VALUES ('4,092', '3,192', '3,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600', '3,570', '3,210', '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541', '3,128', '2,020', '3,678', '3,522', '3,534', '3,078', '3,114', '3,206', '2020-02-14'), ('6,343', '4,192', '9,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600', '3,570', '3,210', '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541', '3,128', '2,020', '3,678', '3,522', '3,534', '3,078', '3,114', '8,206', '2020-02-14')            
+                """
+        actual = self.util._get_the_insert_query(values_matix)
+        self.assertEqual(expected.strip(), actual.strip())
