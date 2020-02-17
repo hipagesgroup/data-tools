@@ -99,31 +99,25 @@ class GoogleSheetToAthena:
         """
         return ((re.sub(r'\(.*\)', '', data_type)).split(" ", 1)[0]).upper()
 
-    def _get_table_settings(self, table_name, fields, s3_bucket, s3_dir, partitions=[]):
+    def _get_table_settings(self):
         """
         Get the table settings dictionary
-        Args:
-            table_name (string): name of the athena table
-            fields (list): list of field names and types (eg: ['name:string','age:number','is_member:boolean'])
-            s3_bucket (string): s3 bucket name
-            s3_dir (string): s3 directory
-            partitions (list): list of partitions
         Returns: table settings dictionary
 
         """
         table_settings = {
-            "table": table_name,
+            "table": self.settings.table_name,
             "exists": True,
             "partitions": [],
             "columns": [],
             "storage_format_selector": "parquet",
-            "s3_bucket": s3_bucket,
-            "s3_dir": s3_dir,
+            "s3_bucket": self.settings.s3_bucket,
+            "s3_dir": self.settings.s3_dir,
             "encryption": False
         }
         columns = []
         if self.settings.use_derived_types:
-            for field in fields:
+            for field in self.settings.fields:
                 field_name_type = field.split(':')
                 field_name = field_name_type[0]
                 field_type = field_name_type[1]
@@ -132,29 +126,28 @@ class GoogleSheetToAthena:
                                     str(self._simplified_dtype(field_type)),
                                     "STRING")})
         else:
-            for field in fields:
+            for field in self.settings.fields:
                 field_name = field.split(':')[0]
                 columns.append({"column": field_name, "type": "string"})
         table_settings["columns"] = columns
-        table_settings["partitions"] = partitions
+        table_settings["partitions"] = self.settings.partition_key
 
         return table_settings
 
-    def _get_the_insert_query(self, table_name, values_matrix, partition_value=''):
+    def _get_the_insert_query(self, values_matrix):
         """
         Get the insert query for the athena table using the values matrix
         Args:
-            table_name (string): name of the athena table
             values_matrix (array): values of the google sheet
         Returns: insert query for the athena table
 
         """
         if not values_matrix:
-            return "INSERT INTO {table_name} VALUES ()".format(table_name=table_name)
-        insert_query = "INSERT INTO {table_name} VALUES ".format(table_name=table_name)
+            return "INSERT INTO {table_name} VALUES ()".format(table_name=self.settings.table_name)
+        insert_query = "INSERT INTO {table_name} VALUES ".format(table_name=self.settings.table_name)
         values = ""
-        if partition_value:
-            partition_value_statement = ", '{}'".format(partition_value)
+        if self.settings.partition_value:
+            partition_value_statement = ", '{}'".format(self.settings.partition_value)
         else:
             partition_value_statement = ''
         for value in values_matrix:
@@ -181,13 +174,8 @@ class GoogleSheetToAthena:
                                                     row_range=self.settings.row_range,
                                                     skip_top_rows_count=self.settings.skip_top_rows_count)
         log.info("The value matrix:\n %s", values_matrix)
-        table_settings = self._get_table_settings(table_name=self.settings.table_name,
-                                                  fields=self.settings.fields,
-                                                  s3_bucket=self.settings.s3_bucket,
-                                                  s3_dir=self.settings.s3_dir,
-                                                  partitions=self.settings.partition_key)
+        table_settings = self._get_table_settings()
         athena_util.create_table(table_settings)
-        insert_query = self._get_the_insert_query(table_name=self.settings.table_name, values_matrix=values_matrix,
-                                                  partition_value=self.settings.partition_value)
+        insert_query = self._get_the_insert_query(values_matrix=values_matrix)
         log.info("The insert query:\n %s", insert_query)
         athena_util.run_query(query_string=insert_query)
