@@ -46,9 +46,9 @@ class TestAthenaUtil(TestCase):
             ROW FORMAT SERDE
               'org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe'
             STORED AS INPUTFORMAT
-              'org.apache.hadoop.mapred.TextInputFormat'
+              'org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat'
             OUTPUTFORMAT
-              'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
+              'org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat'
             LOCATION
               's3://test/abc'
             TBLPROPERTIES ('has_encrypted_data'='false')

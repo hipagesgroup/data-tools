@@ -30,8 +30,8 @@ class AthenaUtil(AwsUtil):
         self.storage_format_lookup = {
             "parquet": {
                 "row_format_serde": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
-                "outputformat": "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
-                "inputformat": "org.apache.hadoop.mapred.TextInputFormat"
+                "outputformat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+                "inputformat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
             },
             "csv": {
                 "row_format_serde": "org.apache.hadoop.hive.serde2.OpenCSVSerde",
@@ -182,6 +182,7 @@ class AthenaUtil(AwsUtil):
                        s3_bucket=table_settings["s3_bucket"],
                        s3_dir=table_settings["s3_dir"],
                        table_properties=table_properties)
+        LOG.info("Query from table settings:\n %s", sql)
         return sql
 
     def create_table(self, table_settings):
