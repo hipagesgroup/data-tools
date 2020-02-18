@@ -1,3 +1,6 @@
+"""
+Module contains variables and methods used for google sheet operations
+"""
 from hip_data_tools.google.sheets.common import GoogleSheetConnectionManager
 
 
