@@ -28,7 +28,6 @@ class GoogleApiConnectionManager:
         Get the credentials for a given google service
         Returns (ServiceAccountCredentials): credentials object to authorize google services
         """
-        pass
 
     @abstractmethod
     def get_connection(self):
@@ -36,4 +35,3 @@ class GoogleApiConnectionManager:
         Get the credentials for google service
         Returns: authorised connection for google service
         """
-        pass
