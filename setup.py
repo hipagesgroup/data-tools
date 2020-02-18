@@ -59,6 +59,7 @@ setup(
         "retrying",
         "arrow",
         "s3fs",
+        "dataclasses",
         "oauth2client",
         "gspread",
     ],

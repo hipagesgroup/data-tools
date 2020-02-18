@@ -18,9 +18,9 @@ class AthenaToCassandraSettings:
     destination_keyspace: str
     destination_table: str
     destination_table_primary_keys: list
-    destination_table_options_statement: str
-    destination_batch_size: int
     destination_connection_settings: CassandraConnectionSettings
+    destination_table_options_statement: str = ""
+    destination_batch_size: int = 1
 
 
 class AthenaToCassandra(S3ToCassandra):

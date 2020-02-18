@@ -22,7 +22,7 @@ class TestCassandraUtil(TestCase):
         mock_result_set.current_rows = expected
         mock_cassandra_util = Mock()
         mock_cassandra_util.execute = Mock(return_value=mock_result_set)
-        actual = CassandraUtil.read_dict(mock_cassandra_util, "SELECT abc FROM def")
+        actual = CassandraUtil.read_as_dictonary_list(mock_cassandra_util, "SELECT abc FROM def")
         self.assertListEqual(actual, expected)
         mock_cassandra_util.execute.assert_called_once()
 
@@ -32,30 +32,17 @@ class TestCassandraUtil(TestCase):
         mock_result_set._current_rows = expected
         mock_cassandra_util = Mock()
         mock_cassandra_util.execute = Mock(return_value=mock_result_set)
-        actual = CassandraUtil.read_dataframe(mock_cassandra_util, "SELECT abc FROM def")
+        actual = CassandraUtil.read_as_dataframe(mock_cassandra_util, "SELECT abc FROM def")
         assert_frame_equal(actual, expected)
         mock_cassandra_util.execute.assert_called_once()
 
     def test___cql_upsert_from_dict__should_generate_proper_cql_string(self):
-        upsert_dict = [
-            {
-                "example_type": 100,
-                "example_id": uuid.uuid4(),
-                "created_at": datetime.datetime.now(),
-                "description": "this is from a dict"
-            },
-            {
-                "example_type": 200,
-                "example_id": uuid.uuid4(),
-                "created_at": datetime.datetime.now(),
-                "description": "this is from a dict"
-            },
-            {
-                "example_type": 300,
-                "example_id": uuid.uuid4(),
-                "created_at": None,
-                "description": "this is from a dict"
-            }, ]
+        upsert_dict = {
+            "example_type": 100,
+            "example_id": uuid.uuid4(),
+            "created_at": datetime.datetime.now(),
+            "description": "this is from a dict"
+        }
         mock_cassandra_util = Mock()
         mock_cassandra_util.keyspace = "test"
         actual = CassandraUtil._cql_upsert_from_dict(mock_cassandra_util, upsert_dict, "test")
