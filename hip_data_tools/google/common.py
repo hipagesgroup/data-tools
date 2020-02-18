@@ -1,5 +1,6 @@
 """
-Module contains variables and methods used for common / shared operations throughput the google services package
+Module contains variables and methods used for common / shared operations throughput the google
+services package
 """
 from abc import abstractmethod
 
