@@ -90,15 +90,16 @@ class S3ToCassandra:
         data_frame = self._get_s3_util().download_parquet_as_dataframe(key=key)
         if self.settings.destination_batch_size > 1:
             log.info("upserting batches of size %s", self.settings.destination_batch_size)
-            return self._get_cassandra_util().upsert_dataframe_in_batches(
+            result = self._get_cassandra_util().upsert_dataframe_in_batches(
                 dataframe=data_frame,
                 table=self.settings.destination_table,
                 batch_size=self.settings.destination_batch_size)
         else:
             log.info("upserting one row at a time")
-            return self._get_cassandra_util().upsert_dataframe(
+            result = self._get_cassandra_util().upsert_dataframe(
                 dataframe=data_frame,
                 table=self.settings.destination_table)
+        return result
 
     def list_source_files(self):
         """
