@@ -3,7 +3,6 @@ Utility for connecting to and transforming data in Cassandra clusters
 """
 import logging as log
 import os
-from ssl import SSLContext, PROTOCOL_TLSv1, CERT_REQUIRED
 from typing import List
 
 import pandas as pd
@@ -28,20 +27,6 @@ _RETRY_WAIT_MULTIPLIER_MS: int = int(os.getenv("CASSANDRA_RETRY_WAIT_MULTIPLIER_
 
 _RETRY_WAIT_MAX_MS: int = int(os.getenv("CASSANDRA_RETRY_WAIT_MAX_MS", "100000"))
 """Exponential backoff settings for connections to cassandra"""
-
-
-def get_ssl_context(cert_path: str) -> SSLContext:
-    """
-    Creates an ssl context if required for connecting to cassandra
-    Args:
-        cert_path (str): path where the ssl cetificate pem file is stored
-    Returns: SSLContext
-    """
-    ssl_context = SSLContext(PROTOCOL_TLSv1)
-    ssl_context.load_verify_locations(cert_path)
-    ssl_context.verify_mode = CERT_REQUIRED
-    return ssl_context
-
 
 _PYTHON_TO_CASSANDRA_DATA_TYPE_MAP = {
     "Timestamp": "timestamp",
@@ -169,7 +154,7 @@ class CassandraConnectionSettings:
     port: int
     load_balancing_policy: LoadBalancingPolicy
     secrets_manager: CassandraSecretsManager
-    ssl_context: SSLContext = None
+    ssl_options: dict = None
 
 
 class CassandraConnectionManager:
@@ -234,7 +219,7 @@ class CassandraConnectionManager:
                 load_balancing_policy=self._settings.load_balancing_policy,
                 port=self._settings.port,
                 auth_provider=self._auth,
-                ssl_context=self._settings.ssl_context,
+                ssl_options=self._settings.ssl_options,
             )
         return self.cluster
 
@@ -261,8 +246,8 @@ class CassandraConnectionManager:
             load_balancing_policy=self._settings.load_balancing_policy,
             auth_provider=self._auth,
             port=self._settings.port,
-            ssl_context=self._settings.ssl_context,
-            default_keyspace=default_keyspace, )
+            ssl_options=self._settings.ssl_options,
+            default_keyspace=default_keyspace)
 
 
 class CassandraUtil:
