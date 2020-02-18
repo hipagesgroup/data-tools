@@ -101,13 +101,16 @@ class GoogleSheetToAthena:
 
     def _get_athena_util(self):
         return AthenaUtil(database=self.settings.database, conn=AwsConnectionManager(
-            AwsConnectionSettings(region=self.settings.region, secrets_manager=self.settings.secrets_manager,
-                                  profile=self.settings.profile)), output_bucket=self.settings.s3_bucket)
+            AwsConnectionSettings(region=self.settings.region,
+                                  secrets_manager=self.settings.secrets_manager,
+                                  profile=self.settings.profile)),
+                          output_bucket=self.settings.s3_bucket)
 
     def _get_s3_util(self):
         return S3Util(
             bucket=self.settings.s3_bucket, conn=AwsConnectionManager(
-                AwsConnectionSettings(region=self.settings.region, secrets_manager=self.settings.secrets_manager,
+                AwsConnectionSettings(region=self.settings.region,
+                                      secrets_manager=self.settings.secrets_manager,
                                       profile=self.settings.profile)))
 
     def _get_table_settings(self):
@@ -148,14 +151,16 @@ class GoogleSheetToAthena:
         """
         if not values_matrix:
             return "INSERT INTO {table_name} VALUES ()".format(table_name=self.settings.table_name)
-        insert_query = "INSERT INTO {table_name} VALUES ".format(table_name=self.settings.table_name)
+        insert_query = "INSERT INTO {table_name} VALUES ".format(
+            table_name=self.settings.table_name)
         values = ""
         if self.settings.partition_value:
             partition_value_statement = ", '{}'".format(self.settings.partition_value)
         else:
             partition_value_statement = ''
         for value in values_matrix:
-            values += "({}{}), ".format(', '.join(["'{}'".format(val) for val in value]), partition_value_statement)
+            values += "({}{}), ".format(', '.join(["'{}'".format(val) for val in value]),
+                                        partition_value_statement)
         values = values[:-2]
         insert_query += values
         return insert_query

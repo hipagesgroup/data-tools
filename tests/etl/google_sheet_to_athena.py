@@ -1,6 +1,7 @@
 from unittest import TestCase
 
-from hip_data_tools.etl.google_sheet_to_athena import GoogleSheetToAthena, GoogleSheetsToAthenaSettings
+from hip_data_tools.etl.google_sheet_to_athena import GoogleSheetToAthena, \
+    GoogleSheetsToAthenaSettings
 
 
 class TestS3Util(TestCase):
@@ -12,13 +13,16 @@ class TestS3Util(TestCase):
             sheet_name='Sheet1',
             row_range='2:3',
             table_name='test_sheets',
-            fields=['Jan_18:string', 'Feb_18:string', 'Mar_18:string', 'Apr_18:string', 'May_18:string',
+            fields=['Jan_18:string', 'Feb_18:string', 'Mar_18:string', 'Apr_18:string',
+                    'May_18:string',
                     'Jun_18:string', 'Jul_18:string', 'Aug_18:string', 'Sep_18:string',
                     'Oct_18:string',
-                    'Nov_18:string', 'Dec_18:string', 'Jan_19:string', 'Feb_19:string', 'Mar_19:string',
+                    'Nov_18:string', 'Dec_18:string', 'Jan_19:string', 'Feb_19:string',
+                    'Mar_19:string',
                     'Apr_19:string', 'May_19:string', 'Jun_19:string', 'Jul_19:string',
                     'Aug_19:string',
-                    'Sep_19:string', 'Oct_19:string', 'Nov_19:string', 'Dec_19:string', 'Jan_20:string',
+                    'Sep_19:string', 'Oct_19:string', 'Nov_19:string', 'Dec_19:string',
+                    'Jan_20:string',
                     'Feb_20:string', 'Mar_20:string', 'Apr_20:string', 'May_20:string',
                     'Jun_20:string'],
             use_derived_types=True,
@@ -38,7 +42,7 @@ class TestS3Util(TestCase):
     def tearDownClass(cls):
         return
 
-    def test_should__load_sheet_to_athena__when_using_sheetUtil(self):
+    def integrate_test_should__load_sheet_to_athena__when_using_sheetUtil(self):
         self.util.load_sheet_to_athena()
 
     def test_should__return_the_table_settings__when_using_sheetUtil(self):
@@ -84,11 +88,15 @@ class TestS3Util(TestCase):
 
     def test_should__return_the_insert_query__when_using_sheetUtil(self):
         values_matix = [
-            ['4,092', '3,192', '3,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600', '3,570', '3,210',
-             '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541',
+            ['4,092', '3,192', '3,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600',
+             '3,570', '3,210',
+             '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018',
+             '2,920', '3,541',
              '3,128', '2,020', '3,678', '3,522', '3,534', '3,078', '3,114', '3,206'],
-            ['6,343', '4,192', '9,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600', '3,570', '3,210',
-             '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541',
+            ['6,343', '4,192', '9,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600',
+             '3,570', '3,210',
+             '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018',
+             '2,920', '3,541',
              '3,128', '2,020', '3,678', '3,522', '3,534', '3,078', '3,114', '8,206']]
         expected = """
                 INSERT INTO test_sheets VALUES ('4,092', '3,192', '3,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600', '3,570', '3,210', '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541', '3,128', '2,020', '3,678', '3,522', '3,534', '3,078', '3,114', '3,206', '2020-02-14'), ('6,343', '4,192', '9,192', '2,800', '3,015', '3,015', '3,100', '3,415', '3,600', '3,570', '3,210', '1,900', '3,100', '2,747', '2,631', '2,419', '2,769', '3,163', '2,792', '3,018', '2,920', '3,541', '3,128', '2,020', '3,678', '3,522', '3,534', '3,078', '3,114', '8,206', '2020-02-14')            

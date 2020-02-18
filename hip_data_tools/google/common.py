@@ -1,6 +1,7 @@
 """
 Module contains variables and methods used for common / shared operations throughput the google services package
 """
+from abc import abstractmethod
 
 from attr import dataclass
 
@@ -21,6 +22,7 @@ class GoogleApiConnectionManager:
         self.scope = ['https://spreadsheets.google.com/feeds',
                       'https://www.googleapis.com/auth/drive']
 
+    @abstractmethod
     def _credentials(self):
         """
         Get the credentials for a given google service
@@ -28,6 +30,7 @@ class GoogleApiConnectionManager:
         """
         pass
 
+    @abstractmethod
     def get_connection(self):
         """
         Get the credentials for google service
