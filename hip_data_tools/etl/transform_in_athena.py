@@ -1,5 +1,5 @@
 """
-handle ETL of data from Athena to Cassandra
+handle transformation of data inside Athena
 """
 from typing import List
 
@@ -23,9 +23,9 @@ class TransformInAthenaSettings:
     destination_table: str
     destination_s3_bucket: str
     destination_s3_key_prefix: str
-    destination_partition_columns: List[str] = dataclasses.field(default_factory=list)
-    destination_file_format: str = dataclasses.field(default="PARQUET")
-    destination_file_delimiter: str = dataclasses.field(default=None)
+    destination_partition_columns: List[str] = None
+    destination_file_format: str = "PARQUET"
+    destination_file_delimiter: str = None
 
 
 class TransformInAthena:
