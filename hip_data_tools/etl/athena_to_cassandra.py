@@ -2,7 +2,6 @@
 handle ETL of data from Athena to Cassandra
 """
 from attr import dataclass
-from dataclasses import field
 
 from hip_data_tools.apache.cassandra import CassandraConnectionSettings
 from hip_data_tools.aws.athena import AthenaUtil

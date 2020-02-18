@@ -6,7 +6,6 @@ from typing import List
 
 from attr import dataclass
 from cassandra.datastax.graph import Result
-from dataclasses import field
 
 from hip_data_tools.apache.cassandra import CassandraUtil, CassandraConnectionManager, \
     CassandraConnectionSettings
