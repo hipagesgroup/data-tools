@@ -32,12 +32,12 @@ class GoogleSheetsToAthenaSettings:
         table_name: name of the athena table (eg: 'sheet_table')
         fields: list of sheet field names and types. Field names cannot contain hyphens('-')
             (eg: ['name:string','age:number','is_member:boolean'])
-        use_derived_types: if this is false type of the fields are considered as strings irrespective of the provided
-             field types (eg: True)
+        use_derived_types: if this is false type of the fields are considered as strings
+            irrespective of the provided field types (eg: True)
         s3_bucket: s3 bucket to store the files (eg: au-test-bucket)
         s3_dir: s3 directory to store the files (eg: sheets/new)
-        partition_key: list of partitions (eg: [{"column": "view", "type": "string"}]. Only one partition key can be
-            used
+        partition_key: list of partitions (eg: [{"column": "view", "type": "string"}]. Only one
+            partition key can be used
         partition_value: value of the partition key (eg: '2020-02-14')
         skip_top_rows_count: number of top rows that need to be skipped (eg: 1)
         key_file_path: path of the google api key file (eg: path/key_file.json)
@@ -169,7 +169,8 @@ class GoogleSheetToAthena:
         """
         Method to load google sheet to athena
         Args:
-            overwrite_table (boolean): if this is true, it drops the existing athena table and clear the s3 location
+            overwrite_table (boolean): if this is true, it drops the existing athena table and
+                clear the s3 location
         :return: None
         """
         sheet_util = self._get_sheets_util()
@@ -178,10 +179,11 @@ class GoogleSheetToAthena:
         if overwrite_table:
             athena_util.drop_table(self.settings.table_name)
             s3_util.delete_recursive(self.settings.s3_dir)
-        values_matrix = sheet_util.get_value_matrix(workbook_name=self.settings.workbook_name,
-                                                    sheet_name=self.settings.sheet_name,
-                                                    row_range=self.settings.row_range,
-                                                    skip_top_rows_count=self.settings.skip_top_rows_count)
+        values_matrix = sheet_util \
+            .get_value_matrix(workbook_name=self.settings.workbook_name,
+                              sheet_name=self.settings.sheet_name,
+                              row_range=self.settings.row_range,
+                              skip_top_rows_count=self.settings.skip_top_rows_count)
         log.info("The value matrix:\n %s", values_matrix)
         table_settings = self._get_table_settings()
         athena_util.create_table(table_settings)
