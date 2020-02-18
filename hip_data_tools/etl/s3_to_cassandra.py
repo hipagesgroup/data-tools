@@ -2,8 +2,11 @@
 Module to deal with data transfer from S3 to Cassandra
 """
 import logging as log
+from typing import List
 
 from attr import dataclass
+from cassandra.datastax.graph import Result
+from dataclasses import field
 
 from hip_data_tools.apache.cassandra import CassandraUtil, CassandraConnectionManager, \
     CassandraConnectionSettings
@@ -20,9 +23,9 @@ class S3ToCassandraSettings:
     destination_keyspace: str
     destination_table: str
     destination_table_primary_keys: list
-    destination_table_options_statement: str
-    destination_batch_size: int
     destination_connection_settings: CassandraConnectionSettings
+    destination_table_options_statement: str = ""
+    destination_batch_size: int = 1
 
 
 class S3ToCassandra:
@@ -63,26 +66,40 @@ class S3ToCassandra:
             table_options_statement=self.settings.destination_table_options_statement,
         )
 
-    def create_and_upsert_all(self):
+    def create_and_upsert_all(self) -> List[List[Result]]:
         """
         First creates the table and then upserts all s3 files to the table
         Returns: None
         """
         self.create_table()
-        self.upsert_all_files()
+        return self.upsert_all_files()
 
-    def upsert_all_files(self):
+    def upsert_all_files(self) -> List[List[Result]]:
         """
         Upsert all files from s3 sequentially into cassandra
         Returns: None
         """
-        for key in self.list_source_files():
-            self.upsert_file(key)
+        return [self.upsert_file(key) for key in self.list_source_files()]
 
-    def upsert_file(self, key):
+    def upsert_file(self, key: str) -> List[Result]:
+        """
+        Read a parquet file from s3 and upsert the records to Cassandra
+        Args:
+            key: s3 key for the parquet file
+        Returns: None
+        """
         data_frame = self._get_s3_util().download_parquet_as_dataframe(key=key)
-        self._get_cassandra_util().upsert_dataframe(dataframe=data_frame,
-                                                    table=self.settings.destination_table)
+        if self.settings.destination_batch_size > 1:
+            log.info("upserting batches of size %s", self.settings.destination_batch_size)
+            return self._get_cassandra_util().upsert_dataframe_in_batches(
+                dataframe=data_frame,
+                table=self.settings.destination_table,
+                batch_size=self.settings.destination_batch_size)
+        else:
+            log.info("upserting one row at a time")
+            return self._get_cassandra_util().upsert_dataframe(
+                dataframe=data_frame,
+                table=self.settings.destination_table)
 
     def list_source_files(self):
         """

@@ -59,6 +59,7 @@ setup(
         "retrying",
         "arrow",
         "s3fs",
+        "dataclasses",
     ],
     test_suite="tests",
     tests_require=[

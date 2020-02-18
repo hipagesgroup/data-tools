@@ -294,11 +294,11 @@ class CassandraUtil:
         log.debug(upsert_sql)
         return upsert_sql
 
-    def upsert_dataframe(self,
-                         dataframe: DataFrame,
-                         table: str,
-                         batch_size: int = 2
-                         ) -> List[Result]:
+    def upsert_dataframe_in_batches(self,
+                                    dataframe: DataFrame,
+                                    table: str,
+                                    batch_size: int = 2
+                                    ) -> List[Result]:
         """
         Upload all data from a DataFrame onto a cassandra table
         Args:
@@ -316,6 +316,29 @@ class CassandraUtil:
                                        batch_size)
         return self._execute_batches(batches)
 
+    def upsert_dataframe(self,
+                         dataframe: DataFrame,
+                         table: str
+                         ) -> List[Result]:
+        """
+        Upload all data from a DataFrame onto a cassandra table
+        Args:
+            dataframe (DataFrame): a DataFrame to upsert
+            table (str): the table to upsert data into
+            table. If None then the DataFrame column names that match cassandra table anme will be
+            upserted else ignored
+            batch_size (int): limit on the number of prepared statements in the batch
+        Returns: ResultSet
+        """
+        prepared_statement = self._session.prepare(
+            self._cql_upsert_from_dataframe(dataframe, table))
+        data_tuples = dataframe_to_cassandra_tuples(dataframe)
+        return [self._execute_prepared_statement(data_tuple, prepared_statement)
+                for data_tuple in data_tuples]
+
+    def _execute_prepared_statement(self, data_tuple, prepared_statement):
+        return self.execute(prepared_statement.bind(data_tuple), row_factory=dict_factory)
+
     def _execute_batches(self, batches: List):
         results = []
         log.info("Executing cassandra batches")
@@ -331,11 +354,11 @@ class CassandraUtil:
         log.debug("Executing query: %s", batch)
         return self._session.execute(batch, timeout=300.0)
 
-    def upsert_dictonary_list(self,
-                              data: List[dict],
-                              table: str,
-                              batch_size: int = 2
-                              ) -> List[Result]:
+    def upsert_dictonary_list_in_batches(self,
+                                         data: List[dict],
+                                         table: str,
+                                         batch_size: int = 2
+                                         ) -> List[Result]:
         """
         Upsert a row into the cassandra table based on the dictionary key values
         Args:
@@ -348,6 +371,22 @@ class CassandraUtil:
         batches = self.prepare_batches(prepared_statement, dicts_to_cassandra_tuples(data),
                                        batch_size)
         return self._execute_batches(batches)
+
+    def upsert_dictonary_list(self,
+                              data: List[dict],
+                              table: str,
+                              ) -> List[Result]:
+        """
+        Upsert a row into the cassandra table based on the dictionary key values
+        Args:
+            data (list[dict]): the data to be upserted
+            table (str): the table to upsert data into
+        Returns: None
+        """
+        prepared_statement = self._session.prepare(self._cql_upsert_from_dict(data[0], table))
+        data_tuples = dicts_to_cassandra_tuples(data)
+        return [self._execute_prepared_statement(data_tuple, prepared_statement)
+                for data_tuple in data_tuples]
 
     def create_table_from_model(self, model_class):
         """
@@ -378,7 +417,11 @@ class CassandraUtil:
         Returns: ResultSet
 
         """
-        cql = self._dataframe_to_cassandra_ddl(**locals())
+        cql = self._dataframe_to_cassandra_ddl(
+            data_frame,
+            primary_key_column_list,
+            table_name,
+            table_options_statement)
         return self.execute(cql, row_factory=dict_factory)
 
     def _dataframe_to_cassandra_ddl(self,
@@ -430,15 +473,17 @@ class CassandraUtil:
             self._session.row_factory = row_factory
         return self._session.execute(query, **kwargs)
 
-    def prepare_batches(self, prepared_statement: PreparedStatement, tuples: List[tuple],
+    def prepare_batches(self,
+                        prepared_statement: PreparedStatement,
+                        tuples: List[tuple],
                         batch_size: int) -> List:
         """
         Prepares a list of cassandra batched Statements out of a list of tuples and prepared
         statement
         Args:
-            prepared_statement (PreparedStatement): the statement to be used for batching
-            tuples (list[tuple]): the data to be inserted
-            batch_size (int): limit on the number of prepared statements in the batch
+            prepared_statement (PreparedStatement): the statement to be used for batching.
+            tuples (list[tuple]): the data to be inserted.
+            batch_size (int): limit on the number of prepared statements in the batch.
         Returns: list[BatchStatement]
         """
         batches = []
