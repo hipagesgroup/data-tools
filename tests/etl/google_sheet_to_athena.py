@@ -38,22 +38,10 @@ class TestS3Util(TestCase):
     def tearDownClass(cls):
         return
 
-    def integrate_test_should__load_sheet_to_athena__when_using_sheetUtil(self):
+    def test_should__load_sheet_to_athena__when_using_sheetUtil(self):
         self.util.load_sheet_to_athena()
 
     def test_should__return_the_table_settings__when_using_sheetUtil(self):
-        table_name = 'abc'
-        field_names = ['Jan_18:string', 'Feb_18:string', 'Mar_18:string', 'Apr_18:string', 'May_18:string',
-                       'Jun_18:string', 'Jul_18:string', 'Aug_18:string', 'Sep_18:string',
-                       'Oct_18:string',
-                       'Nov_18:string', 'Dec_18:string', 'Jan_19:string', 'Feb_19:string', 'Mar_19:string',
-                       'Apr_19:string', 'May_19:string', 'Jun_19:string', 'Jul_19:string',
-                       'Aug_19:string',
-                       'Sep_19:string', 'Oct_19:string', 'Nov_19:string', 'Dec_19:string', 'Jan_20:string',
-                       'Feb_20:string', 'Mar_20:string', 'Apr_20:string', 'May_20:string',
-                       'Jun_20:string']
-        s3_bucket = "test"
-        s3_dir = "abc"
         actual = self.util._get_table_settings()
         expected = {'columns': [{'column': 'Jan_18', 'type': 'STRING'},
                                 {'column': 'Feb_18', 'type': 'STRING'},

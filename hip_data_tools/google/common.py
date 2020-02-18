@@ -1,3 +1,7 @@
+"""
+Module contains variables and methods used for common / shared operations throughput the google services package
+"""
+
 from attr import dataclass
 
 
@@ -22,11 +26,11 @@ class GoogleApiConnectionManager:
         Get the credentials for a given google service
         Returns (ServiceAccountCredentials): credentials object to authorize google services
         """
-        return
+        pass
 
     def get_connection(self):
         """
         Get the credentials for google service
         Returns: authorised connection for google service
         """
-        return
+        pass

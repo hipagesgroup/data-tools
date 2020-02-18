@@ -64,6 +64,16 @@ class GoogleSheetsToAthenaSettings:
     secrets_manager: AwsSecretsManager
 
 
+def _simplified_dtype(data_type):
+    """
+    Return the athena base data type
+    Args:
+        data_type (string): data type
+    :return: simplified data type
+    """
+    return ((re.sub(r'\(.*\)', '', data_type)).split(" ", 1)[0]).upper()
+
+
 class GoogleSheetToAthena:
     """
     Class to transfer data from google sheet to athena
@@ -74,6 +84,16 @@ class GoogleSheetToAthena:
     def __init__(self, settings: GoogleSheetsToAthenaSettings):
         self.settings = settings
         self.keys_to_transfer = None
+
+    def __get_columns(self, columns):
+        for field in self.settings.fields:
+            field_name_type = field.split(':')
+            field_name = field_name_type[0]
+            field_type = field_name_type[1]
+            columns.append({"column": field_name,
+                            "type": DTYPE_GOOGLE_SHEET_TO_PARQUET_ATHENA.get(
+                                str(_simplified_dtype(field_type)),
+                                "STRING")})
 
     def _get_sheets_util(self):
         return SheetUtil(conn_manager=GoogleSheetConnectionManager(
@@ -89,15 +109,6 @@ class GoogleSheetToAthena:
             bucket=self.settings.s3_bucket, conn=AwsConnectionManager(
                 AwsConnectionSettings(region=self.settings.region, secrets_manager=self.settings.secrets_manager,
                                       profile=self.settings.profile)))
-
-    def _simplified_dtype(self, data_type):
-        """
-        Return the athena base data type
-        Args:
-            data_type (string): data type
-        :return:
-        """
-        return ((re.sub(r'\(.*\)', '', data_type)).split(" ", 1)[0]).upper()
 
     def _get_table_settings(self):
         """
@@ -117,14 +128,7 @@ class GoogleSheetToAthena:
         }
         columns = []
         if self.settings.use_derived_types:
-            for field in self.settings.fields:
-                field_name_type = field.split(':')
-                field_name = field_name_type[0]
-                field_type = field_name_type[1]
-                columns.append({"column": field_name,
-                                "type": DTYPE_GOOGLE_SHEET_TO_PARQUET_ATHENA.get(
-                                    str(self._simplified_dtype(field_type)),
-                                    "STRING")})
+            self.__get_columns(columns)
         else:
             for field in self.settings.fields:
                 field_name = field.split(':')[0]

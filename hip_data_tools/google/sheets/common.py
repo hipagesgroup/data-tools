@@ -1,3 +1,7 @@
+"""
+Module contains variables and methods used for common / shared operations throughput the google sheet package
+"""
+
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
