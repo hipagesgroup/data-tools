@@ -10,7 +10,7 @@ from attr import dataclass
 @dataclass
 class GoogleApiConnectionSettings:
     """Encapsulates the Google API connection settings"""
-    key_file_path: str
+    keys_object: str
 
 
 class GoogleApiConnectionManager:

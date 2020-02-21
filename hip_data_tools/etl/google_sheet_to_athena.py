@@ -40,7 +40,8 @@ class GoogleSheetsToAthenaSettings:
             partition key can be used
         partition_value: value of the partition key (eg: '2020-02-14')
         skip_top_rows_count: number of top rows that need to be skipped (eg: 1)
-        key_file_path: path of the google api key file (eg: path/key_file.json)
+        keys_object: google api keys dictionary object
+            (eg: {'type': 'service_account', 'project_id': 'hip-gandalf-sheets',...... })
         database: name of the athena database (eg: dev)
         region: aws service region (eg: ap-southeast-2)
         profile: aws credentials profile (eg: default)
@@ -57,7 +58,7 @@ class GoogleSheetsToAthenaSettings:
     partition_key: list
     partition_value: str
     skip_top_rows_count: int
-    key_file_path: str
+    keys_object: object
     database: str
     region: str
     profile: str
@@ -97,7 +98,7 @@ class GoogleSheetToAthena:
 
     def _get_sheets_util(self):
         return SheetUtil(conn_manager=GoogleSheetConnectionManager(
-            GoogleApiConnectionSettings(key_file_path=self.settings.key_file_path)))
+            GoogleApiConnectionSettings(keys_object=self.settings.keys_object)))
 
     def _get_athena_util(self):
         return AthenaUtil(database=self.settings.database, conn=AwsConnectionManager(

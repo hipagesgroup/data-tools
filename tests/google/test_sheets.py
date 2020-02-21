@@ -1,3 +1,4 @@
+import json
 from unittest import TestCase, mock
 
 from hip_data_tools.google.common import GoogleApiConnectionSettings
@@ -17,8 +18,10 @@ class TestS3Util(TestCase):
 
     def integration_test_should__return_the_values_in_a_given_google_sheet__when_using_sheetUtil(
             self):
+        with open('../resources/key-file.json', 'r') as f:
+            obj = json.load(f)
         sheet_util = SheetUtil(conn_manager=GoogleSheetConnectionManager(
-            GoogleApiConnectionSettings(key_file_path='../resources/key-file.json')))
+            GoogleApiConnectionSettings(keys_object=obj)))
         workbook_name = 'Tradie Acquisition Targets'
         sheet_name = 'Sheet1'
         actual = sheet_util.get_value_matrix(workbook_name, sheet_name)
