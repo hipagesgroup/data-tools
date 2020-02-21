@@ -17,7 +17,7 @@ class GoogleSheetConnectionManager(GoogleApiConnectionManager):
         Get the credentials for google sheets
         Returns (ServiceAccountCredentials): credentials object to authorize google sheet service
         """
-        return ServiceAccountCredentials.from_json_keyfile_name(self.settings.key_file_path,
+        return ServiceAccountCredentials.from_json_keyfile_dict(self.settings.keys_object,
                                                                 self.scope)
 
     def get_connection(self):

@@ -1,3 +1,4 @@
+import json
 from unittest import TestCase
 
 from hip_data_tools.etl.google_sheet_to_athena import GoogleSheetToAthena, \
@@ -8,7 +9,7 @@ class TestS3Util(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.util = GoogleSheetToAthena(GoogleSheetsToAthenaSettings(
-            key_file_path='../resources/key-file.json',
+            keys_object=None,
             workbook_name='Tradie Acquisition Targets',
             sheet_name='Sheet1',
             row_range='2:3',
@@ -42,8 +43,40 @@ class TestS3Util(TestCase):
     def tearDownClass(cls):
         return
 
-    def integrate_test_should__load_sheet_to_athena__when_using_sheetUtil(self):
-        self.util.load_sheet_to_athena()
+    def integration_test_should__load_sheet_to_athena__when_using_sheetUtil(self):
+        with open('../resources/key-file.json', 'r') as f:
+            obj = json.load(f)
+        print(obj)
+        GoogleSheetToAthena(GoogleSheetsToAthenaSettings(
+            keys_object=obj,
+            workbook_name='Tradie Acquisition Targets',
+            sheet_name='Sheet1',
+            row_range='2:3',
+            table_name='test_sheets',
+            fields=['Jan_18:string', 'Feb_18:string', 'Mar_18:string', 'Apr_18:string',
+                    'May_18:string',
+                    'Jun_18:string', 'Jul_18:string', 'Aug_18:string', 'Sep_18:string',
+                    'Oct_18:string',
+                    'Nov_18:string', 'Dec_18:string', 'Jan_19:string', 'Feb_19:string',
+                    'Mar_19:string',
+                    'Apr_19:string', 'May_19:string', 'Jun_19:string', 'Jul_19:string',
+                    'Aug_19:string',
+                    'Sep_19:string', 'Oct_19:string', 'Nov_19:string', 'Dec_19:string',
+                    'Jan_20:string',
+                    'Feb_20:string', 'Mar_20:string', 'Apr_20:string', 'May_20:string',
+                    'Jun_20:string'],
+            use_derived_types=True,
+            database='dev',
+            # TODO use different bucket
+            s3_bucket='au-com-hipages-data-scratchpad',
+            s3_dir='sheets',
+            partition_key=[{"column": "start_date", "type": "string"}],
+            partition_value='2020-02-14',
+            skip_top_rows_count=1,
+            region='ap-southeast-2',
+            profile='default',
+            secrets_manager=None
+        )).load_sheet_to_athena()
 
     def test_should__return_the_table_settings__when_using_sheetUtil(self):
         actual = self.util._get_table_settings()
