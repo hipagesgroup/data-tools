@@ -7,7 +7,7 @@ import re
 from attr import dataclass
 
 from hip_data_tools.aws.athena import AthenaUtil
-from hip_data_tools.aws.common import AwsConnectionManager, AwsSecretsManager
+from hip_data_tools.aws.common import AwsConnectionManager
 from hip_data_tools.aws.common import AwsConnectionSettings
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.google.common import GoogleApiConnectionSettings
@@ -43,9 +43,7 @@ class GoogleSheetsToAthenaSettings:
         keys_object: google api keys dictionary object
             (eg: {'type': 'service_account', 'project_id': 'hip-gandalf-sheets',...... })
         database: name of the athena database (eg: dev)
-        region: aws service region (eg: ap-southeast-2)
-        profile: aws credentials profile (eg: default)
-        secrets_manager: aws secret manager object
+        connection_settings: aws connection settings
     """
     workbook_name: str
     sheet_name: str
@@ -60,9 +58,7 @@ class GoogleSheetsToAthenaSettings:
     skip_top_rows_count: int
     keys_object: object
     database: str
-    region: str
-    profile: str
-    secrets_manager: AwsSecretsManager
+    connection_settings: AwsConnectionSettings
 
 
 def _simplified_dtype(data_type):
@@ -101,18 +97,14 @@ class GoogleSheetToAthena:
             GoogleApiConnectionSettings(keys_object=self.settings.keys_object)))
 
     def _get_athena_util(self):
-        return AthenaUtil(database=self.settings.database, conn=AwsConnectionManager(
-            AwsConnectionSettings(region=self.settings.region,
-                                  secrets_manager=self.settings.secrets_manager,
-                                  profile=self.settings.profile)),
+        return AthenaUtil(database=self.settings.database,
+                          conn=AwsConnectionManager(settings=self.settings.connection_settings),
                           output_bucket=self.settings.s3_bucket)
 
     def _get_s3_util(self):
         return S3Util(
-            bucket=self.settings.s3_bucket, conn=AwsConnectionManager(
-                AwsConnectionSettings(region=self.settings.region,
-                                      secrets_manager=self.settings.secrets_manager,
-                                      profile=self.settings.profile)))
+            bucket=self.settings.s3_bucket,
+            conn=AwsConnectionManager(settings=self.settings.connection_settings))
 
     def _get_table_settings(self):
         """
