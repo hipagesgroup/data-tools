@@ -1,6 +1,8 @@
 import json
 from unittest import TestCase
 
+from hip_data_tools.aws.common import AwsConnectionSettings
+
 from hip_data_tools.etl.google_sheet_to_athena import GoogleSheetToAthena, \
     GoogleSheetsToAthenaSettings
 
@@ -34,9 +36,9 @@ class TestS3Util(TestCase):
             partition_key=[{"column": "start_date", "type": "string"}],
             partition_value='2020-02-14',
             skip_top_rows_count=1,
-            region='ap-southeast-2',
-            profile='default',
-            secrets_manager=None
+            connection_settings=AwsConnectionSettings(region='ap-southeast-2',
+                                                      profile='default',
+                                                      secrets_manager=None)
         ))
 
     @classmethod
@@ -73,9 +75,9 @@ class TestS3Util(TestCase):
             partition_key=[{"column": "start_date", "type": "string"}],
             partition_value='2020-02-14',
             skip_top_rows_count=1,
-            region='ap-southeast-2',
-            profile='default',
-            secrets_manager=None
+            connection_settings=AwsConnectionSettings(region='ap-southeast-2',
+                                                      profile='default',
+                                                      secrets_manager=None)
         )).load_sheet_to_athena()
 
     def test_should__return_the_table_settings__when_using_sheetUtil(self):

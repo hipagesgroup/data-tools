@@ -24,7 +24,7 @@ class TestS3Util(TestCase):
             GoogleApiConnectionSettings(keys_object=obj)))
         workbook_name = 'Tradie Acquisition Targets'
         sheet_name = 'Sheet1'
-        actual = sheet_util.get_value_matrix(workbook_name, sheet_name)
+        actual = sheet_util.get_value_matrix(workbook_name, sheet_name, row_range='1:2')
         expected = [['Jan-18', 'Feb-18', 'Mar-18', 'Apr-18', 'May-18', 'Jun-18', 'Jul-18', 'Aug-18',
                      'Sep-18', 'Oct-18',
                      'Nov-18', 'Dec-18', 'Jan-19', 'Feb-19', 'Mar-19', 'Apr-19', 'May-19', 'Jun-19',
