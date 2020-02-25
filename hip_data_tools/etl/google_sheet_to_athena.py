@@ -134,11 +134,12 @@ class GoogleSheetToAthena:
 
         return table_settings
 
-    def _get_the_insert_query(self, values_matrix):
+    def _get_the_insert_query(self, values_matrix, types):
         """
         Get the insert query for the athena table using the values matrix
         Args:
             values_matrix (array): values of the google sheet
+            types (array): data type of each column
         Returns: insert query for the athena table
 
         """
@@ -149,11 +150,15 @@ class GoogleSheetToAthena:
         values = ""
         if self.settings.partition_value:
             partition_value_statement = ", '{}'".format(self.settings.partition_value)
+            types += 'STRING'
         else:
             partition_value_statement = ''
         for value in values_matrix:
-            values += "({}{}), ".format(', '.join(["'{}'".format(val) for val in value]),
-                                        partition_value_statement)
+            values += "({}{}), ".format(', '.join(
+                ["'{}'".format(val) if data_type.upper() == 'STRING' else "{}".format(val) for
+                 val, data_type
+                 in zip(value, types)]),
+                partition_value_statement)
         values = values[:-2]
         insert_query += values
         return insert_query
