@@ -17,7 +17,8 @@ from hip_data_tools.google.sheets.sheets import SheetUtil
 DTYPE_GOOGLE_SHEET_TO_PARQUET_ATHENA = {
     "NUMBER": "DOUBLE",
     "STRING": "STRING",
-    "BOOLEAN": "BOOLEAN"
+    "BOOLEAN": "BOOLEAN",
+    "DATE": "STRING"
 }
 
 
@@ -153,7 +154,10 @@ class GoogleSheetToAthena:
             partition_value_statement = ''
         for value in values_matrix:
             values += "({}{}), ".format(', '.join(
-                ["'{}'".format(val) if data_type.upper() == 'STRING' else "{}".format(val) for
+                ["'{}'".format(
+                    val) if data_type.upper() == 'STRING' or data_type.upper() == 'DATE' else
+                 "{}".format(
+                     val) for
                  val, data_type
                  in zip(value, types)]),
                 partition_value_statement)
