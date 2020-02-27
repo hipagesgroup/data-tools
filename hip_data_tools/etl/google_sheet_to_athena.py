@@ -153,9 +153,8 @@ class GoogleSheetToAthena:
         else:
             partition_value_statement = ''
         for value in values_matrix:
-            values += "({}{}), ".format(', '.join(
-                self.__get_the_list(types, value)),
-                partition_value_statement)
+            values += "({}{}), ".format(', '.join(self.__get_the_list(types, value)),
+                                        partition_value_statement)
         values = values[:-2]
         insert_query += values
         return insert_query
