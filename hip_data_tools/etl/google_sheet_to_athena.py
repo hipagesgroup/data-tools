@@ -154,16 +154,20 @@ class GoogleSheetToAthena:
             partition_value_statement = ''
         for value in values_matrix:
             values += "({}{}), ".format(', '.join(
-                ["'{}'".format(
-                    val) if data_type.upper() == 'STRING' or data_type.upper() == 'DATE' else
-                 "{}".format(
-                     val) for
-                 val, data_type
-                 in zip(value, types)]),
+                self.__get_the_list(types, value)),
                 partition_value_statement)
         values = values[:-2]
         insert_query += values
         return insert_query
+
+    @staticmethod
+    def __get_the_list(types, value):
+        return ["'{}'".format(
+            val) if data_type.upper() == 'STRING' or data_type.upper() == 'DATE' else
+                "{}".format(
+                    val) for
+                val, data_type
+                in zip(value, types)]
 
     def load_sheet_to_athena(self, overwrite_table=False):
         """
