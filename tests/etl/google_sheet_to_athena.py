@@ -28,6 +28,8 @@ class TestS3Util(TestCase):
                     'Jan_20:string',
                     'Feb_20:string', 'Mar_20:string', 'Apr_20:string', 'May_20:string',
                     'Jun_20:string'],
+            field_types_row_number=4,
+            field_names_row_number=5,
             use_derived_types=True,
             database='dev',
             # TODO use different bucket
@@ -57,6 +59,8 @@ class TestS3Util(TestCase):
             row_range='',
             table_name='test_sheets_example',
             fields=None,
+            field_types_row_number=4,
+            field_names_row_number=5,
             use_derived_types=True,
             database='dev',
             # TODO use different bucket

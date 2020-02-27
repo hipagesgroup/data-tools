@@ -11,12 +11,15 @@ class SheetUtil:
     Utility class for connecting to google sheets
     Args:
         conn_manager (GoogleSheetConnectionManager): connection to read google sheets
+        conn_manager (integer): row number of the filed names
+        conn_manager (integer): row number of the field types
     """
 
-    def __init__(self, conn_manager: GoogleSheetConnectionManager):
+    def __init__(self, conn_manager: GoogleSheetConnectionManager, field_names_row_number: int,
+                 field_types_row_number: int):
         self.google_sheet_connection = conn_manager.get_connection()
-        self.field_names_row_number = 5
-        self.field_types_row_number = 4
+        self.field_names_row_number = field_names_row_number
+        self.field_types_row_number = field_types_row_number
 
     def get_value_matrix(self, workbook_name, sheet_name, row_range='', skip_top_rows_count=0):
         """

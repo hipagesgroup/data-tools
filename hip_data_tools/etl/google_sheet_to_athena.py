@@ -34,6 +34,10 @@ class GoogleSheetsToAthenaSettings:
         fields: list of sheet field names and types. Field names cannot contain hyphens('-')
             (eg: ['name:string','age:number','is_member:boolean'])
             If this is None, the field names and types from google sheet are used automatically
+        field_names_row_number: row number of the field names (eg: 4)
+            If the fields are not none this value will not be used
+        field_types_row_number: row number of the field types (eg: 5)
+            If the fields are not none this value will not be used
         use_derived_types: if this is false type of the fields are considered as strings
             irrespective of the provided field types (eg: True)
         s3_bucket: s3 bucket to store the files (eg: au-test-bucket)
@@ -52,6 +56,8 @@ class GoogleSheetsToAthenaSettings:
     row_range: str
     table_name: str
     fields: list
+    field_names_row_number: int
+    field_types_row_number: int
     use_derived_types: bool
     s3_bucket: str
     s3_dir: str
@@ -94,7 +100,9 @@ class GoogleSheetToAthena:
 
     def _get_sheets_util(self):
         return SheetUtil(conn_manager=GoogleSheetConnectionManager(
-            GoogleApiConnectionSettings(keys_object=self.settings.keys_object)))
+            GoogleApiConnectionSettings(keys_object=self.settings.keys_object)),
+            field_names_row_number=self.settings.field_names_row_number,
+            field_types_row_number=self.settings.field_types_row_number)
 
     def _get_athena_util(self):
         return AthenaUtil(database=self.settings.database,
