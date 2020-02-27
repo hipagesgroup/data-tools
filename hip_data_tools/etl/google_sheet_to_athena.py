@@ -101,8 +101,8 @@ class GoogleSheetToAthena:
     def _get_sheets_util(self):
         return SheetUtil(conn_manager=GoogleSheetConnectionManager(
             GoogleApiConnectionSettings(keys_object=self.settings.keys_object)),
-            field_names_row_number=self.settings.field_names_row_number,
-            field_types_row_number=self.settings.field_types_row_number)
+             field_names_row_number=self.settings.field_names_row_number,
+             field_types_row_number=self.settings.field_types_row_number)
 
     def _get_athena_util(self):
         return AthenaUtil(database=self.settings.database,
