@@ -253,3 +253,33 @@ class TestS3Util(TestCase):
         uplaoded = self.s3.get_keys('')
         print(f"got keys {uplaoded}")
         self.assertListEqual(uplaoded, ['test10/compare.txt', 'test9/compare.txt'])
+
+    @mock_s3
+    def test_should__copy_file_from_one_bucket_to_another__when_valid_locations_are_given(self):
+        dest_bucket = "TEST_BUCKET_DEST"
+        conn = AwsConnectionManager(
+            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(),
+                                  profile=None))
+        s3_util_for_destination = S3Util(conn=conn, bucket=dest_bucket)
+        s3_util_for_source = self.s3
+
+        s3_util_for_source.create_bucket()
+        s3_util_for_destination.create_bucket()
+
+        tmp_file_path = "/tmp/testfile.txt"
+        dirname = os.path.dirname(tmp_file_path)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        with open(tmp_file_path, "w+") as file:
+            file.write(str("Test file content"))
+
+        s3_util_for_source.upload_file(tmp_file_path, "test/testfile.txt")
+
+        s3_util_for_source.move_recursive_to_different_bucket(source_key_prefix="test/",
+                                                              destination_bucket_name=dest_bucket,
+                                                              destination_key_prefix="{}/test_copy/".format(
+                                                                  dest_bucket))
+        actual = s3_util_for_destination.read_lines_as_list("test_copy")[0]
+
+        expected = "Test file content"
+        self.assertEquals(actual, expected)
