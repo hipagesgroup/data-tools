@@ -369,6 +369,35 @@ class S3Util(AwsUtil):
         if delete_after_copy:
             self.delete_recursive(source_dir)
 
+    def move_recursive_to_different_bucket(self, source_dir, destination_bucket_name,
+                                           destination_dir,
+                                           delete_after_copy=True, file_suffix_filter='None'):
+        """
+        Move files from one bucket to another
+        Args:
+            source_dir (str):
+            destination_bucket_name (str):
+            destination_dir (str):
+            delete_after_copy (str): If True source files will be deleted after copying to the
+                                    destination
+            file_suffix_filter (str): Filter out the files with this suffix
+        Returns: NA
+        """
+        s3 = self.get_resource()
+        source_bucket = s3.Bucket(self.bucket)
+        destination_bucket = s3.Bucket(destination_bucket_name)
+        for obj in source_bucket.objects.filter(Prefix=source_dir):
+            if not obj.key.endswith(file_suffix_filter):
+                new_key = "{destination_dir_without_bucket_name}/{destination_file_name}".format(
+                    destination_dir_without_bucket_name=destination_dir.replace(
+                        destination_bucket_name + '/', ''),
+                    destination_file_name=obj.key.split('/')[-1])
+                log.info("Moving s3 object from : \n%s \nto: \n%s", obj.key, new_key)
+                new_obj = destination_bucket.Object(new_key)
+                new_obj.copy({"Bucket": self.bucket, "Key": obj.key})
+        if delete_after_copy:
+            self.delete_recursive(source_dir)
+
     def rename_file(self, key: str, new_file_name: str) -> None:
         """
         Rename a file on s3
