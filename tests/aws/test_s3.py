@@ -275,9 +275,9 @@ class TestS3Util(TestCase):
 
         s3_util_for_source.upload_file(tmp_file_path, "test/testfile.txt")
 
-        s3_util_for_source.move_recursive_to_different_bucket(source_dir="test/",
+        s3_util_for_source.move_recursive_to_different_bucket(source_key_prefix="test/",
                                                               destination_bucket_name=dest_bucket,
-                                                              destination_dir="{}/test_copy/".format(
+                                                              destination_key_prefix="{}/test_copy/".format(
                                                                   dest_bucket))
         actual = s3_util_for_destination.read_lines_as_list("test_copy")[0]
 
