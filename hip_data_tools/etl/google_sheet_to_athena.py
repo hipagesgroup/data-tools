@@ -229,6 +229,6 @@ class GoogleSheetToAthena:
     def __validate_field_names(field_names):
         for field_name in field_names:
             # check for strings which only contains letters, numbers and underscores
-            if not re.match("^[A-Za-z0-9_]*$", field_name):
+            if not re.match("^[A-Za-z0-9_]+$", field_name):
                 log.error("Unsupported field name: %s", field_name)
                 raise Exception("Unsupported field name")
