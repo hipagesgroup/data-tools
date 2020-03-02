@@ -82,15 +82,6 @@ def _simplified_dtype(data_type):
     return ((re.sub(r'\(.*\)', '', data_type)).split(" ", 1)[0]).upper()
 
 
-"""
-Custom exception for invalid field name inputs
-"""
-
-
-class InvalidFieldNameException(Exception):
-    pass
-
-
 class GoogleSheetToAthena:
     """
     Class to transfer data from google sheet to athena
@@ -238,4 +229,4 @@ class GoogleSheetToAthena:
             # check for strings which only contains letters, numbers and underscores
             if not re.match("^[A-Za-z0-9_]*$", field_name):
                 log.error("Unsupported field name: %s", field_name)
-                raise InvalidFieldNameException()
+                raise Exception("Unsupported field name")
