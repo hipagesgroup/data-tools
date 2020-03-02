@@ -205,6 +205,9 @@ class GoogleSheetToAthena:
                                                       self.settings.sheet_name)
             field_types = sheet_util.get_fields_types(self.settings.workbook_name,
                                                       self.settings.sheet_name)
+            if len(field_names) != len(field_types):
+                log.error("Number of field names and number of field types are not matching")
+                raise Exception("Field names and types are not matching")
             self.__validate_field_names(field_names)
         else:
             for field in self.settings.fields:
