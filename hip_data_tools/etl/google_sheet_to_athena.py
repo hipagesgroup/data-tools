@@ -82,6 +82,11 @@ def _simplified_dtype(data_type):
     return ((re.sub(r'\(.*\)', '', data_type)).split(" ", 1)[0]).upper()
 
 
+"""
+Custom exception for invalid field name inputs
+"""
+
+
 class InvalidFieldNameException(Exception):
     pass
 
