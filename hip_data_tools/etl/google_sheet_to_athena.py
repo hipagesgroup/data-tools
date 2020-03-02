@@ -164,14 +164,16 @@ class GoogleSheetToAthena:
         else:
             partition_value_statement = ''
         for value in values_matrix:
-            values += "({}{}), ".format(', '.join(self.__get_the_list(types, value)),
+            values += "({}{}), ".format(', '.join(self.__get_the_values_list(types, value)),
                                         partition_value_statement)
         values = values[:-2]
         insert_query += values
         return insert_query
 
     @staticmethod
-    def __get_the_list(types, value):
+    def __get_the_values_list(types, value):
+        # Return a list of values (Quotes are added if the value type is string or date)
+        # eg: ['2020-03-02', 435, 54, 'customer_1', 34]
         return ["'{}'".format(
             val) if data_type.upper() == 'STRING' or data_type.upper() == 'DATE' else
                 "{}".format(
