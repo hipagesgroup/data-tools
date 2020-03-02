@@ -37,11 +37,11 @@ class GoogleSheetsToAthenaSettings:
             and special characters
             (eg: ['name:string','age:number','is_member:boolean'])
             If this is None, the field names and types from google sheet are used automatically
-        field_names_row_number: row number of the field names (eg: 4)
-            Will be ignored if fields have been specified (see above). Assumes the data starts at 
-            first column and there is no gaps. There should not be 2 fields with the same name. 
-        field_types_row_number: row number of the field types (eg: 5)
-            Will be ignored if fields have been specified (see above)
+        field_names_row_number: row number of the field names (eg: 4). Will be ignored if fields
+            have been specified (see above). Assumes the data starts at first column and there is no
+            gaps. There should not be 2 fields with the same name.
+        field_types_row_number: row number of the field types (eg: 5). Will be ignored if fields
+            have been specified (see above)
         use_derived_types: if this is false type of the fields are considered as strings
             irrespective of the provided field types (eg: True)
         s3_bucket: s3 bucket to store the files (eg: au-test-bucket)
@@ -205,9 +205,7 @@ class GoogleSheetToAthena:
                                                       self.settings.sheet_name)
             field_types = sheet_util.get_fields_types(self.settings.workbook_name,
                                                       self.settings.sheet_name)
-            if len(field_names) != len(field_types):
-                log.error("Number of field names and number of field types are not matching")
-                raise Exception("Field names and types are not matching")
+            self.__validate_field_names_and_types_count(field_names, field_types)
             self.__validate_field_names(field_names)
         else:
             for field in self.settings.fields:
@@ -228,6 +226,12 @@ class GoogleSheetToAthena:
         insert_query = self._get_the_insert_query(values_matrix=values_matrix, types=field_types)
         log.info("The insert query:\n %s", insert_query)
         athena_util.run_query(query_string=insert_query)
+
+    @staticmethod
+    def __validate_field_names_and_types_count(field_names, field_types):
+        if len(field_names) != len(field_types):
+            log.error("Number of field names and number of field types are not matching")
+            raise Exception("Field names and types are not matching")
 
     @staticmethod
     def __validate_field_names(field_names):
