@@ -51,7 +51,7 @@ class SheetUtil:
         """
         Get the field names as a list
         Args:
-            workbook_name (string): name of the workbook (eg: Tradie Acquisition Targets)
+            workbook_name (string): name of the workbook (eg: Revenue Targets)
             sheet_name (string): name of the sheet (eg: sheet1)
         Returns: field names list
         """
@@ -64,7 +64,7 @@ class SheetUtil:
         """
         Get the field types as a list
         Args:
-            workbook_name (string): name of the workbook (eg: Tradie Acquisition Targets)
+            workbook_name (string): name of the workbook (eg: Revenue Targets)
             sheet_name (string): name of the sheet (eg: sheet1)
         Returns: field types list
         """

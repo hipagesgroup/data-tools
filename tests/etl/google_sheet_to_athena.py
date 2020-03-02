@@ -12,7 +12,7 @@ class TestS3Util(TestCase):
     def setUpClass(cls):
         cls.settings = GoogleSheetsToAthenaSettings(
             keys_object=None,
-            workbook_name='Tradie Acquisition Targets',
+            workbook_name='Test workbook',
             sheet_name='Sheet1',
             row_range='2:3',
             table_name='test_sheets',
@@ -54,8 +54,8 @@ class TestS3Util(TestCase):
         print(obj)
         GoogleSheetToAthena(GoogleSheetsToAthenaSettings(
             keys_object=obj,
-            workbook_name='[Template] Data Lake Compatible Google Sheet Format',
-            sheet_name='example',
+            workbook_name='[Template] Data Lake Compatible Google Sheet Format for Forecasting and Targets',
+            sheet_name='spec_example',
             row_range='',
             table_name='test_sheets_example',
             fields=None,

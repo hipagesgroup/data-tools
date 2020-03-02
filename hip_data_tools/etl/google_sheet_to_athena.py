@@ -28,16 +28,19 @@ class GoogleSheetsToAthenaSettings:
     Google sheets to Athena ETL settings
     Args:
         workbook_name: the name of the workbook (eg: Tradie Acquisition Targets)
+            If there are multiple workbooks with the same name, the workbook which has most recently
+            shared with the google service account is used
         sheet_name: name of the google sheet (eg: sheet1)
         row_range: range of rows (eg: '2:5')
         table_name: name of the athena table (eg: 'sheet_table')
-        fields: list of sheet field names and types. Field names cannot contain hyphens('-')
+        fields: list of sheet field names and types. Field names cannot contain hyphens('-'), spaces
+            and special characters
             (eg: ['name:string','age:number','is_member:boolean'])
             If this is None, the field names and types from google sheet are used automatically
         field_names_row_number: row number of the field names (eg: 4)
-            If the fields are not none this value will not be used
+            Will be ignored if fields have been specified (see above)
         field_types_row_number: row number of the field types (eg: 5)
-            If the fields are not none this value will not be used
+            Will be ignored if fields have been specified (see above)
         use_derived_types: if this is false type of the fields are considered as strings
             irrespective of the provided field types (eg: True)
         s3_bucket: s3 bucket to store the files (eg: au-test-bucket)
@@ -79,6 +82,10 @@ def _simplified_dtype(data_type):
     return ((re.sub(r'\(.*\)', '', data_type)).split(" ", 1)[0]).upper()
 
 
+class InvalidFieldNameException(Exception):
+    pass
+
+
 class GoogleSheetToAthena:
     """
     Class to transfer data from google sheet to athena
@@ -92,10 +99,10 @@ class GoogleSheetToAthena:
 
     @staticmethod
     def __get_columns(columns, field_names=None, field_types=None):
-        for field_name, filed_type in zip(field_names, field_types):
+        for field_name, field_type in zip(field_names, field_types):
             columns.append({"column": field_name,
                             "type": DTYPE_GOOGLE_SHEET_TO_PARQUET_ATHENA.get(
-                                str(_simplified_dtype(filed_type)),
+                                str(_simplified_dtype(field_type)),
                                 "STRING")})
 
     def _get_sheets_util(self):
@@ -199,11 +206,14 @@ class GoogleSheetToAthena:
                                                       self.settings.sheet_name)
             field_types = sheet_util.get_fields_types(self.settings.workbook_name,
                                                       self.settings.sheet_name)
+            self.__validate_field_names(field_names)
         else:
             for field in self.settings.fields:
                 field_name_type = field.split(':')
-                field_names.append(field_name_type[0])
+                field_name = field_name_type[0]
+                field_names.append(field_name)
                 field_types.append(field_name_type[1])
+                self.__validate_field_names([field_name])
 
         values_matrix = sheet_util \
             .get_value_matrix(workbook_name=self.settings.workbook_name,
@@ -216,3 +226,11 @@ class GoogleSheetToAthena:
         insert_query = self._get_the_insert_query(values_matrix=values_matrix, types=field_types)
         log.info("The insert query:\n %s", insert_query)
         athena_util.run_query(query_string=insert_query)
+
+    @staticmethod
+    def __validate_field_names(field_names):
+        for field_name in field_names:
+            # check for strings which only contains letters, numbers and underscores
+            if not re.match("^[A-Za-z0-9_]*$", field_name):
+                log.error("Unsupported field name: %s", field_name)
+                raise InvalidFieldNameException()
