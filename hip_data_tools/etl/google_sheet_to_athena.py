@@ -38,7 +38,8 @@ class GoogleSheetsToAthenaSettings:
             (eg: ['name:string','age:number','is_member:boolean'])
             If this is None, the field names and types from google sheet are used automatically
         field_names_row_number: row number of the field names (eg: 4)
-            Will be ignored if fields have been specified (see above)
+            Will be ignored if fields have been specified (see above). Assumes the data starts at 
+            first column and there is no gaps. There should not be 2 fields with the same name. 
         field_types_row_number: row number of the field types (eg: 5)
             Will be ignored if fields have been specified (see above)
         use_derived_types: if this is false type of the fields are considered as strings
