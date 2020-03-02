@@ -1,5 +1,5 @@
 import json
-from unittest import TestCase, mock
+from unittest import TestCase
 
 from hip_data_tools.google.common import GoogleApiConnectionSettings
 from hip_data_tools.google.sheets.common import GoogleSheetConnectionManager
@@ -9,8 +9,7 @@ from hip_data_tools.google.sheets.sheets import SheetUtil
 class TestS3Util(TestCase):
     @classmethod
     def setUpClass(cls):
-        connection_manager = mock.Mock()
-        cls.sheet_util = SheetUtil(conn_manager=connection_manager)
+        return
 
     @classmethod
     def tearDownClass(cls):
@@ -21,7 +20,8 @@ class TestS3Util(TestCase):
         with open('../resources/key-file.json', 'r') as f:
             obj = json.load(f)
         sheet_util = SheetUtil(conn_manager=GoogleSheetConnectionManager(
-            GoogleApiConnectionSettings(keys_object=obj)))
+            GoogleApiConnectionSettings(keys_object=obj)), field_types_row_number=0,
+            field_names_row_number=1)
         workbook_name = 'Tradie Acquisition Targets'
         sheet_name = 'Sheet1'
         actual = sheet_util.get_value_matrix(workbook_name, sheet_name, row_range='1:2')

@@ -1,6 +1,8 @@
 """
 Module contains variables and methods used for google sheet operations
 """
+import logging as log
+
 from hip_data_tools.google.sheets.common import GoogleSheetConnectionManager
 
 
@@ -9,10 +11,15 @@ class SheetUtil:
     Utility class for connecting to google sheets
     Args:
         conn_manager (GoogleSheetConnectionManager): connection to read google sheets
+        conn_manager (integer): row number of the filed names
+        conn_manager (integer): row number of the field types
     """
 
-    def __init__(self, conn_manager: GoogleSheetConnectionManager):
+    def __init__(self, conn_manager: GoogleSheetConnectionManager, field_names_row_number: int,
+                 field_types_row_number: int):
         self.google_sheet_connection = conn_manager.get_connection()
+        self.field_names_row_number = field_names_row_number
+        self.field_types_row_number = field_types_row_number
 
     def get_value_matrix(self, workbook_name, sheet_name, row_range='', skip_top_rows_count=0):
         """
@@ -39,3 +46,29 @@ class SheetUtil:
             row = worksheet.row_values(i)
             list_of_lists.append(row)
         return list_of_lists
+
+    def get_fields_names(self, workbook_name, sheet_name):
+        """
+        Get the field names as a list
+        Args:
+            workbook_name (string): name of the workbook (eg: Revenue Targets)
+            sheet_name (string): name of the sheet (eg: sheet1)
+        Returns: field names list
+        """
+        worksheet = self.google_sheet_connection.open(workbook_name).worksheet(sheet_name)
+        field_names = worksheet.row_values(self.field_names_row_number)
+        log.info("Field names:\n%s", field_names)
+        return field_names
+
+    def get_fields_types(self, workbook_name, sheet_name):
+        """
+        Get the field types as a list
+        Args:
+            workbook_name (string): name of the workbook (eg: Revenue Targets)
+            sheet_name (string): name of the sheet (eg: sheet1)
+        Returns: field types list
+        """
+        worksheet = self.google_sheet_connection.open(workbook_name).worksheet(sheet_name)
+        field_types = worksheet.row_values(self.field_types_row_number)
+        log.info("Field types:\n%s", field_types)
+        return field_types

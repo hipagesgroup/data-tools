@@ -17,7 +17,8 @@ from hip_data_tools.google.sheets.sheets import SheetUtil
 DTYPE_GOOGLE_SHEET_TO_PARQUET_ATHENA = {
     "NUMBER": "DOUBLE",
     "STRING": "STRING",
-    "BOOLEAN": "BOOLEAN"
+    "BOOLEAN": "BOOLEAN",
+    "DATE": "STRING"
 }
 
 
@@ -27,11 +28,20 @@ class GoogleSheetsToAthenaSettings:
     Google sheets to Athena ETL settings
     Args:
         workbook_name: the name of the workbook (eg: Tradie Acquisition Targets)
+            If there are multiple workbooks with the same name, the workbook which has most recently
+            shared with the google service account is used
         sheet_name: name of the google sheet (eg: sheet1)
         row_range: range of rows (eg: '2:5')
         table_name: name of the athena table (eg: 'sheet_table')
-        fields: list of sheet field names and types. Field names cannot contain hyphens('-')
+        fields: list of sheet field names and types. Field names cannot contain hyphens('-'), spaces
+            and special characters
             (eg: ['name:string','age:number','is_member:boolean'])
+            If this is None, the field names and types from google sheet are used automatically
+        field_names_row_number: row number of the field names (eg: 4). Will be ignored if fields
+            have been specified (see above). Assumes the data starts at first column and there is no
+            gaps. There should not be 2 fields with the same name.
+        field_types_row_number: row number of the field types (eg: 5). Will be ignored if fields
+            have been specified (see above)
         use_derived_types: if this is false type of the fields are considered as strings
             irrespective of the provided field types (eg: True)
         s3_bucket: s3 bucket to store the files (eg: au-test-bucket)
@@ -50,6 +60,8 @@ class GoogleSheetsToAthenaSettings:
     row_range: str
     table_name: str
     fields: list
+    field_names_row_number: int
+    field_types_row_number: int
     use_derived_types: bool
     s3_bucket: str
     s3_dir: str
@@ -82,11 +94,9 @@ class GoogleSheetToAthena:
         self.settings = settings
         self.keys_to_transfer = None
 
-    def __get_columns(self, columns):
-        for field in self.settings.fields:
-            field_name_type = field.split(':')
-            field_name = field_name_type[0]
-            field_type = field_name_type[1]
+    @staticmethod
+    def __get_columns(columns, field_names=None, field_types=None):
+        for field_name, field_type in zip(field_names, field_types):
             columns.append({"column": field_name,
                             "type": DTYPE_GOOGLE_SHEET_TO_PARQUET_ATHENA.get(
                                 str(_simplified_dtype(field_type)),
@@ -94,7 +104,9 @@ class GoogleSheetToAthena:
 
     def _get_sheets_util(self):
         return SheetUtil(conn_manager=GoogleSheetConnectionManager(
-            GoogleApiConnectionSettings(keys_object=self.settings.keys_object)))
+            GoogleApiConnectionSettings(keys_object=self.settings.keys_object)),
+                         field_names_row_number=self.settings.field_names_row_number,
+                         field_types_row_number=self.settings.field_types_row_number)
 
     def _get_athena_util(self):
         return AthenaUtil(database=self.settings.database,
@@ -106,7 +118,7 @@ class GoogleSheetToAthena:
             bucket=self.settings.s3_bucket,
             conn=AwsConnectionManager(settings=self.settings.connection_settings))
 
-    def _get_table_settings(self):
+    def _get_table_settings(self, field_names, field_types):
         """
         Get the table settings dictionary
         Returns: table settings dictionary
@@ -124,21 +136,21 @@ class GoogleSheetToAthena:
         }
         columns = []
         if self.settings.use_derived_types:
-            self.__get_columns(columns)
+            self.__get_columns(columns, field_names, field_types)
         else:
-            for field in self.settings.fields:
-                field_name = field.split(':')[0]
+            for field_name in field_names:
                 columns.append({"column": field_name, "type": "string"})
         table_settings["columns"] = columns
         table_settings["partitions"] = self.settings.partition_key
 
         return table_settings
 
-    def _get_the_insert_query(self, values_matrix):
+    def _get_the_insert_query(self, values_matrix, types):
         """
         Get the insert query for the athena table using the values matrix
         Args:
             values_matrix (array): values of the google sheet
+            types (array): data type of each column
         Returns: insert query for the athena table
 
         """
@@ -149,14 +161,26 @@ class GoogleSheetToAthena:
         values = ""
         if self.settings.partition_value:
             partition_value_statement = ", '{}'".format(self.settings.partition_value)
+            types += 'STRING'
         else:
             partition_value_statement = ''
         for value in values_matrix:
-            values += "({}{}), ".format(', '.join(["'{}'".format(val) for val in value]),
+            values += "({}{}), ".format(', '.join(self.__get_the_values_list(types, value)),
                                         partition_value_statement)
         values = values[:-2]
         insert_query += values
         return insert_query
+
+    @staticmethod
+    def __get_the_values_list(types, value):
+        # Return a list of values (Quotes are added if the value type is string or date)
+        # eg: ['2020-03-02', 435, 54, 'customer_1', 34]
+        return ["'{}'".format(
+            val) if data_type.upper() == 'STRING' or data_type.upper() == 'DATE' else
+                "{}".format(
+                    val) for
+                val, data_type
+                in zip(value, types)]
 
     def load_sheet_to_athena(self, overwrite_table=False):
         """
@@ -169,17 +193,50 @@ class GoogleSheetToAthena:
         sheet_util = self._get_sheets_util()
         athena_util = self._get_athena_util()
         s3_util = self._get_s3_util()
+
         if overwrite_table:
             athena_util.drop_table(self.settings.table_name)
             s3_util.delete_recursive(self.settings.s3_dir)
+
+        field_names = []
+        field_types = []
+        if self.settings.fields is None:
+            field_names = sheet_util.get_fields_names(self.settings.workbook_name,
+                                                      self.settings.sheet_name)
+            field_types = sheet_util.get_fields_types(self.settings.workbook_name,
+                                                      self.settings.sheet_name)
+            self.__validate_field_names_and_types_count(field_names, field_types)
+            self.__validate_field_names(field_names)
+        else:
+            for field in self.settings.fields:
+                field_name_type = field.split(':')
+                field_name = field_name_type[0]
+                field_names.append(field_name)
+                field_types.append(field_name_type[1])
+                self.__validate_field_names([field_name])
+
         values_matrix = sheet_util \
             .get_value_matrix(workbook_name=self.settings.workbook_name,
                               sheet_name=self.settings.sheet_name,
                               row_range=self.settings.row_range,
                               skip_top_rows_count=self.settings.skip_top_rows_count)
         log.info("The value matrix:\n %s", values_matrix)
-        table_settings = self._get_table_settings()
+        table_settings = self._get_table_settings(field_names, field_types)
         athena_util.create_table(table_settings)
-        insert_query = self._get_the_insert_query(values_matrix=values_matrix)
+        insert_query = self._get_the_insert_query(values_matrix=values_matrix, types=field_types)
         log.info("The insert query:\n %s", insert_query)
         athena_util.run_query(query_string=insert_query)
+
+    @staticmethod
+    def __validate_field_names_and_types_count(field_names, field_types):
+        if len(field_names) != len(field_types):
+            log.error("Number of field names and number of field types are not matching")
+            raise Exception("Field names and types are not matching")
+
+    @staticmethod
+    def __validate_field_names(field_names):
+        for field_name in field_names:
+            # check for strings which only contains letters, numbers and underscores
+            if not re.match("^[A-Za-z0-9_]+$", field_name):
+                log.error("Unsupported field name: %s", field_name)
+                raise Exception("Unsupported field name")
