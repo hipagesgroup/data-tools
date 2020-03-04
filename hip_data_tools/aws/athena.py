@@ -5,6 +5,7 @@ Utility to connect to, and perform DML and DDL operations on aws Athena
 import csv
 import sys
 import time
+from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsUtil
 from hip_data_tools.common import LOG
@@ -195,6 +196,10 @@ class AthenaUtil(AwsUtil):
 
         """
         self.run_query(self._build_create_table_sql(table_settings))
+
+    def create_table_from_dataframe(self, dataframe, s3_bucket, s3_dir):
+        # TODO: Implement this
+        pass
 
     def get_table_ddl(self, table):
         """
