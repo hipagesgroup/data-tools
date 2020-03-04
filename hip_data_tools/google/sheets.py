@@ -130,6 +130,9 @@ class SheetUtil:
                       row_range=None,
                       data_start_row_number=None) -> DataFrame:
         matrix = self.get_value_matrix(row_range, data_start_row_number)
+        return self._get_dataframe_from_matrix(field_names_row_number, matrix)
+
+    def _get_dataframe_from_matrix(self, field_names_row_number, matrix):
         tupled_data = _list_of_list_to_list_of_tuples(matrix)
         return DataFrame(data=tupled_data, columns=self.get_fields_names(field_names_row_number))
 
