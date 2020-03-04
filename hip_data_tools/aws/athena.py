@@ -3,6 +3,8 @@ Utility to connect to, and perform DML and DDL operations on aws Athena
 """
 
 import csv
+from typing import List
+
 import sys
 import time
 from pandas import DataFrame
@@ -197,8 +199,23 @@ class AthenaUtil(AwsUtil):
         """
         self.run_query(self._build_create_table_sql(table_settings))
 
-    def create_table_from_dataframe(self, dataframe, s3_bucket, s3_dir):
-        # TODO: Implement this
+    def create_table_from_dataframe_parquet(self, dataframe, table, s3_bucket, s3_dir):
+        table_settings = {
+            "exists": None,
+            "partitions": None,
+            "storage_format_selector": {
+
+            },
+            "encryption": False,
+            "table": table,
+            "columns": self._get_athena_columns_from_dataframe(dataframe),
+            "s3_bucket": s3_bucket,
+            "s3_dir": s3_dir.,
+        }
+        self.create_table(table_settings)
+
+    def _get_athena_columns_from_dataframe(self, dataframe: DataFrame) -> List[dict]:
+        # TODO: Logic to get this stuff from DF
         pass
 
     def get_table_ddl(self, table):

@@ -108,7 +108,7 @@ class GoogleSheetToAthena(GoogleSheetToS3):
     def load_sheet_to_athena(self):
         self.write_sheet_data_to_s3()
         athena_util = self._get_athena_util()
-        athena_util.create_table_from_dataframe(
+        athena_util.create_table_from_dataframe_parquet(
             dataframe=self._get_sheet_dataframe(),
             s3_bucket=self.settings.target_s3_bucket,
             s3_dir=self.settings.target_s3_dir)
