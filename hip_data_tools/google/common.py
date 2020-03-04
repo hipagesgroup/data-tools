@@ -2,9 +2,11 @@
 Module contains variables and methods used for common / shared operations throughput the google
 services package
 """
-from abc import abstractmethod
+from abc import ABC, abstractmethod
+from typing import List
 
 from attr import dataclass
+from oauth2client.service_account import ServiceAccountCredentials
 
 
 @dataclass
@@ -13,26 +15,28 @@ class GoogleApiConnectionSettings:
     keys_object: str
 
 
-class GoogleApiConnectionManager:
+class GoogleApiConnectionManager(ABC):
     """
     Google API connection manager abstract class
     """
 
-    def __init__(self, settings: GoogleApiConnectionSettings):
+    def __init__(self, settings: GoogleApiConnectionSettings, scope: List[str]):
         self.settings = settings
-        self.scope = ['https://spreadsheets.google.com/feeds',
-                      'https://www.googleapis.com/auth/drive']
+        self.scope = scope
 
-    @abstractmethod
     def _credentials(self):
         """
-        Get the credentials for a given google service
-        Returns (ServiceAccountCredentials): credentials object to authorize google services
+        Get the credentials for google sheets
+        Returns (ServiceAccountCredentials): credentials object to authorize google sheet service
         """
+        return ServiceAccountCredentials.from_json_keyfile_dict(
+            self.settings.keys_object,
+            self.scope)
 
     @abstractmethod
-    def get_connection(self):
+    def get_client(self):
         """
-        Get the credentials for google service
-        Returns: authorised connection for google service
+        Get the connection for google sheets
+        Returns: authenticated client object of the connection library
         """
+        pass
