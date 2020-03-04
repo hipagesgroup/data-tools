@@ -33,6 +33,7 @@ class GoogleSheetsToAthenaSettings:
         sheet_name: name of the google sheet (eg: sheet1)
         row_range: range of rows (eg: '2:5')
         table_name: name of the athena table (eg: 'sheet_table')
+        --------make this a list of dictionary
         fields: list of sheet field names and types. Field names cannot contain hyphens('-'), spaces
             and special characters
             (eg: ['name:string','age:number','is_member:boolean'])
@@ -46,31 +47,35 @@ class GoogleSheetsToAthenaSettings:
             irrespective of the provided field types (eg: True)
         s3_bucket: s3 bucket to store the files (eg: au-test-bucket)
         s3_dir: s3 directory to store the files (eg: sheets/new)
+        ---- call it manual_partition_key_value
         partition_key: list of partitions (eg: [{"column": "view", "type": "string"}]. Only one
             partition key can be used
         partition_value: value of the partition key (eg: '2020-02-14')
+        ------- call it data_start_row_number --- it should be 6
         skip_top_rows_count: number of top rows that need to be skipped (eg: 1)
+        ------ this should be GoogleSheetsConnectionSettings
         keys_object: google api keys dictionary object
             (eg: {'type': 'service_account', 'project_id': 'hip-gandalf-sheets',...... })
+        ------ target_database
         database: name of the athena database (eg: dev)
+        ------- target_connection_settings
         connection_settings: aws connection settings
     """
-    workbook_name: str
-    sheet_name: str
-    row_range: str
-    table_name: str
-    fields: list
-    field_names_row_number: int
-    field_types_row_number: int
+    source_workbook_name: str
+    source_sheet_name: str
+    source_row_range: str
+    target_table_name: str
+    source_fields: list
+    source_field_names_row_number: int
+    source_field_types_row_number: int
     use_derived_types: bool
     s3_bucket: str
     s3_dir: str
-    partition_key: list
-    partition_value: str
-    skip_top_rows_count: int
-    keys_object: object
-    database: str
-    connection_settings: AwsConnectionSettings
+    manual_partition_key_value: list
+    data_start_row_number: int
+    source_connection_settings: GoogleSheetConnectionSettings
+    target_database: str
+    target_connection_settings: AwsConnectionSettings
 
 
 def _simplified_dtype(data_type):
@@ -102,21 +107,22 @@ class GoogleSheetToAthena:
                                 str(_simplified_dtype(field_type)),
                                 "STRING")})
 
+# TODO
     def _get_sheets_util(self):
         return SheetUtil(conn_manager=GoogleSheetConnectionManager(
-            GoogleApiConnectionSettings(keys_object=self.settings.keys_object)),
-                         field_names_row_number=self.settings.field_names_row_number,
-                         field_types_row_number=self.settings.field_types_row_number)
+            GoogleApiConnectionSettings(keys_object=self.settings.source_connection_settings)),
+                         field_names_row_number=self.settings.source_field_names_row_number,
+                         field_types_row_number=self.settings.source_field_types_row_number)
 
     def _get_athena_util(self):
-        return AthenaUtil(database=self.settings.database,
-                          conn=AwsConnectionManager(settings=self.settings.connection_settings),
+        return AthenaUtil(database=self.settings.target_database,
+                          conn=AwsConnectionManager(settings=self.settings.target_connection_settings),
                           output_bucket=self.settings.s3_bucket)
 
     def _get_s3_util(self):
         return S3Util(
             bucket=self.settings.s3_bucket,
-            conn=AwsConnectionManager(settings=self.settings.connection_settings))
+            conn=AwsConnectionManager(settings=self.settings.target_connection_settings))
 
     def _get_table_settings(self, field_names, field_types):
         """
@@ -125,7 +131,7 @@ class GoogleSheetToAthena:
 
         """
         table_settings = {
-            "table": self.settings.table_name,
+            "table": self.settings.target_table_name,
             "exists": True,
             "partitions": [],
             "columns": [],
@@ -141,7 +147,7 @@ class GoogleSheetToAthena:
             for field_name in field_names:
                 columns.append({"column": field_name, "type": "string"})
         table_settings["columns"] = columns
-        table_settings["partitions"] = self.settings.partition_key
+        table_settings["partitions"] = self.settings.manual_partition_key_value
 
         return table_settings
 
@@ -155,9 +161,9 @@ class GoogleSheetToAthena:
 
         """
         if not values_matrix:
-            return "INSERT INTO {table_name} VALUES ()".format(table_name=self.settings.table_name)
+            return "INSERT INTO {table_name} VALUES ()".format(table_name=self.settings.target_table_name)
         insert_query = "INSERT INTO {table_name} VALUES ".format(
-            table_name=self.settings.table_name)
+            table_name=self.settings.target_table_name)
         values = ""
         if self.settings.partition_value:
             partition_value_statement = ", '{}'".format(self.settings.partition_value)
@@ -195,20 +201,20 @@ class GoogleSheetToAthena:
         s3_util = self._get_s3_util()
 
         if overwrite_table:
-            athena_util.drop_table(self.settings.table_name)
+            athena_util.drop_table(self.settings.target_table_name)
             s3_util.delete_recursive(self.settings.s3_dir)
 
         field_names = []
         field_types = []
-        if self.settings.fields is None:
-            field_names = sheet_util.get_fields_names(self.settings.workbook_name,
-                                                      self.settings.sheet_name)
-            field_types = sheet_util.get_fields_types(self.settings.workbook_name,
-                                                      self.settings.sheet_name)
+        if self.settings.source_fields is None:
+            field_names = sheet_util.get_fields_names(self.settings.source_workbook_name,
+                                                      self.settings.source_sheet_name)
+            field_types = sheet_util.get_fields_types(self.settings.source_workbook_name,
+                                                      self.settings.source_sheet_name)
             self.__validate_field_names_and_types_count(field_names, field_types)
             self.__validate_field_names(field_names)
         else:
-            for field in self.settings.fields:
+            for field in self.settings.source_fields:
                 field_name_type = field.split(':')
                 field_name = field_name_type[0]
                 field_names.append(field_name)
@@ -216,10 +222,10 @@ class GoogleSheetToAthena:
                 self.__validate_field_names([field_name])
 
         values_matrix = sheet_util \
-            .get_value_matrix(workbook_name=self.settings.workbook_name,
-                              sheet_name=self.settings.sheet_name,
-                              row_range=self.settings.row_range,
-                              skip_top_rows_count=self.settings.skip_top_rows_count)
+            .get_value_matrix(workbook_name=self.settings.source_workbook_name,
+                              sheet_name=self.settings.source_sheet_name,
+                              row_range=self.settings.source_row_range,
+                              skip_top_rows_count=self.settings.data_start_row_number)
         log.info("The value matrix:\n %s", values_matrix)
         table_settings = self._get_table_settings(field_names, field_types)
         athena_util.create_table(table_settings)
