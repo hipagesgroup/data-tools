@@ -3,8 +3,10 @@ Module to handle connection and manipulation of google sheets
 """
 import logging as log
 import re
+from typing import List, Any
 
 import gspread
+from pandas import DataFrame
 
 from hip_data_tools.google.common import GoogleApiConnectionManager, GoogleApiConnectionSettings
 
@@ -41,6 +43,25 @@ def _get_value_matrix_from_skip(worksheet, data_start_row_number):
     return list_of_lists
 
 
+def _validate_field_names_and_types_count(field_names, field_types):
+    if len(field_names) != len(field_types):
+        log.error("Number of field names and number of field types are not matching")
+        raise Exception("Field names and types are not matching")
+
+
+def _validate_field_names(field_names):
+    for field_name in field_names:
+        # check for strings which only contains letters, numbers and underscores
+        if not re.match("^[A-Za-z0-9_]+$", field_name):
+            log.error("Unsupported field name: %s", field_name)
+            raise Exception("Unsupported field name")
+
+
+def _list_of_list_to_list_of_tuples(data: List[List[Any]]) -> List[tuple]:
+    # TODO: Implement this
+    pass
+
+
 class SheetUtil:
     """
     Utility class for connecting to google sheets
@@ -54,8 +75,14 @@ class SheetUtil:
         self.google_sheet_connection = conn_manager.get_client()
         self.workbook = workbook
         self.sheet = sheet
+        self._worksheet = None
 
-    def get_value_matrix(self, row_range=None, data_start_row_number=None):
+    def _get_worksheet(self):
+        if self._worksheet is None:
+            self._worksheet = self.google_sheet_connection.open(self.workbook).worksheet(self.sheet)
+        return self._worksheet
+
+    def get_value_matrix(self, row_range=None, data_start_row_number=None) -> List[List[Any]]:
         """
         Get the values of the sheet as a 2D array
         Args:
@@ -66,14 +93,13 @@ class SheetUtil:
         if not row_range and not data_start_row_number:
             ValueError(
                 "Both row_range and data_start_row_number cannot be None, provide at least one")
-        worksheet = self.google_sheet_connection.open(self.workbook).worksheet(self.sheet)
 
         if row_range:
-            return _get_value_matrix_from_range(worksheet, row_range)
+            return _get_value_matrix_from_range(row_range)
 
-        return _get_value_matrix_from_skip(worksheet, data_start_row_number)
+        return _get_value_matrix_from_skip(data_start_row_number)
 
-    def get_fields_names(self, workbook_name, sheet_name, field_names_row_number: int):
+    def get_fields_names(self, field_names_row_number: int) -> List[str]:
         """
         Get the field names as a list
         Args:
@@ -82,12 +108,11 @@ class SheetUtil:
             field_names_row_number (int):
         Returns: field names list
         """
-        worksheet = self.google_sheet_connection.open(workbook_name).worksheet(sheet_name)
-        field_names = worksheet.row_values(field_names_row_number)
+        field_names = self._get_worksheet().row_values(field_names_row_number)
         log.debug("Field names:\n%s", field_names)
         return field_names
 
-    def get_fields_types(self, workbook_name, sheet_name, field_types_row_number: int):
+    def get_fields_types(self, field_types_row_number: int) -> List[str]:
         """
         Get the field types as a list
         Args:
@@ -96,31 +121,19 @@ class SheetUtil:
             field_types_row_number (int):
         Returns: field types list
         """
-        worksheet = self.google_sheet_connection.open(workbook_name).worksheet(sheet_name)
-        field_types = worksheet.row_values(field_types_row_number)
+        field_types = self._get_worksheet().row_values(field_types_row_number)
         log.debug("Field types:\n%s", field_types)
         return field_types
 
-    def get_dataframe(self, row_range=None, data_start_row_number=None):
+    def get_dataframe(self,
+                      field_names_row_number: int,
+                      row_range=None,
+                      data_start_row_number=None) -> DataFrame:
+        matrix = self.get_value_matrix(row_range, data_start_row_number)
+        tupled_data = _list_of_list_to_list_of_tuples(matrix)
+        return DataFrame(data=tupled_data, columns=self.get_fields_names(field_names_row_number))
+
+    def get_dict(self, row_range=None, data_start_row_number=None) -> List[dict]:
         # TODO: Implement this
         matrix = self.get_value_matrix(row_range, data_start_row_number)
         pass
-
-    def get_dict(self, row_range=None, data_start_row_number=None):
-        # TODO: Implement this
-        matrix = self.get_value_matrix(row_range, data_start_row_number)
-        pass
-
-    @staticmethod
-    def __validate_field_names_and_types_count(field_names, field_types):
-        if len(field_names) != len(field_types):
-            log.error("Number of field names and number of field types are not matching")
-            raise Exception("Field names and types are not matching")
-
-    @staticmethod
-    def __validate_field_names(field_names):
-        for field_name in field_names:
-            # check for strings which only contains letters, numbers and underscores
-            if not re.match("^[A-Za-z0-9_]+$", field_name):
-                log.error("Unsupported field name: %s", field_name)
-                raise Exception("Unsupported field name")
