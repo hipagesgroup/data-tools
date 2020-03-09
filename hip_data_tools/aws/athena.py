@@ -12,6 +12,32 @@ from pandas import DataFrame
 from hip_data_tools.aws.common import AwsUtil
 from hip_data_tools.common import LOG
 
+_PYTHON_TO_ATHENA_DATA_TYPE_MAP = {
+    "Timestamp": "TIMESTAMP",
+    "str": "STRING",
+    "int64": "BIGINT",
+    "int32": "INT",
+    "dict": "MAP",
+    "float64": "DOUBLE",
+    "UUID": "STRING",
+    "object": "STRING"
+}
+
+
+def get_table_settings_for_sheets_table(dataframe, s3_bucket, s3_dir, table):
+
+    table_settings = {
+        "exists": True,
+        "partitions": None,
+        "storage_format_selector": "parquet",
+        "encryption": False,
+        "table": table,
+        "columns": get_athena_columns_from_dataframe(dataframe),
+        "s3_bucket": s3_bucket,
+        "s3_dir": s3_dir,
+    }
+    return table_settings
+
 
 class AthenaUtil(AwsUtil):
     """
@@ -200,23 +226,9 @@ class AthenaUtil(AwsUtil):
         self.run_query(self._build_create_table_sql(table_settings))
 
     def create_table_from_dataframe_parquet(self, dataframe, table, s3_bucket, s3_dir):
-        table_settings = {
-            "exists": None,
-            "partitions": None,
-            "storage_format_selector": {
-
-            },
-            "encryption": False,
-            "table": table,
-            "columns": self._get_athena_columns_from_dataframe(dataframe),
-            "s3_bucket": s3_bucket,
-            "s3_dir": s3_dir.,
-        }
+        table_settings = get_table_settings_for_sheets_table(dataframe, s3_bucket, s3_dir,
+                                                                  table)
         self.create_table(table_settings)
-
-    def _get_athena_columns_from_dataframe(self, dataframe: DataFrame) -> List[dict]:
-        # TODO: Logic to get this stuff from DF
-        pass
 
     def get_table_ddl(self, table):
         """
@@ -366,3 +378,22 @@ def _construct_table_properties_ddl(skip_headers, storage_format_selector, encry
             TBLPROPERTIES ('has_encrypted_data'='{encryption}')
             """.format(encryption=str(encryption).lower())
     return table_properties
+
+
+def _get_data_frame_column_types(data_frame):
+    data_frame_col_dict = {}
+    for col in data_frame:
+        data_frame_col_dict[col] = type(data_frame[col][0]).__name__
+    return data_frame_col_dict
+
+
+def get_athena_columns_from_dataframe(data_frame: DataFrame) -> List[dict]:
+    """
+    Extracts a dictionary of column names and their athena data types from the dataframe
+    Args:
+        data_frame (DataFrame): the dataframe whose columns need to be extracted
+    Returns: list of dict
+    """
+    column_dtype = _get_data_frame_column_types(data_frame)
+    return [{"column": field_name, "type": _PYTHON_TO_ATHENA_DATA_TYPE_MAP[field_type]} for
+            field_name, field_type in column_dtype.items()]

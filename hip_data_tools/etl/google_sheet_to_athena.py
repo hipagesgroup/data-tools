@@ -1,8 +1,6 @@
 """
 Module to deal with data transfer from Google sheets to Athena
 """
-import re
-from typing import List
 
 from attr import dataclass
 
@@ -12,55 +10,40 @@ from hip_data_tools.aws.common import AwsConnectionSettings
 from hip_data_tools.etl.google_sheet_to_s3 import GoogleSheetToS3
 from hip_data_tools.google.common import GoogleApiConnectionSettings
 
-DTYPE_GOOGLE_SHEET_TO_PARQUET_ATHENA = {
-    "NUMBER": "DOUBLE",
-    "STRING": "STRING",
-    "BOOLEAN": "BOOLEAN",
-    "DATE": "STRING"
-}
-
 
 @dataclass
 class GoogleSheetsToAthenaSettings:
     """
     Google sheets to Athena ETL settings
     Args:
-        workbook_name: the name of the workbook (eg: Tradie Acquisition Targets)
-            If there are multiple workbooks with the same name, the workbook which has most recently
-            shared with the google service account is used
-        sheet_name: name of the google sheet (eg: sheet1)
-        row_range: range of rows (eg: '2:5')
-        table_name: name of the athena table (eg: 'sheet_table')
-        --------make this a list of dictionary
-        fields: list of sheet field names and types. Field names cannot contain hyphens('-'), spaces
-            and special characters
+        source_workbook_url: the url of the workbook
+            (eg: https://docs.google.com/spreadsheets/d/1W1vIBLfsQM/edit?usp=sharing)
+        source_sheet: name of the google sheet (eg: sheet1)
+        source_row_range: range of rows (eg: '2:5')
+        source_fields: list of dictionary sheet field names and types. Field names cannot contain
+            hyphens('-'), spaces and special characters
             (eg: ['name:string','age:number','is_member:boolean'])
             If this is None, the field names and types from google sheet are used automatically
-        field_names_row_number: row number of the field names (eg: 4). Will be ignored if fields
-            have been specified (see above). Assumes the data starts at first column and there is no
-            gaps. There should not be 2 fields with the same name.
-        field_types_row_number: row number of the field types (eg: 5). Will be ignored if fields
-            have been specified (see above)
-        use_derived_types: if this is false type of the fields are considered as strings
-            irrespective of the provided field types (eg: True)
-        s3_bucket: s3 bucket to store the files (eg: au-test-bucket)
-        s3_dir: s3 directory to store the files (eg: sheets/new)
-        ---- call it manual_partition_key_value
-        partition_key: list of partitions (eg: [{"column": "view", "type": "string"}]. Only one
-            partition key can be used
-        partition_value: value of the partition key (eg: '2020-02-14')
-        ------- call it data_start_row_number --- it should be 6
-        skip_top_rows_count: number of top rows that need to be skipped (eg: 1)
-        ------ this should be GoogleSheetsConnectionSettings
-        keys_object: google api keys dictionary object
-            (eg: {'type': 'service_account', 'project_id': 'hip-gandalf-sheets',...... })
-        ------ target_database
-        database: name of the athena database (eg: dev)
-        ------- target_connection_settings
-        connection_settings: aws connection settings
+        source_field_names_row_number: row number of the field names (eg: 4). Will be ignored if
+            fields have been specified (see above). Assumes the data starts at first column and
+            there is no gaps. There should not be 2 fields with the same name.
+        source_field_types_row_number: row number of the field types (eg: 5). Will be ignored if
+            fields have been specified (see above)
+        source_data_start_row_number: starting row number of the actual data
+        source_connection_settings: GoogleApiConnectionSettings with google api keys dictionary
+            object
+        manual_partition_key_value: a dictionary with partition column name and value. Only one
+            partition key can be used and this value need to be string
+            (eg: {"column": "start_date", "value": "2020-03-08"})
+        target_database: name of the athena database (eg: dev)
+        target_table_name: name of the athena table (eg: 'sheet_table')
+        target_s3_bucket: s3 bucket to store the files (eg: au-test-bucket)
+        target_s3_dir: s3 directory to store the files (eg: sheets/new)
+        target_connection_settings: aws connection settings
+        overwrite_target_table: if this is true, the target table will be dropped and recreated
     """
 
-    source_workbook: str
+    source_workbook_url: str
     source_sheet: str
     source_row_range: str
     source_fields: list
@@ -68,23 +51,13 @@ class GoogleSheetsToAthenaSettings:
     source_field_types_row_number: int
     source_data_start_row_number: int
     source_connection_settings: GoogleApiConnectionSettings
-
-    manual_partition_key_value: List[dict]
+    manual_partition_key_value: dict
     target_database: str
     target_table_name: str
     target_s3_bucket: str
     target_s3_dir: str
     target_connection_settings: AwsConnectionSettings
-
-
-def _simplified_dtype(data_type):
-    """
-    Return the athena base data type
-    Args:
-        data_type (string): data type
-    :return: simplified data type
-    """
-    return ((re.sub(r'\(.*\)', '', data_type)).split(" ", 1)[0]).upper()
+    overwrite_target_table: bool
 
 
 class GoogleSheetToAthena(GoogleSheetToS3):
@@ -108,7 +81,12 @@ class GoogleSheetToAthena(GoogleSheetToS3):
     def load_sheet_to_athena(self):
         self.write_sheet_data_to_s3()
         athena_util = self._get_athena_util()
+
+        if self.settings.overwrite_target_table:
+            athena_util.drop_table(self.settings.target_table_name)
+
         athena_util.create_table_from_dataframe_parquet(
             dataframe=self._get_sheet_dataframe(),
+            table=self.settings.target_table_name,
             s3_bucket=self.settings.target_s3_bucket,
             s3_dir=self.settings.target_s3_dir)
