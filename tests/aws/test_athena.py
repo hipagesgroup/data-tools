@@ -191,7 +191,8 @@ class TestAthenaUtil(TestCase):
 
         actual = athena.get_table_settings_for_sheets_table(dataframe=DataFrame(
             data=[{"source": "source_value_1", "report": "report_value_1"},
-                  {"source": "source_value_2", "report": "report_value_2"}]), s3_bucket="test",
+                  {"source": "source_value_2", "report": "report_value_2"}]), partitions=None,
+            s3_bucket="test",
             s3_dir="data/external/", table="branch_reports")
 
         print(actual)
