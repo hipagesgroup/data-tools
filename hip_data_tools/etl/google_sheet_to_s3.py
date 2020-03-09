@@ -12,7 +12,7 @@ class GoogleSheetsToS3Settings:
     """
     Google sheets to Athena ETL settings
     Args:
-        source_workbook: str
+        source_workbook_url: str
         source_sheet: str
         source_row_range: str
         source_fields: list

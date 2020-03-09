@@ -1,10 +1,14 @@
+"""
+This module is responsible for all Google sheets operations
+"""
+
 import logging as log
 import re
+import gspread
 import pandas as pd
 
-from typing import List, Any
+from typing import List
 
-import gspread
 from pandas import DataFrame
 
 from hip_data_tools.google.common import GoogleApiConnectionManager, GoogleApiConnectionSettings
@@ -145,6 +149,15 @@ class SheetUtil:
                       field_types_row_number: int,
                       row_range=None,
                       data_start_row_number=None) -> DataFrame:
+        """
+        Get the field types as a list
+        Args:
+            field_names_row_number (int): Row number of field names
+            field_types_row_number (int): Row number of field types
+            row_range (str): Row range eg: "3:4"
+            data_start_row_number (int): Starting row number of actual data
+        Returns: field types list
+        """
         matrix = self.get_value_matrix(row_range, data_start_row_number)
         return self._get_dataframe_from_matrix(field_names_row_number, field_types_row_number,
                                                matrix)
@@ -159,6 +172,3 @@ class SheetUtil:
                                                      field_types_row_number),
                                                  field_names=field_names)
         return typed_data_frame
-
-    def get_dict(self, row_range=None, data_start_row_number=None) -> List[dict]:
-        pass
