@@ -87,6 +87,8 @@ class GoogleSheetToAthena(GoogleSheetToS3):
 
         athena_util.create_table_from_dataframe_parquet(
             dataframe=self._get_sheet_dataframe(),
+            partitions=self.settings.manual_partition_key_value,
             table=self.settings.target_table_name,
             s3_bucket=self.settings.target_s3_bucket,
             s3_dir=self.settings.target_s3_dir)
+        athena_util.repair_table_partitions(table=self.settings.target_table_name)
