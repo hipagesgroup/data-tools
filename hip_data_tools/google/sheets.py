@@ -7,7 +7,7 @@ import re
 import gspread
 import pandas as pd
 
-from typing import List
+from typing import List, Any
 
 from pandas import DataFrame
 
