@@ -1,3 +1,7 @@
+"""
+Module to deal with data transfer from Google sheets to S3
+"""
+
 from attr import dataclass
 
 from hip_data_tools.aws.common import AwsConnectionManager
@@ -72,6 +76,12 @@ class GoogleSheetToS3:
         return self.data
 
     def write_sheet_data_to_s3(self, s3_key: str):
+        """
+        Write the data frame into S3
+        Args:
+            s3_key (string): s3 key
+        :return: None
+        """
         s3_util = self._get_s3_util()
         s3_util.upload_dataframe_as_parquet(
             dataframe=self._get_sheet_dataframe(),

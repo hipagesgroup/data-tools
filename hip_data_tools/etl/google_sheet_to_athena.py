@@ -4,7 +4,7 @@ Module to deal with data transfer from Google sheets to Athena
 
 from attr import dataclass
 
-from hip_data_tools.aws.athena import AthenaUtil
+from hip_data_tools.aws.athena import AthenaUtil, get_table_settings_for_sheets_table
 from hip_data_tools.aws.common import AwsConnectionManager
 from hip_data_tools.aws.common import AwsConnectionSettings
 from hip_data_tools.etl.google_sheet_to_s3 import GoogleSheetToS3
@@ -79,6 +79,10 @@ class GoogleSheetToAthena(GoogleSheetToS3):
                           output_bucket=self.settings.target_s3_bucket)
 
     def load_sheet_to_athena(self):
+        """
+        Load google sheet into Athena
+        :return: None
+        """
         s3_key_with_partition = self.settings.target_s3_dir
         if self.settings.manual_partition_key_value is not None:
             column_name = self.settings.manual_partition_key_value["column"]
@@ -91,10 +95,10 @@ class GoogleSheetToAthena(GoogleSheetToS3):
         if self.settings.target_table_ddl_progress:
             athena_util.drop_table(self.settings.target_table_name)
 
-        athena_util.create_table_from_dataframe_parquet(
+        athena_util.create_table(table_settings=get_table_settings_for_sheets_table(
             dataframe=self._get_sheet_dataframe(),
             partitions=self.settings.manual_partition_key_value,
             table=self.settings.target_table_name,
             s3_bucket=self.settings.target_s3_bucket,
-            s3_dir=self.settings.target_s3_dir)
+            s3_dir=self.settings.target_s3_dir))
         athena_util.repair_table_partitions(table=self.settings.target_table_name)

@@ -25,6 +25,12 @@ _PYTHON_TO_ATHENA_DATA_TYPE_MAP = {
 
 
 def get_partitions_from_partitions_dict(partitions: dict):
+    """
+    Get the Athena table settings partitions list of dictionary
+    Args:
+        partitions (dict): dictionary of partition column name and value
+    :return: List of dictionary
+    """
     if partitions is not None:
         column_name = partitions["column"]
         return [{"column": column_name, "type": "STRING"}]
@@ -32,6 +38,16 @@ def get_partitions_from_partitions_dict(partitions: dict):
 
 
 def get_table_settings_for_sheets_table(dataframe, partitions, s3_bucket, s3_dir, table):
+    """
+    Get the Athena table settings
+    Args:
+        dataframe (DataFrame): data frame with column types and names
+        partitions (dict): dictionary of partition column name and value
+        s3_bucket (str): Name of the str bucket
+        s3_dir (str): S3 directory
+        table (str): Name of the table
+    :return: table settings
+    """
     table_settings = {
         "exists": True,
         "partitions": get_partitions_from_partitions_dict(partitions),
@@ -42,7 +58,6 @@ def get_table_settings_for_sheets_table(dataframe, partitions, s3_bucket, s3_dir
         "s3_bucket": s3_bucket,
         "s3_dir": s3_dir,
     }
-    print(table_settings)
     return table_settings
 
 
@@ -228,15 +243,8 @@ class AthenaUtil(AwsUtil):
             table_settings (dict): Dictionary of settings to create table
 
         Returns: None
-
         """
         self.run_query(self._build_create_table_sql(table_settings))
-
-    def create_table_from_dataframe_parquet(self, dataframe, partitions, table, s3_bucket, s3_dir):
-        table_settings = get_table_settings_for_sheets_table(dataframe, partitions, s3_bucket,
-                                                             s3_dir,
-                                                             table)
-        self.create_table(table_settings)
 
     def get_table_ddl(self, table):
         """

@@ -39,4 +39,4 @@ class GoogleApiConnectionManager(ABC):
         Get the connection for google sheets
         Returns: authenticated client object of the connection library
         """
-        pass
+

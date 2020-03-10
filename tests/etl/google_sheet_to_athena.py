@@ -17,7 +17,7 @@ class TestS3Util(TestCase):
     def tearDownClass(cls):
         pass
 
-    def test_should__load_sheet_to_athena__when_using_sheetUtil(self):
+    def integration_test_should__load_sheet_to_athena__when_using_sheetUtil(self):
         with open('../resources/key-file.json', 'r') as f:
             obj = json.load(f)
         print(obj)
