@@ -399,7 +399,7 @@ def get_athena_columns_from_dataframe(data_frame: DataFrame) -> List[dict]:
     """
     Extracts a dictionary of column names and their athena data types from the dataframe
     Args:
-        data_frame (DataFrame): the dataframe whose columns need to be extracted
+        data_frame (DataFrame): the dataframe which the columns need to be extracted
     Returns: list of dict
     """
     column_dtype = _get_data_frame_column_types(data_frame)

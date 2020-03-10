@@ -79,6 +79,7 @@ def _get_typed_data_frame(data_frame: DataFrame, data_types: List[str],
     for data_type, field_name in zip(data_types, field_names):
         if data_type == 'NUMBER':
             data_frame[[field_name]] = data_frame[[field_name]].apply(pd.to_numeric)
+        # TODO need to add date type support
     return data_frame
 
 

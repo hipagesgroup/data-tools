@@ -40,7 +40,7 @@ class GoogleSheetsToAthenaSettings:
         target_s3_bucket: s3 bucket to store the files (eg: au-test-bucket)
         target_s3_dir: s3 directory to store the files (eg: sheets/new)
         target_connection_settings: aws connection settings
-        overwrite_target_table: if this is true, the target table will be dropped and recreated
+        target_table_ddl_progress: if this is true, the target table will be dropped and recreated
     """
 
     source_workbook_url: str
@@ -57,7 +57,7 @@ class GoogleSheetsToAthenaSettings:
     target_s3_bucket: str
     target_s3_dir: str
     target_connection_settings: AwsConnectionSettings
-    overwrite_target_table: bool
+    target_table_ddl_progress: bool
 
 
 class GoogleSheetToAthena(GoogleSheetToS3):
@@ -79,10 +79,16 @@ class GoogleSheetToAthena(GoogleSheetToS3):
                           output_bucket=self.settings.target_s3_bucket)
 
     def load_sheet_to_athena(self):
-        self.write_sheet_data_to_s3()
-        athena_util = self._get_athena_util()
+        s3_key_with_partition = self.settings.target_s3_dir
+        if self.settings.manual_partition_key_value is not None:
+            column_name = self.settings.manual_partition_key_value["column"]
+            column_value = self.settings.manual_partition_key_value["value"]
+            partition_path = f"/{column_name}={column_value}"
+            s3_key_with_partition += partition_path
+        self.write_sheet_data_to_s3(s3_key_with_partition)
 
-        if self.settings.overwrite_target_table:
+        athena_util = self._get_athena_util()
+        if self.settings.target_table_ddl_progress:
             athena_util.drop_table(self.settings.target_table_name)
 
         athena_util.create_table_from_dataframe_parquet(

@@ -71,15 +71,9 @@ class GoogleSheetToS3:
                 data_start_row_number=self.settings.source_data_start_row_number)
         return self.data
 
-    def write_sheet_data_to_s3(self):
+    def write_sheet_data_to_s3(self, s3_key: str):
         s3_util = self._get_s3_util()
-        s3_key_with_partition = self.settings.target_s3_dir
-        if self.settings.manual_partition_key_value is not None:
-            column_name = self.settings.manual_partition_key_value["column"]
-            column_value = self.settings.manual_partition_key_value["value"]
-            partition_path = f"/{column_name}={column_value}"
-            s3_key_with_partition += partition_path
         s3_util.upload_dataframe_as_parquet(
             dataframe=self._get_sheet_dataframe(),
-            key=s3_key_with_partition,
+            key=s3_key,
             file_name="sheet_data")

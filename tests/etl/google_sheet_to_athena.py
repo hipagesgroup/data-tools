@@ -17,7 +17,7 @@ class TestS3Util(TestCase):
     def tearDownClass(cls):
         pass
 
-    def integration_test_should__load_sheet_to_athena__when_using_sheetUtil(self):
+    def test_should__load_sheet_to_athena__when_using_sheetUtil(self):
         with open('../resources/key-file.json', 'r') as f:
             obj = json.load(f)
         print(obj)
@@ -30,7 +30,7 @@ class TestS3Util(TestCase):
             source_field_types_row_number=4,
             source_data_start_row_number=6,
             source_connection_settings=GoogleApiConnectionSettings(keys_object=obj),
-            manual_partition_key_value={"column": "start_date", "value": "2020-03-09"},
+            manual_partition_key_value={"column": "start_date", "value": "2020-03-10"},
             target_database='dev',
             target_table_name='test_sheets_example_v2',
             target_s3_bucket='au-com-hipages-data-scratchpad',
@@ -38,7 +38,7 @@ class TestS3Util(TestCase):
             target_connection_settings=AwsConnectionSettings(region='ap-southeast-2',
                                                              profile='default',
                                                              secrets_manager=None),
-            overwrite_target_table=True
+            target_table_ddl_progress=True
         )).load_sheet_to_athena()
 
 
