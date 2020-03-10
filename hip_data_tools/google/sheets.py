@@ -4,12 +4,12 @@ This module is responsible for all Google sheets operations
 
 import logging as log
 import re
-import pandas as pd
-
 from typing import List, Any
-from pandas import DataFrame
 
+import pandas as pd
+from pandas import DataFrame
 import gspread
+
 from hip_data_tools.google.common import GoogleApiConnectionManager, GoogleApiConnectionSettings
 
 
