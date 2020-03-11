@@ -62,8 +62,10 @@ class GoogleSheetToAthena(GoogleSheetToS3):
     """
 
     def __init__(self, settings: GoogleSheetsToAthenaSettings):
-        super().__init__(settings)
         self.settings = settings
+        self.base_s3_dir = self.settings.target_s3_dir
+        self.settings.target_s3_dir = self._calculate_s3_key()
+        super().__init__(self.settings)
         self.keys_to_transfer = None
 
     def _get_athena_util(self):
@@ -77,13 +79,7 @@ class GoogleSheetToAthena(GoogleSheetToS3):
         Load google sheet into Athena
         :return: None
         """
-        s3_key_with_partition = self.settings.target_s3_dir
-        if self.settings.manual_partition_key_value is not None:
-            column_name = self.settings.manual_partition_key_value["column"]
-            column_value = self.settings.manual_partition_key_value["value"]
-            partition_path = f"/{column_name}={column_value}"
-            s3_key_with_partition += partition_path
-        self.write_sheet_data_to_s3(s3_key_with_partition)
+        self.write_sheet_data_to_s3()
 
         athena_util = self._get_athena_util()
         if self.settings.target_table_ddl_progress:
@@ -94,5 +90,20 @@ class GoogleSheetToAthena(GoogleSheetToS3):
             partitions=self.settings.manual_partition_key_value,
             table=self.settings.target_table_name,
             s3_bucket=self.settings.target_s3_bucket,
-            s3_dir=self.settings.target_s3_dir))
-        athena_util.repair_table_partitions(table=self.settings.target_table_name)
+            s3_dir=self.base_s3_dir))
+
+        if self.settings.target_table_ddl_progress:
+            athena_util.repair_table_partitions(table=self.settings.target_table_name)
+        else:
+            athena_util.add_partitions(table=self.settings.target_table_name, partition_keys=[
+                self.settings.manual_partition_key_value["column"]], partition_values=[
+                self.settings.manual_partition_key_value["value"]])
+
+    def _calculate_s3_key(self):
+        s3_key_with_partition = self.settings.target_s3_dir
+        if self.settings.manual_partition_key_value is not None:
+            column_name = self.settings.manual_partition_key_value["column"]
+            column_value = self.settings.manual_partition_key_value["value"]
+            partition_path = f"/{column_name}={column_value}"
+            s3_key_with_partition += partition_path
+        return s3_key_with_partition

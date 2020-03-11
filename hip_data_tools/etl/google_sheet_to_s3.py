@@ -73,7 +73,7 @@ class GoogleSheetToS3:
                 data_start_row_number=self.settings.source_data_start_row_number)
         return self.data
 
-    def write_sheet_data_to_s3(self, s3_key: str):
+    def write_sheet_data_to_s3(self):
         """
         Write the data frame into S3
         Args:
@@ -83,5 +83,5 @@ class GoogleSheetToS3:
         s3_util = self._get_s3_util()
         s3_util.upload_dataframe_as_parquet(
             dataframe=self._get_sheet_dataframe(),
-            key=s3_key,
+            key=self.settings.target_s3_dir,
             file_name="sheet_data")
