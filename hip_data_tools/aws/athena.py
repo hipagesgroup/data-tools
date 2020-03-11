@@ -3,11 +3,62 @@ Utility to connect to, and perform DML and DDL operations on aws Athena
 """
 
 import csv
+from typing import List
+
 import sys
 import time
+from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsUtil
 from hip_data_tools.common import LOG
+
+_PYTHON_TO_ATHENA_DATA_TYPE_MAP = {
+    "Timestamp": "TIMESTAMP",
+    "str": "STRING",
+    "int64": "BIGINT",
+    "int32": "INT",
+    "dict": "MAP",
+    "float64": "DOUBLE",
+    "UUID": "STRING",
+    "object": "STRING"
+}
+
+
+def get_partitions_from_partitions_dict(partitions: dict):
+    """
+    Get the Athena table settings partitions list of dictionary
+    Args:
+        partitions (dict): dictionary of partition column name and value
+    :return: List of dictionary
+    """
+    if partitions is not None:
+        column_name = partitions["column"]
+        return [{"column": column_name, "type": "STRING"}]
+    return None
+
+
+def get_table_settings_for_sheets_table(dataframe, partitions, s3_bucket, s3_dir, table):
+    """
+    Get the Athena table settings
+    Args:
+        dataframe (DataFrame): data frame with column types and names
+        partitions (dict): dictionary of partition column name and value
+        s3_bucket (str): Name of the str bucket
+        s3_dir (str): S3 directory
+        table (str): Name of the table
+    :return: table settings
+    """
+    table_settings = {
+        "exists": True,
+        "partitions": get_partitions_from_partitions_dict(partitions),
+        "storage_format_selector": "parquet",
+        "encryption": False,
+        "table": table,
+        "columns": get_athena_columns_from_dataframe(dataframe),
+        "s3_bucket": s3_bucket,
+        "s3_dir": s3_dir,
+    }
+    return table_settings
 
 
 class AthenaUtil(AwsUtil):
@@ -192,7 +243,6 @@ class AthenaUtil(AwsUtil):
             table_settings (dict): Dictionary of settings to create table
 
         Returns: None
-
         """
         self.run_query(self._build_create_table_sql(table_settings))
 
@@ -344,3 +394,22 @@ def _construct_table_properties_ddl(skip_headers, storage_format_selector, encry
             TBLPROPERTIES ('has_encrypted_data'='{encryption}')
             """.format(encryption=str(encryption).lower())
     return table_properties
+
+
+def _get_data_frame_column_types(data_frame):
+    data_frame_col_dict = {}
+    for col in data_frame:
+        data_frame_col_dict[col] = type(data_frame[col][0]).__name__
+    return data_frame_col_dict
+
+
+def get_athena_columns_from_dataframe(data_frame: DataFrame) -> List[dict]:
+    """
+    Extracts a dictionary of column names and their athena data types from the dataframe
+    Args:
+        data_frame (DataFrame): the dataframe which the columns need to be extracted
+    Returns: list of dict
+    """
+    column_dtype = _get_data_frame_column_types(data_frame)
+    return [{"column": field_name, "type": _PYTHON_TO_ATHENA_DATA_TYPE_MAP[field_type]} for
+            field_name, field_type in column_dtype.items()]

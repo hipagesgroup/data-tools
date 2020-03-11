@@ -78,7 +78,6 @@ class KeyValueSource(ABC):
             key (str): the key for which the value needs to be returned
         Returns: str
         """
-        pass
 
     @abstractmethod
     def exists(self, key):
@@ -88,7 +87,6 @@ class KeyValueSource(ABC):
             key (str): the key to be verified for existance
         Returns: bool
         """
-        pass
 
 
 class EnvironmentKeyValueSource(KeyValueSource):

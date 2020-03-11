@@ -96,3 +96,58 @@ class ExampleModel(Model):
     description     = columns.Text(required=False)
 sync_table(ExampleModel)
 ```
+
+## Connect to Google Sheets
+
+#### How to connect
+You need to go to Google developer console and get credentials. Then the Google sheet need to be shared with client email. GoogleApiConnectionSettings need to be provided with the Google API credentials key json. Then you can access the Google sheet by using the workbook_url and the sheet name.
+
+#### How to instantiate Sheet Util
+You can instantiate Sheet Util by providing GoogleSheetConnectionManager, workbook_url and the sheet name.
+```python
+sheet_util = SheetUtil(
+    conn_manager=GoogleSheetConnectionManager(self.settings.source_connection_settings),
+    workbook_url='https://docs.google.com/spreadsheets/d/cKyrzCBLfsQM/edit?usp=sharing',
+    sheet='Sheet1')
+```
+
+#### How to read a dataframe using SheetUtil
+You can get the data in the Google sheet as a Pandas DataFrame using the SheetUtil. We have defined a template for the Google sheet to use with this utility. 
+
+![alt text](https://img.techpowerup.org/200311/screen-shot-2020-03-11-at-4-08-25-pm.png)
+
+You need to provide the "field_names_row_number" and "field_types_row_number" to call "get_dataframe()" method in SheetUtil.
+
+```python
+sheet_data = sheet_util.get_dataframe(
+                field_names_row_number=8,
+                field_types_row_number=7,
+                row_range="12:20",
+                data_start_row_number=9)
+```
+
+
+
+You can use load_sheet_to_athena() function to load Google sheet data into an Athena table.
+
+```python
+GoogleSheetToAthena(GoogleSheetsToAthenaSettings(
+        source_workbook_url='https://docs.google.com/spreadsheets/d/cKyrzCBLfsQM/edit?usp=sharing',
+        source_sheet='spec_example',
+        source_row_range=None,
+        source_fields=None,
+        source_field_names_row_number=5,
+        source_field_types_row_number=4,
+        source_data_start_row_number=6,
+        source_connection_settings=get_google_connection_settings(gcp_conn_id=GCP_CONN_ID),
+        manual_partition_key_value={"column": "start_date", "value": START_DATE},
+        target_database=athena_util.database,
+        target_table_name=TABLE_NAME,
+        target_s3_bucket=s3_util.bucket,
+        target_s3_dir=s3_dir,
+        target_connection_settings=get_aws_connection_settings(aws_conn_id=AWS_CONN_ID),
+        target_table_ddl_progress=False
+    )).load_sheet_to_athena()
+```
+
+There is an integration test called "integration_test_should__load_sheet_to_athena__when_using_sheetUtil" to test this functionality. You can simply run it by removing the "integration_" prefix.
