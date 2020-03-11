@@ -19,7 +19,6 @@ class GoogleSheetsToS3Settings:
         source_workbook_url: str
         source_sheet: str
         source_row_range: str
-        source_fields: list
         source_field_names_row_number: int
         source_field_types_row_number: int
         source_data_start_row_number: int
@@ -32,7 +31,6 @@ class GoogleSheetsToS3Settings:
     source_workbook_url: str
     source_sheet: str
     source_row_range: str
-    source_fields: list
     source_field_names_row_number: int
     source_field_types_row_number: int
     source_data_start_row_number: int

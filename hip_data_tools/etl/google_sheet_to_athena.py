@@ -20,15 +20,10 @@ class GoogleSheetsToAthenaSettings:
             (eg: https://docs.google.com/spreadsheets/d/1W1vIBLfsQM/edit?usp=sharing)
         source_sheet: name of the google sheet (eg: sheet1)
         source_row_range: range of rows (eg: '2:5')
-        source_fields: list of dictionary sheet field names and types. Field names cannot contain
-            hyphens('-'), spaces and special characters
-            (eg: ['name:string','age:number','is_member:boolean'])
-            If this is None, the field names and types from google sheet are used automatically
-        source_field_names_row_number: row number of the field names (eg: 4). Will be ignored if
-            fields have been specified (see above). Assumes the data starts at first column and
-            there is no gaps. There should not be 2 fields with the same name.
-        source_field_types_row_number: row number of the field types (eg: 5). Will be ignored if
-            fields have been specified (see above)
+        source_field_names_row_number: row number of the field names (eg: 4). Assumes the data
+            starts at first column and  there is no gaps. There should not be 2 fields with the same
+            name.
+        source_field_types_row_number: row number of the field types (eg: 5)
         source_data_start_row_number: starting row number of the actual data
         source_connection_settings: GoogleApiConnectionSettings with google api keys dictionary
             object
@@ -46,7 +41,6 @@ class GoogleSheetsToAthenaSettings:
     source_workbook_url: str
     source_sheet: str
     source_row_range: str
-    source_fields: list
     source_field_names_row_number: int
     source_field_types_row_number: int
     source_data_start_row_number: int
