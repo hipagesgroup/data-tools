@@ -96,3 +96,29 @@ class ExampleModel(Model):
     description     = columns.Text(required=False)
 sync_table(ExampleModel)
 ```
+
+## Connect to Google Sheets
+
+You can use load_sheet_to_athena() function to load Google sheet data into an Athena table.
+
+```python
+GoogleSheetToAthena(GoogleSheetsToAthenaSettings(
+        source_workbook_url='https://docs.google.com/spreadsheets/d/cKyrzCBLfsQM/edit?usp=sharing',
+        source_sheet='spec_example',
+        source_row_range=None,
+        source_fields=None,
+        source_field_names_row_number=5,
+        source_field_types_row_number=4,
+        source_data_start_row_number=6,
+        source_connection_settings=get_google_connection_settings(gcp_conn_id=GCP_CONN_ID),
+        manual_partition_key_value={"column": "start_date", "value": START_DATE},
+        target_database=athena_util.database,
+        target_table_name=TABLE_NAME,
+        target_s3_bucket=s3_util.bucket,
+        target_s3_dir=s3_dir,
+        target_connection_settings=get_aws_connection_settings(aws_conn_id=AWS_CONN_ID),
+        target_table_ddl_progress=False
+    )).load_sheet_to_athena()
+```
+
+There is an integration test called "integration_test_should__load_sheet_to_athena__when_using_sheetUtil" to test this functionality. You can simply run it by removing the "integration_" prefix.

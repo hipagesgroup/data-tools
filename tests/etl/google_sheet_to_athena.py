@@ -23,7 +23,7 @@ class TestS3Util(TestCase):
 
         GoogleSheetToAthena(GoogleSheetsToAthenaSettings(
             source_workbook_url='https://docs.google.com/spreadsheets/d'
-                                '/1W1vICc6wQjumMr9QXNK0bneQCzKFsHacKyrzCBLfsQM/edit?usp=sharing',
+                                '/1W1vICFsHacKyrzCBLfsQM/edit?usp=sharing',
             source_sheet='spec_example',
             source_row_range=None,
             source_field_names_row_number=5,
