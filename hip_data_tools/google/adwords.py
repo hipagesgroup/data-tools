@@ -2,6 +2,7 @@ import json
 import os
 from tempfile import NamedTemporaryFile
 
+from attr import dataclass
 from googleads import oauth2, adwords
 
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
@@ -29,7 +30,7 @@ class GoogleAdWordsSecretsManager(SecretsManager):
     def cleanup_keyfile(self):
         os.remove(self._keyfile_path) if self._keyfile_path else None
 
-
+@dataclass
 class GoogleAdWordsConnectionSettings:
     service_account_user: str
     user_agent: str
@@ -73,3 +74,6 @@ class AdWordsUtil():
         for customer in customers:
             print('\t%s' % customer['customerId'])
         return customers
+
+
+
