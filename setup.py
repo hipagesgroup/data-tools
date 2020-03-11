@@ -62,6 +62,7 @@ setup(
         "dataclasses",
         "oauth2client",
         "gspread",
+        "googleads",
     ],
     test_suite="tests",
     tests_require=[
