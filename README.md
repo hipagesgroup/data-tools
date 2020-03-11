@@ -104,6 +104,12 @@ You need to go to Google developer console and get credentials. Then the Google 
 
 #### How to instantiate Sheet Util
 You can instantiate Sheet Util by providing GoogleSheetConnectionManager, workbook_url and the sheet name.
+```python
+sheet_util = SheetUtil(
+    conn_manager=GoogleSheetConnectionManager(self.settings.source_connection_settings),
+    workbook_url='https://docs.google.com/spreadsheets/d/cKyrzCBLfsQM/edit?usp=sharing',
+    sheet='Sheet1')
+```
 
 #### How to read a dataframe using SheetUtil
 You can get the data in the Google sheet as a Pandas DataFrame using the SheetUtil. We have defined a template for the Google sheet to use with this utility. 
@@ -111,6 +117,14 @@ You can get the data in the Google sheet as a Pandas DataFrame using the SheetUt
 ![alt text](https://img.techpowerup.org/200311/screen-shot-2020-03-11-at-4-08-25-pm.png)
 
 You need to provide the "field_names_row_number" and "field_types_row_number" to call "get_dataframe()" method in SheetUtil.
+
+```python
+sheet_data = sheet_util.get_dataframe(
+                field_names_row_number=8,
+                field_types_row_number=7,
+                row_range="12:20",
+                data_start_row_number=9)
+```
 
 
 
