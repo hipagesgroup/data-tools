@@ -95,9 +95,11 @@ class GoogleSheetToAthena(GoogleSheetToS3):
         if self.settings.target_table_ddl_progress:
             athena_util.repair_table_partitions(table=self.settings.target_table_name)
         else:
-            athena_util.add_partitions(table=self.settings.target_table_name, partition_keys=[
-                self.settings.manual_partition_key_value["column"]], partition_values=[
-                self.settings.manual_partition_key_value["value"]])
+            athena_util.add_partitions(
+                table=self.settings.target_table_name,
+                partition_keys=[self.settings.manual_partition_key_value["column"]],
+                partition_values=[self.settings.manual_partition_key_value["value"]]
+            )
 
     def _calculate_s3_key(self):
         s3_key_with_partition = self.settings.target_s3_dir
