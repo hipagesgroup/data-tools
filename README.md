@@ -99,6 +99,21 @@ sync_table(ExampleModel)
 
 ## Connect to Google Sheets
 
+#### How to connect
+You need to go to Google developer console and get credentials. Then the Google sheet need to be shared with client email. GoogleApiConnectionSettings need to be provided with the Google API credentials key json. Then you can access the Google sheet by using the workbook_url and the sheet name.
+
+#### How to instantiate Sheet Util
+You can instantiate Sheet Util by providing GoogleSheetConnectionManager, workbook_url and the sheet name.
+
+#### How to read a dataframe using SheetUtil
+You can get the data in the Google sheet as a Pandas DataFrame using the SheetUtil. We have defined a template for the Google sheet to use with this utility. 
+
+![alt text](https://img.techpowerup.org/200311/screen-shot-2020-03-11-at-4-08-25-pm.png)
+
+You need to provide the "field_names_row_number" and "field_types_row_number" to call "get_dataframe()" method in SheetUtil.
+
+
+
 You can use load_sheet_to_athena() function to load Google sheet data into an Athena table.
 
 ```python
