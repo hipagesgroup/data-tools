@@ -48,6 +48,7 @@ setup(
     entry_points={'console_scripts': [
         'version-tracker=hip_data_tools.hipages.version_tracking:main']},
     install_requires=[
+        "attrs",
         "boto3",
         "joblib",
         "pandas",
@@ -65,7 +66,6 @@ setup(
     ],
     test_suite="tests",
     tests_require=[
-        'attrs',
         'pytest',
         'pytest-mock==1.10.1',
         "moto",
