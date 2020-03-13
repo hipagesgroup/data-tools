@@ -59,7 +59,7 @@ class GoogleAdWordsConnectionManager:
     def get_adwords_client(self) -> AdWordsClient:
         """
         Gets the connected  adwords client, and creates one if not exist
-        Returns:
+        Returns (AdWordsClient): Adwords Client
 
         """
         if self._adwords_client is None:
