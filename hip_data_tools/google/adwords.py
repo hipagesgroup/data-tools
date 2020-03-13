@@ -84,13 +84,14 @@ class GoogleAdWordsConnectionManager:
 
 
 class AdWordsUtil:
+    """
+    Generic Adwords Utility that generates the required services that perform actions on adwords 
+    Args:
+        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+    """
+
     def __init__(self, conn: GoogleAdWordsConnectionManager):
-        """
-        Generic Adwords Utility calss that generates the required services from the client.
-        Args:
-            conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
-            adwords client
-        """
         self.conn = conn
 
     def _get_customer_service(self):
@@ -98,6 +99,12 @@ class AdWordsUtil:
 
 
 class AdWordsCustomerUtil(AdWordsUtil):
+    """
+    Adwords Utility to handle customer details
+    Args:
+        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+    """
 
     def get_customers(self) -> List[dict]:
         """
