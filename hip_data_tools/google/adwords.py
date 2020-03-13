@@ -109,7 +109,7 @@ class AdWordsCustomerUtil(AdWordsUtil):
     def get_customers(self) -> List[dict]:
         """
         Gets the customer details of the adwords accounts associated with the connection
-        Returns: List[dct]
+        Returns: List[dict]
 
         """
         return self._get_customer_service().getCustomers()
