@@ -10,3 +10,4 @@ bin
 build/
 dist/
 .coverage
+secrets.py
