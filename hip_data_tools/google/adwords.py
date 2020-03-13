@@ -85,7 +85,7 @@ class GoogleAdWordsConnectionManager:
 
 class AdWordsUtil:
     """
-    Generic Adwords Utility that generates the required services that perform actions on adwords 
+    Generic Adwords Utility that generates the required services that perform actions on adwords
     Args:
         conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
         adwords client
