@@ -97,12 +97,14 @@ class S3Util(AwsUtil):
         Exports a datafame to a parquet file on s3
         Args:
             dataframe (DataFrame): dataframe to export
-            key (str): The absolute path on s3 to upload the file to
+            key (str): The path on s3 to upload the file to (excluding bucket name and file name)
             file_name (str): the name of the file at destination
         Returns: None
         """
-        destination = f"s3://{self.bucket}/{key}/{file_name}.parquet"
-        dataframe.to_parquet(fname=destination)
+        local_file_path = "/tmp/tmp_file_{}.parquet".format(str(uuid.uuid4()))
+        destination = f"{key}/{file_name}.parquet"
+        dataframe.to_parquet(fname=local_file_path)
+        self.upload_file(local_file_path=local_file_path, key=destination, remove_local=True)
 
     def download_parquet_as_dataframe(self,
                                       key: str,
