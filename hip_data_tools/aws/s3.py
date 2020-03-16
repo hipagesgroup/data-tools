@@ -101,7 +101,7 @@ class S3Util(AwsUtil):
             file_name (str): the name of the file at destination
         Returns: None
         """
-        local_file_path = "/tmp/tmp_file_{}.parquet".format(str(uuid.uuid4()))
+        local_file_path = "./tmp_file_{}.parquet".format(str(uuid.uuid4()))
         destination = f"{key}/{file_name}.parquet"
         dataframe.to_parquet(fname=local_file_path)
         self.upload_file(local_file_path=local_file_path, key=destination, remove_local=True)
