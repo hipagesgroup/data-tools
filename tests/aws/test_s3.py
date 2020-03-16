@@ -282,4 +282,4 @@ class TestS3Util(TestCase):
         actual = s3_util_for_destination.read_lines_as_list("test_copy")[0]
 
         expected = "Test file content"
-        self.assertEquals(actual, expected)
+        self.assertEqual(actual, expected)
