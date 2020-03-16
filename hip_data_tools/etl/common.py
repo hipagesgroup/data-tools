@@ -11,6 +11,7 @@ from cassandra.cqlengine.query import LWTException
 
 
 class EtlStates(Enum):
+    """Enumerator for the possible states of an ETL"""
     Ready = 'ready'
     Processing = 'processing'
     Succeeded = 'succeeded'
@@ -18,6 +19,7 @@ class EtlStates(Enum):
 
 
 class EtlSinkRecordState(Model):
+    """Cassandra ORM model for the Etl Sink States"""
     etl_signature = columns.Text(primary_key=True, required=True)
     record_identifier = columns.Text(primary_key=True, required=True)
     record_state = columns.Text(required=True, index=True, default=EtlStates.Ready.value)
@@ -26,11 +28,21 @@ class EtlSinkRecordState(Model):
 
 
 def sync_etl_state_table():
+    """
+    Utility method to sync (Create) the table as per ORM model
+    Returns: None
+    """
     sync_table(EtlSinkRecordState)
 
 
 class EtlSinkRecordStateManager:
     def __init__(self, record_identifier: str, etl_signature: str):
+        """
+        The Generic ETL Sink State manager that manages and persists the state of a record
+        Args:
+            record_identifier (str): A unique Identifier string to identify the sink record
+            etl_signature (str): The Unique ETL Signature to identify the ETL
+        """
         self.record_identifier = record_identifier
         self.etl_signature = etl_signature
         self.remote_state = self._get_or_create_state()
@@ -68,16 +80,37 @@ class EtlSinkRecordStateManager:
             state_last_updated=datetime.now())
 
     def current_state(self):
+        """
+        Get surrent state of the sid record
+        Returns (EtlStates): current state
+
+        """
         return EtlStates(self.remote_state['record_state'])
 
     def succeeded(self):
+        """
+        Mark Record as succeeded
+        Returns: None
+        """
         self._change_state(EtlStates.Succeeded)
 
     def failed(self):
+        """
+        Mark Record as failed
+        Returns: None
+        """
         self._change_state(EtlStates.Failed)
 
     def processing(self):
+        """
+        Mark Record as processing
+        Returns: None
+        """
         self._change_state(EtlStates.Processing)
 
     def ready(self):
+        """
+        Mark Record as ready
+        Returns: None
+        """
         self._change_state(EtlStates.Ready)
