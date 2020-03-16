@@ -36,13 +36,13 @@ def sync_etl_state_table():
 
 
 class EtlSinkRecordStateManager:
+    """
+    The Generic ETL Sink State manager that manages and persists the state of a record
+    Args:
+        record_identifier (str): A unique Identifier string to identify the sink record
+        etl_signature (str): The Unique ETL Signature to identify the ETL
+    """
     def __init__(self, record_identifier: str, etl_signature: str):
-        """
-        The Generic ETL Sink State manager that manages and persists the state of a record
-        Args:
-            record_identifier (str): A unique Identifier string to identify the sink record
-            etl_signature (str): The Unique ETL Signature to identify the ETL
-        """
         self.record_identifier = record_identifier
         self.etl_signature = etl_signature
         self.remote_state = self._get_or_create_state()
