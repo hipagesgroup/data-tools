@@ -7,6 +7,7 @@ import os
 import uuid
 from multiprocessing.pool import Pool
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import List, Any
 
 import arrow
@@ -97,12 +98,14 @@ class S3Util(AwsUtil):
         Exports a datafame to a parquet file on s3
         Args:
             dataframe (DataFrame): dataframe to export
-            key (str): The absolute path on s3 to upload the file to
+            key (str): The path on s3 to upload the file to (excluding bucket name and file name)
             file_name (str): the name of the file at destination
         Returns: None
         """
-        destination = f"s3://{self.bucket}/{key}/{file_name}.parquet"
-        dataframe.to_parquet(fname=destination)
+        tmp_file = NamedTemporaryFile(delete=False)
+        destination = f"{key}/{file_name}.parquet"
+        dataframe.to_parquet(fname=tmp_file.name)
+        self.upload_file(local_file_path=tmp_file.name, key=destination, remove_local=True)
 
     def download_parquet_as_dataframe(self,
                                       key: str,
