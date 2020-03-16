@@ -42,6 +42,7 @@ class EtlSinkRecordStateManager:
         record_identifier (str): A unique Identifier string to identify the sink record
         etl_signature (str): The Unique ETL Signature to identify the ETL
     """
+
     def __init__(self, record_identifier: str, etl_signature: str):
         self.record_identifier = record_identifier
         self.etl_signature = etl_signature
@@ -58,7 +59,7 @@ class EtlSinkRecordStateManager:
                 record_identifier=e.existing['record_identifier'])
 
     def _state_change_validation(self, new_state):
-        if (new_state == EtlStates.Succeeded or new_state == EtlStates.Failed) and \
+        if new_state in (EtlStates.Succeeded, EtlStates.Failed) and \
             self.current_state() != EtlStates.Processing:
             raise ValidationError(
                 f"Current State '{self.current_state()}' cannot transition to '{new_state}'")
