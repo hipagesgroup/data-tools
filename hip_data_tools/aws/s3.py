@@ -7,6 +7,7 @@ import os
 import uuid
 from multiprocessing.pool import Pool
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import List, Any
 
 import arrow
@@ -101,10 +102,10 @@ class S3Util(AwsUtil):
             file_name (str): the name of the file at destination
         Returns: None
         """
-        local_file_path = "./tmp_file_{}.parquet".format(str(uuid.uuid4()))
+        tmp_file = NamedTemporaryFile(delete=False)
         destination = f"{key}/{file_name}.parquet"
-        dataframe.to_parquet(fname=local_file_path)
-        self.upload_file(local_file_path=local_file_path, key=destination, remove_local=True)
+        dataframe.to_parquet(fname=tmp_file.name)
+        self.upload_file(local_file_path=tmp_file.name, key=destination, remove_local=True)
 
     def download_parquet_as_dataframe(self,
                                       key: str,
