@@ -1,0 +1,10 @@
+version: '2.0'
+services:
+  cassandra:
+    image: cassandra
+    ports:
+      - "7000:7000"
+      - "9042:9042"
+    environment:
+      - CQLENG_ALLOW_SCHEMA_MANAGEMENT="True"
+

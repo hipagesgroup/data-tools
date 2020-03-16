@@ -74,6 +74,7 @@ setup(
         "python-snappy",
         "pytest-stub",
         "freezegun==0.1.11",
+        "testcontainers",
     ],
     cmdclass={'test': PyTest},
     python_requires='~=3.6',
