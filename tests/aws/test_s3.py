@@ -120,10 +120,8 @@ class TestS3Util(TestCase):
         upload_key = "temp456"
         test_object = pd.DataFrame([1, 2, 3, 4], columns=["one"])
         self.s3.upload_dataframe_as_parquet(dataframe=test_object, key=upload_key)
-        self.s3.download_file(local_file_path="./test_parquet_file.parquet", key=upload_key + '/')
-        # redown_df = self.s3.download_parquet_as_dataframe(key=upload_key)
-        df = pd.read_parquet(path="./test_parquet_file.parquet")
-        assert_frame_equal(test_object, df)
+        redown_df = self.s3.download_parquet_as_dataframe(f"{upload_key}/data.parquet")
+        assert_frame_equal(test_object, redown_df)
 
     @mock_s3
     def test_should__delete_recursive__when_using_s3util(self):
