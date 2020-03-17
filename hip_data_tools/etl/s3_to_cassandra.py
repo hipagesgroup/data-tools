@@ -55,8 +55,9 @@ class S3ToCassandra(S3ToDataFrame):
         Creates the destination cassandra table if not exists
         Returns: None
         """
+        files = self.list_source_files()
         data_frame = self._get_s3_util().download_parquet_as_dataframe(
-            key=self.list_source_files()[0])
+            key=files[0])
         self._get_cassandra_util().create_table_from_dataframe(
             data_frame=data_frame,
             table_name=self.settings.destination_table,
