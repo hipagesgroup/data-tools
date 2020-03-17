@@ -3,10 +3,8 @@ handle ETL of data from Athena to Cassandra
 """
 from attr import dataclass
 
-from hip_data_tools.apache.cassandra import CassandraConnectionSettings
 from hip_data_tools.aws.athena import AthenaUtil
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
-from hip_data_tools.etl.s3_to_cassandra import S3ToCassandraSettings, S3ToCassandra
 from hip_data_tools.etl.s3_to_dataframe import S3ToDataFrameSettings, S3ToDataFrame
 
 
