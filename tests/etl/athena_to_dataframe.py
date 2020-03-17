@@ -26,3 +26,5 @@ class TestS3ToDataFrame(TestCase):
         self.assertEqual(expected_s3_files, etl.list_source_files())
 
         self.assertEqual((47848, 28), etl.next().shape)
+
+        self.assertEqual((47848, 28), etl.get_all_files_as_dataframe())
