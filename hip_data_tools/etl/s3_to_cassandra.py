@@ -9,16 +9,14 @@ from cassandra.datastax.graph import Result
 
 from hip_data_tools.apache.cassandra import CassandraUtil, CassandraConnectionManager, \
     CassandraConnectionSettings
-from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
+from hip_data_tools.aws.common import AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
+from hip_data_tools.etl.s3_to_dataframe import S3ToDataFrame, S3ToDataFrameSettings
 
 
 @dataclass
-class S3ToCassandraSettings:
+class S3ToCassandraSettings(S3ToDataFrameSettings):
     """S3 to Cassandra ETL settings"""
-    source_bucket: str
-    source_key_prefix: str
-    source_connection_settings: AwsConnectionSettings
     destination_keyspace: str
     destination_table: str
     destination_table_primary_keys: list
@@ -27,7 +25,7 @@ class S3ToCassandraSettings:
     destination_batch_size: int = 1
 
 
-class S3ToCassandra:
+class S3ToCassandra(S3ToDataFrame):
     """
     Class to transfer parquet data from s3 to Cassandra
     Args:
@@ -36,6 +34,7 @@ class S3ToCassandra:
 
     def __init__(self, settings: S3ToCassandraSettings):
         self.settings = settings
+        super().__init__(self.settings)
         self.keys_to_transfer = None
 
     def _get_cassandra_util(self):
@@ -56,8 +55,9 @@ class S3ToCassandra:
         Creates the destination cassandra table if not exists
         Returns: None
         """
+        files = self.list_source_files()
         data_frame = self._get_s3_util().download_parquet_as_dataframe(
-            key=self.list_source_files()[0])
+            key=files[0])
         self._get_cassandra_util().create_table_from_dataframe(
             data_frame=data_frame,
             table_name=self.settings.destination_table,
@@ -78,16 +78,9 @@ class S3ToCassandra:
         Upsert all files from s3 sequentially into cassandra
         Returns: None
         """
-        return [self.upsert_file(key) for key in self.list_source_files()]
+        return [self._upsert_dataframe(df) for df in self._get_iterator()]
 
-    def upsert_file(self, key: str) -> List[Result]:
-        """
-        Read a parquet file from s3 and upsert the records to Cassandra
-        Args:
-            key: s3 key for the parquet file
-        Returns: None
-        """
-        data_frame = self._get_s3_util().download_parquet_as_dataframe(key=key)
+    def _upsert_dataframe(self, data_frame):
         if self.settings.destination_batch_size > 1:
             log.info("upserting batches of size %s", self.settings.destination_batch_size)
             result = self._get_cassandra_util().upsert_dataframe_in_batches(
@@ -101,13 +94,12 @@ class S3ToCassandra:
                 table=self.settings.destination_table)
         return result
 
-    def list_source_files(self):
+    def upsert_file(self, key: str) -> List[Result]:
         """
-        Lists all the files that are encompassed under the s3 location in settings
-        Returns: list[str]
+        Read a parquet file from s3 and upsert the records to Cassandra
+        Args:
+            key: s3 key for the parquet file
+        Returns: None
         """
-        if self.keys_to_transfer is None:
-            self.keys_to_transfer = self._get_s3_util().get_keys(
-                self.settings.source_key_prefix)
-            log.info("Listed and cached %s source files", len(self.keys_to_transfer))
-        return self.keys_to_transfer
+        data_frame = self.get_dataframe(key)
+        return self._upsert_dataframe(data_frame)
