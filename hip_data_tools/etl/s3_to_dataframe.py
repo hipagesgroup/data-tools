@@ -31,14 +31,15 @@ class S3ToDataFrame:
         self._iterator = None
         self.settings = settings
         self.keys_to_transfer = None
+        self._processed_counter = 0
 
     def __iter__(self):
-        self.processed_counter = 0
+        self._processed_counter = 0
         return self
 
     def __next__(self) -> DataFrame:
-        data = self.get_dataframe(self.list_source_files()[self.processed_counter])
-        self.processed_counter += 1
+        data = self.get_dataframe(self.list_source_files()[self._processed_counter])
+        self._processed_counter += 1
         return data
 
     def _get_s3_util(self) -> S3Util:
