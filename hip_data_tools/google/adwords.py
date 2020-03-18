@@ -103,6 +103,13 @@ class AdWordsUtil:
 
 
 class AdWordsCustomerUtil(AdWordsUtil):
+    """
+    Adwords Utility to handle customer details, customer here meaning, the Adwords customer
+    account, ie. the accounts that you see on top right corner on the AdWords console
+    Args:
+        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+    """
 
     def __init__(self, conn: GoogleAdWordsConnectionManager):
         super().__init__(conn, 'CustomerService', 'v201809')
