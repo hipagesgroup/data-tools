@@ -5,6 +5,7 @@ from typing import List, Optional
 
 from attr import dataclass
 from googleads import oauth2, AdWordsClient
+from googleads.common import GoogleSoapService
 from googleads.oauth2 import GoogleOAuth2Client
 
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
@@ -98,7 +99,7 @@ class AdWordsUtil:
         self.version = version
         self.conn = conn
 
-    def _get_service(self, **kwargs):
+    def _get_service(self, **kwargs) -> GoogleSoapService:
         return self.conn.get_adwords_client(**kwargs).GetService(self.service, version=self.version)
 
 
