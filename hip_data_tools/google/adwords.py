@@ -199,7 +199,16 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
                     'trigger': None,
                     'errorString': 'OfflineConversionError.UNPARSEABLE_GCLID',
                     'ApiError.Type': 'OfflineConversionError',
-                    'reason': 'UNPARSEABLE_GCLID'
+                    'reason': 'UNPARSEABLE_GCLID',
+                    'data': {
+                        'googleClickId': 'gclid that failed',
+                        'conversionName': 'some conversion name',
+                        'conversionTime': '20200309 074353 UTC',
+                        'conversionValue': 17.0,
+                        'conversionCurrencyCode': 'AUD',
+                        'externalAttributionCredit': None,
+                        'externalAttributionModel': None
+                    }
                 },
             ]
         )
@@ -211,9 +220,23 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
             raise Exception(
                 f"Unhandled Exception while loading batch of conversions, response: {result}")
         uploaded = [x for x in result['value'] if x is not None]
-        failed = result['partialFailureErrors']
+        #  Append actual data to the failed conversions
+        fails = [self._find_and_append_data(fail, data) for fail in result['partialFailureErrors']]
 
-        return uploaded, failed
+        return uploaded, fails
+
+    def _find_and_append_data(self, fail: dict, data: List[dict]) -> dict:
+        fail["data"] = self._extract_failed_data(fail, data)
+        return fail
+
+    def _extract_failed_data(self, fail: dict, data: List[dict]) -> dict:
+        extracted = {}
+        for element in fail['fieldPathElements']:
+            if element['field'] == 'operations':
+                fail_index = element['index']
+                extracted = data[fail_index]
+                return extracted
+        return extracted
 
     def _upload_mutations_batch(self, mutations: List[dict]) -> dict:
         return self._get_service(partial_failure=True).mutate(mutations)
