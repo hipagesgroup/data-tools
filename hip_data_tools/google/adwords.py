@@ -140,6 +140,64 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
         self.conversion_time_format = '%Y%m%d %H%M%S %Z'
 
     def upload_conversions(self, data: List[dict]) -> (List[dict], List[dict]):
+        """
+        Uplaod a list of conversions as a batch
+        Args:
+            data List[dict]: a List of conversion dictonaries like:
+            [
+                {
+                    'googleClickId': 'some valid gclit',
+                    'conversionName': 'some conversion name',
+                    'conversionTime': '20200309 074353 UTC',
+                    'conversionValue': 17.0,
+                    'conversionCurrencyCode': 'AUD',
+                },
+                {
+                    'googleClickId': 'some other valid gclid',
+                    'conversionName': 'some conversion name',
+                    'conversionTime': '20200309 023001 UTC',
+                    'conversionValue': 17.0,
+                    'conversionCurrencyCode': 'AUD',
+                    'externalAttributionCredit': 0.3,
+                    'externalAttributionModel': 'Linear',
+                },
+            ]
+
+        Returns (List[dict], List[dict]): A tup[le of succeded records and failed records eg.
+        (
+            [
+                {
+                    'googleClickId': 'gclid that suceeded',
+                    'conversionName': 'some conversion name',
+                    'conversionTime': '20200309 074353 UTC',
+                    'conversionValue': 17.0,
+                    'conversionCurrencyCode': 'AUD',
+                    'externalAttributionCredit': None,
+                    'externalAttributionModel': None
+                },
+            ] ,
+             [
+                 {
+                    'fieldPath': 'operations[0].operand',
+                    'fieldPathElements': [
+                        {
+                            'field': 'operations',
+                            'index': 0
+                        },
+                        {
+                            'field': 'operand',
+                            'index': None
+                        }
+                    ],
+                    'trigger': None,
+                    'errorString': 'OfflineConversionError.UNPARSEABLE_GCLID',
+                    'ApiError.Type': 'OfflineConversionError',
+                    'reason': 'UNPARSEABLE_GCLID'
+                },
+            ]
+        )
+
+        """
         mutations = self._get_mutations_from_conversions_batch(data)
         result = self._upload_mutations_batch(mutations)
         if result['ListReturnValue.Type'] != 'OfflineConversionFeedReturnValue':
