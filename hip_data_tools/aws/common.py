@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any
+from typing import Any, Optional
 
 import boto3 as boto
 from attr import dataclass
@@ -39,8 +39,8 @@ class AwsSecretsManager(SecretsManager):
 class AwsConnectionSettings:
     """Encapsulates the Cassandra connection settings"""
     region: str
-    profile: str
-    secrets_manager: AwsSecretsManager
+    profile: Optional[str]
+    secrets_manager: Optional[AwsSecretsManager]
 
 
 class AwsConnectionManager:
