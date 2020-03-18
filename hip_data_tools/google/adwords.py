@@ -1,7 +1,7 @@
 """
 This Module handles the connection and operations on Google AdWords accounts using adwords API
 """
-from typing import List
+from typing import List, Optional
 
 from attr import dataclass
 from googleads import oauth2, AdWordsClient
@@ -40,7 +40,7 @@ class GoogleAdWordsConnectionSettings:
     """
     client_id: str
     user_agent: str
-    client_customer_id: str
+    client_customer_id: Optional[str]
     secrets_manager: GoogleAdWordsSecretsManager
 
 
@@ -56,22 +56,24 @@ class GoogleAdWordsConnectionManager:
         self.settings = settings
         self._adwords_client = None
 
-    def get_adwords_client(self) -> AdWordsClient:
+    def get_adwords_client(self, **kwargs) -> AdWordsClient:
         """
         Gets the connected  adwords client, and creates one if not exist
         Returns (AdWordsClient): Adwords Client
 
         """
         if self._adwords_client is None:
-            self._adwords_client = self._create_adwords_client()
+            self._adwords_client = self._create_adwords_client(**kwargs)
         return self._adwords_client
 
-    def _create_adwords_client(self) -> AdWordsClient:
+    def _create_adwords_client(self, **kwargs) -> AdWordsClient:
         oauth2_client = self._get_oauth_client()
         adwords_client = AdWordsClient(
             developer_token=self.settings.secrets_manager.developer_key,
             oauth2_client=oauth2_client,
-            user_agent=self.settings.user_agent)
+            user_agent=self.settings.user_agent,
+            client_customer_id=self.settings.client_customer_id,
+            **kwargs)
         return adwords_client
 
     def _get_oauth_client(self) -> GoogleOAuth2Client:
@@ -91,11 +93,13 @@ class AdWordsUtil:
         adwords client
     """
 
-    def __init__(self, conn: GoogleAdWordsConnectionManager):
+    def __init__(self, conn: GoogleAdWordsConnectionManager, service: str, version: str):
+        self.service = service
+        self.version = version
         self.conn = conn
 
-    def _get_customer_service(self):
-        return self.conn.get_adwords_client().GetService('CustomerService', version='v201809')
+    def _get_service(self, **kwargs):
+        return self.conn.get_adwords_client().GetService(self.service, version=self.version)
 
 
 class AdWordsCustomerUtil(AdWordsUtil):
@@ -106,10 +110,68 @@ class AdWordsCustomerUtil(AdWordsUtil):
         adwords client
     """
 
+    def __init__(self, conn: GoogleAdWordsConnectionManager):
+        super().__init__(conn, 'CustomerService', 'v201809')
+
     def get_customers(self) -> List[dict]:
         """
         Gets the customer details of the adwords accounts associated with the connection
         Returns: List[dict]
 
         """
-        return self._get_customer_service().getCustomers()
+        return self._get_service().getCustomers()
+
+
+class AdWordsOfflineConversionUtil(AdWordsUtil):
+    def __init__(self, conn: GoogleAdWordsConnectionManager):
+        super().__init__(conn, 'OfflineConversionFeedService', 'v201809')
+        self.required_fields = [
+            'conversionName',
+            'conversionTime',
+            'conversionValue',
+            'googleClickId',
+        ]
+        self.valid_fields = self.required_fields + [
+            'conversionCurrencyCode',
+            'externalAttributionCredit',
+            'externalAttributionModel',
+        ]
+        self.conversion_time_format = '%Y%m%d %H%M%S %Z'
+
+    def upload_conversions(self, data: List[dict]) -> (List[dict], List[dict]):
+        mutations = self._get_mutations_from_conversions_batch(data)
+        result = self._upload_mutations_batch(mutations)
+        if result['ListReturnValue.Type'] != 'OfflineConversionFeedReturnValue':
+            raise Exception(
+                f"Unhandled Exception while loading batch of conversions, response: {result}")
+        uploaded = result['value']
+        failed = result['partialFailureErrors']
+
+        return uploaded, failed
+
+    def _upload_mutations_batch(self, mutations: List[dict]) -> dict:
+        return self._get_service(partial_failure=True).mutate(mutations)
+
+    def _get_mutations_from_conversions_batch(self, conversions: List[dict]) -> List[dict]:
+        return [self._get_mutation_from_conversion(d) for d in conversions]
+
+    def _get_mutation_from_conversion(self, conversion: dict) -> dict:
+        self._verify_required_columns(conversion)
+        self._verify_accepted_columns(conversion)
+        return {
+            'operator': 'ADD',
+            'operand': conversion
+        }
+
+    def _verify_required_columns(self, conversion: dict) -> None:
+        for col in self.required_fields:
+            if col not in conversion:
+                raise ValueError(
+                    f"The column {col} is required byt not present in the data {conversion}")
+
+    def _verify_accepted_columns(self, conversion: dict) -> None:
+        for col in conversion.keys():
+            if col not in self.valid_fields:
+                raise ValueError(
+                    f"The column {col} present in the DataFrame is not in the allowed column list "
+                    f"{self.valid_fields}")
