@@ -123,14 +123,13 @@ class AdWordsCustomerUtil(AdWordsUtil):
         return self._get_service().getCustomers()
 
 
-def _extract_failed_data(fail: dict, data: List[dict]) -> dict:
-    extracted = {}
+def _find_and_append_data(fail: dict, data: List[dict]) -> dict:
     for element in fail['fieldPathElements']:
         if element['field'] == 'operations':
             fail_index = element['index']
-            extracted = data[fail_index]
-            return extracted
-    return extracted
+            fail["data"] = data[fail_index]
+            return fail
+    return fail
 
 
 class AdWordsOfflineConversionUtil(AdWordsUtil):
@@ -231,13 +230,9 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
                 f"Unhandled Exception while loading batch of conversions, response: {result}")
         uploaded = [x for x in result['value'] if x is not None]
         #  Append actual data to the failed conversions
-        fails = [self._find_and_append_data(fail, data) for fail in result['partialFailureErrors']]
+        fails = [_find_and_append_data(fail, data) for fail in result['partialFailureErrors']]
 
         return uploaded, fails
-
-    def _find_and_append_data(self, fail: dict, data: List[dict]) -> dict:
-        fail["data"] = _extract_failed_data(fail, data)
-        return fail
 
     def _upload_mutations_batch(self, mutations: List[dict]) -> dict:
         return self._get_service(partial_failure=True).mutate(mutations)
