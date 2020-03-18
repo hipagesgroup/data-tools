@@ -123,6 +123,16 @@ class AdWordsCustomerUtil(AdWordsUtil):
         return self._get_service().getCustomers()
 
 
+def _extract_failed_data(fail: dict, data: List[dict]) -> dict:
+    extracted = {}
+    for element in fail['fieldPathElements']:
+        if element['field'] == 'operations':
+            fail_index = element['index']
+            extracted = data[fail_index]
+            return extracted
+    return extracted
+
+
 class AdWordsOfflineConversionUtil(AdWordsUtil):
     """
     Adwords Utility to handle offline conversions
@@ -226,17 +236,8 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
         return uploaded, fails
 
     def _find_and_append_data(self, fail: dict, data: List[dict]) -> dict:
-        fail["data"] = self._extract_failed_data(fail, data)
+        fail["data"] = _extract_failed_data(fail, data)
         return fail
-
-    def _extract_failed_data(self, fail: dict, data: List[dict]) -> dict:
-        extracted = {}
-        for element in fail['fieldPathElements']:
-            if element['field'] == 'operations':
-                fail_index = element['index']
-                extracted = data[fail_index]
-                return extracted
-        return extracted
 
     def _upload_mutations_batch(self, mutations: List[dict]) -> dict:
         return self._get_service(partial_failure=True).mutate(mutations)
@@ -247,10 +248,7 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
     def _get_mutation_from_conversion(self, conversion: dict) -> dict:
         self._verify_required_columns(conversion)
         self._verify_accepted_columns(conversion)
-        return {
-            'operator': 'ADD',
-            'operand': conversion
-        }
+        return {'operator': 'ADD', 'operand': conversion}
 
     def _verify_required_columns(self, conversion: dict) -> None:
         for col in self.required_fields:
