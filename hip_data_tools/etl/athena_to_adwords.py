@@ -1,12 +1,14 @@
 """
 handle ETL of data from Athena to Cassandra
 """
+import logging as log
 from typing import List
 
 from attr import dataclass
 from cassandra.cqlengine import ValidationError
 from pandas import DataFrame
 
+from hip_data_tools.apache.cassandra import CassandraConnectionManager, CassandraConnectionSettings
 from hip_data_tools.etl.athena_to_dataframe import AthenaToDataFrame, AthenaToDataFrameSettings
 from hip_data_tools.etl.common import EtlSinkRecordStateManager
 from hip_data_tools.google.adwords import AdWordsOfflineConversionUtil, \
@@ -18,6 +20,8 @@ class AthenaToAdWordsOfflineConversionSettings(AthenaToDataFrameSettings):
     """S3 to Cassandra ETL settings"""
     transformation_column_mapping: dict
     etl_identifier: str
+    etl_state_manager_keyspace: str
+    etl_state_manager_connection: CassandraConnectionSettings
     destination_batch_size: int
     destination_connection_settings: GoogleAdWordsConnectionSettings
 
@@ -34,6 +38,39 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         self._adwords = None
         self.settings = settings
 
+    def upload_next(self) -> List[dict]:
+        """
+        Upload the next file in line from the athena table onto AdWords offline conversion
+        Returns List[dict]: a list of issues in the format
+        [
+            {
+                "error": " some error",
+                "data": {
+                ... original data body of the data that caused issues
+                }
+            },
+        ]
+        """
+        return self._process_data_frame(self.next())
+
+    def upload_all(self) -> List[dict]:
+        """
+        Upload the all files from the athena table onto AdWords offline conversion
+        Returns List[dict]: a list of issues in the format
+        [
+            {
+                "error": " some error",
+                "data": {
+                ... original data body of the data that caused issues
+                }
+            }.
+        ]
+        """
+        issues = []
+        for key in self.list_source_files():
+            issues.extend(self._process_data_frame(self.get_dataframe(key)))
+        return issues
+
     def _get_adwords_util(self):
         if self._adwords is None:
             self._adwords = AdWordsOfflineConversionUtil(
@@ -44,7 +81,8 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
     def _get_record_signature(self, record: dict):
         return f"{record['googleClickId']}||||{record['conversionName']}"
 
-    def _get_sink_manager(self, record: dict):
+    def _get_sink_manager(self, record: dict) -> EtlSinkRecordStateManager:
+        # Need to setup the cassandra connection
         return EtlSinkRecordStateManager(
             record_identifier=self._get_record_signature(record),
             etl_signature=self.settings.etl_identifier
@@ -61,11 +99,9 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         n = self.settings.destination_batch_size
         return [lst[i * n:(i + 1) * n] for i in range((len(lst) + n - 1) // n)]
 
-    def upload_next(self):
-        return self._process_data_frame(self.next())
-
-    def _process_data_frame(self, data_frame):
+    def _process_data_frame(self, data_frame) -> List[dict]:
         data_dict = self._data_frame_to_destination_dict(data_frame)
+        self._state_manager_connect()
         ready_data, issues = self._verify_data_before_upsert(data_dict)
         data_dict_batches = self._chunk_batches(ready_data)
         for data_batch in data_dict_batches:
@@ -74,23 +110,21 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
             self._mark_upload_results(fail, success)
         return issues
 
-    def upload_all(self):
-        issues = []
-        for key in self.list_source_files():
-            issues.append(self._process_data_frame(self.get_dataframe(key)))
-        return issues
+    def _state_manager_connect(self):
+        conn = CassandraConnectionManager(self.settings.etl_state_manager_connection)
+        conn.setup_connection(self.settings.etl_state_manager_keyspace)
 
-    def _mark_processing(self, data: List[dict]):
+    def _mark_processing(self, data: List[dict]) -> None:
         for dat in data:
             self._get_sink_manager(dat).processing()
 
-    def _mark_upload_results(self, fail: List[dict], success: List[dict]):
+    def _mark_upload_results(self, fail: List[dict], success: List[dict]) -> None:
         for dat in success:
             self._get_sink_manager(dat).succeeded()
         for dat in fail:
             self._get_sink_manager(dat["data"]).failed()
 
-    def _verify_data_before_upsert(self, data: List[dict]):
+    def _verify_data_before_upsert(self, data: List[dict]) -> (List[dict], List[dict]):
         ready = []
         issues = []
         for dat in data:
@@ -98,6 +132,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
                 self._get_sink_manager(dat).ready()
                 ready.append(dat)
             except ValidationError as e:
+                log.warning(f"Issue while trying to ready a record for upload \n {e} \n {dat}")
                 issues.append({
                     "error": str(e),
                     "data": dat,
