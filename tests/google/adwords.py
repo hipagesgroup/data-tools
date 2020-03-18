@@ -40,14 +40,11 @@ class TestAdWordsUtil(TestCase):
         uploaded, failed = adwords_util.upload_conversions(
             [
                 {
-                    'googleClickId': 'Cj0KCQiAqY3zBRDQARIsAJeCVxOIyZ8avQ0he3WIpHPwV6hRn'
-                                     '-8Y2gDrUBJcc95tDdLcE35TK1mhhmIaAgZGEALw_wcB',
+                    'googleClickId': 'xxx',
                     'conversionName': 'claim_attempts_testing',
                     'conversionTime': '20200309 074357 UTC',
                     'conversionValue': 17.0,
                     'conversionCurrencyCode': 'AUD',
-                    'externalAttributionCredit': None,
-                    'externalAttributionModel': None
                 },
                 {
                     'googleClickId': 'Cj0KCQiAqY3zBRDQARIsAJeCVxOIyZ8avQ0he3WIpHPwV6hRn'
@@ -56,8 +53,6 @@ class TestAdWordsUtil(TestCase):
                     'conversionTime': '20200309 074353 UTC',
                     'conversionValue': 17.0,
                     'conversionCurrencyCode': 'AUD',
-                    'externalAttributionCredit': None,
-                    'externalAttributionModel': None
                 },
                 {
                     'googleClickId': 'Cj0KCQiAqY3zBRDQARIsAJeCVxOIyZ8avQ0he3WIpHPwV6hRn'
@@ -66,12 +61,10 @@ class TestAdWordsUtil(TestCase):
                     'conversionTime': '20200309 023001 UTC',
                     'conversionValue': 17.0,
                     'conversionCurrencyCode': 'AUD',
-                    'externalAttributionCredit': None,
-                    'externalAttributionModel': None
                 },
             ]
         )
 
         print(uploaded, failed)
-        self.assertEqual(len(uploaded), 3)
-        self.assertEqual(len(failed), 0)
+        self.assertEqual(len(uploaded), 2)
+        self.assertEqual(len(failed), 1)

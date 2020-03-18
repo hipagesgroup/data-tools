@@ -99,16 +99,10 @@ class AdWordsUtil:
         self.conn = conn
 
     def _get_service(self, **kwargs):
-        return self.conn.get_adwords_client().GetService(self.service, version=self.version)
+        return self.conn.get_adwords_client(**kwargs).GetService(self.service, version=self.version)
 
 
 class AdWordsCustomerUtil(AdWordsUtil):
-    """
-    Adwords Utility to handle customer details
-    Args:
-        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
-        adwords client
-    """
 
     def __init__(self, conn: GoogleAdWordsConnectionManager):
         super().__init__(conn, 'CustomerService', 'v201809')
@@ -123,6 +117,13 @@ class AdWordsCustomerUtil(AdWordsUtil):
 
 
 class AdWordsOfflineConversionUtil(AdWordsUtil):
+    """
+    Adwords Utility to handle offline conversions
+    Args:
+        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+    """
+
     def __init__(self, conn: GoogleAdWordsConnectionManager):
         super().__init__(conn, 'OfflineConversionFeedService', 'v201809')
         self.required_fields = [
@@ -144,7 +145,7 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
         if result['ListReturnValue.Type'] != 'OfflineConversionFeedReturnValue':
             raise Exception(
                 f"Unhandled Exception while loading batch of conversions, response: {result}")
-        uploaded = result['value']
+        uploaded = [x for x in result['value'] if x is not None]
         failed = result['partialFailureErrors']
 
         return uploaded, failed
