@@ -74,7 +74,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
 
     def upload_all(self) -> List[dict]:
         """
-        Upload the all files from the athena table onto AdWords offline conversion
+        Upload all files from the Athena table onto AdWords offline conversion
         Returns List[dict]: a list of issues in the format
         [
             {
