@@ -143,7 +143,8 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
                         "data": dat,
                     })
             except ValidationError as e:
-                log.warning(f"Issue while trying to ready a record for upload \n {e} \n {dat}")
+                log.warning("Issue while trying to ready a record for the upload \n %s \n %s", e,
+                            dat)
                 issues.append({
                     "error": str(e),
                     "data": dat,
