@@ -30,8 +30,8 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
         cassandra_conn_setting = Mock()
 
         settings = AthenaToAdWordsOfflineConversionSettings(
-            source_database="xxx",
-            source_table="xxx",
+            source_database=os.getenv("dummy_athena_database"),
+            source_table=os.getenv("dummy_athena_table"),
             source_connection_settings=aws_conn,
             etl_identifier="xxxx",
             destination_batch_size=100,
@@ -81,7 +81,7 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
         ]
         self.assertListEqual(result, expected)
 
-    def test_duplicate_detection_works(self):
+    def test_adwords_upload_with_duplicates_in_same_batch(self):
         aws_conn = AwsConnectionSettings(
             region="ap-southeast-2",
             secrets_manager=None,
@@ -106,8 +106,8 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
             verify_container_is_up(cassandra_conn_setting)
 
             settings = AthenaToAdWordsOfflineConversionSettings(
-                source_database="xxx",
-                source_table="xxx",
+                source_database=os.getenv("dummy_athena_database"),
+                source_table=os.getenv("dummy_athena_table"),
                 source_connection_settings=aws_conn,
                 etl_identifier="xxxx",
                 destination_batch_size=100,
@@ -147,8 +147,16 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
                         'googleClickId': "Cj0KCQiAqY3zBRDQARIsAJeCVxOIyZ8avQ0he3WIpHPwV6hRn"
                                          "-8Y2gDrUBJcc95tDdLcE35TK1mhhmIaAgZGEALw_wcB",
                         'conversionName': 'claim_attempts_testing',
-                        'conversionTime': '20200309 074353 UTC',
-                        'conversionValue': 17.0,
+                        'conversionTime': '20200309 074353 UTC',  # Duplicate with same time
+                        'conversionValue': 14.0,
+                        'conversionCurrencyCode': 'AUD',
+                    },
+                    {
+                        'googleClickId': "Cj0KCQiAqY3zBRDQARIsAJeCVxOIyZ8avQ0he3WIpHPwV6hRn"
+                                         "-8Y2gDrUBJcc95tDdLcE35TK1mhhmIaAgZGEALw_wcB",
+                        'conversionName': 'claim_attempts_testing',
+                        'conversionTime': '20200309 084353 UTC',  # Duplicate with diff time
+                        'conversionValue': 14.0,
                         'conversionCurrencyCode': 'AUD',
                     },
                     {
@@ -160,55 +168,26 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
                     },
                 ]
             )
-            etl._process_data_frame(test_df)
+
             actual = etl._process_data_frame(test_df)
-            expected = [
+            expected = [  # The duplicate with same time has been Picked out as an issue
                 {
-                    'error': "Current State 'EtlStates.Ready' cannot transition to "
-                             "'EtlStates.Ready', you might have duplicate records in your data set",
-                    'data': {'googleClickId': 'xxx', 'conversionName': 'claim_attempts_testing',
-                             'conversionTime': '20200309 074357 UTC', 'conversionValue': 17.0,
-                             'conversionCurrencyCode': 'AUD'}},
-                {
-                    'error': "Current State 'EtlStates.Ready' cannot transition to "
-                             "'EtlStates.Ready', you might have duplicate records in your data set",
+                    'error': "Current State 'EtlStates.Processing' cannot transition to "
+                             "'EtlStates.Processing'",
                     'data': {
-                        'googleClickId': 'Cj0KCQiAqY3zBRDQARIsAJeCVxOIyZ8avQ0he3WIpHPwV6hRn'
-                                         '-8Y2gDrUBJcc95tDdLcE35TK1mhhmIaAgZGEALw_wcB',
+                        'googleClickId':
+                            'Cj0KCQiAqY3zBRDQARIsAJeCVxOIyZ8avQ0he3WIpHPwV6hRn'
+                            '-8Y2gDrUBJcc95tDdLcE35TK1mhhmIaAgZGEALw_wcB',
                         'conversionName': 'claim_attempts_testing',
-                        'conversionTime': '20200309 074353 UTC',
-                        'conversionValue': 17.0,
+                        'conversionTime': '20200309 074353 UTC', 'conversionValue': 14.0,
                         'conversionCurrencyCode': 'AUD'
                     }
                 },
-                {
-                    'error': "Current State 'EtlStates.Ready' cannot transition to "
-                             "'EtlStates.Ready', you might have duplicate records in your data set",
-                    'data': {
-                        'googleClickId': 'Cj0KCQiAqY3zBRDQARIsAJeCVxOIyZ8avQ0he3WIpHPwV6hRn'
-                                         '-8Y2gDrUBJcc95tDdLcE35TK1mhhmIaAgZGEALw_wcB',
-                        'conversionName': 'claim_attempts_testing',
-                        'conversionTime': '20200309 074353 UTC',
-                        'conversionValue': 17.0,
-                        'conversionCurrencyCode': 'AUD'
-                    }
-                },
-                {
-                    'error': "Current State 'EtlStates.Ready' cannot transition to "
-                             "'EtlStates.Ready', you might have duplicate records in your data set",
-                    'data': {
-                        'googleClickId': 'EAIaIQobChMI6oiGy_vz5wIVkjUrCh3IcgAuEAAYASAAEgLRk_D_BwE',
-                        'conversionName': 'claim_attempts_testing',
-                        'conversionTime': '20200309 023001 UTC',
-                        'conversionValue': 17.0,
-                        'conversionCurrencyCode': 'AUD'
-                    }
-                }
             ]
 
             self.assertListEqual(actual, expected)
 
-    def test_that_unique_data_passes_through(self):
+    def test_multiple_runs_of_same_data_and_verify_deduplication(self):
         aws_conn = AwsConnectionSettings(
             region="ap-southeast-2",
             secrets_manager=None,
@@ -234,8 +213,8 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
             # conn.get_session('system').execute(""" DROP TABLE test.etl_sink_record_state""")
 
             settings = AthenaToAdWordsOfflineConversionSettings(
-                source_database="long_lake",
-                source_table="dim_date",
+                source_database=os.getenv("dummy_athena_database"),
+                source_table=os.getenv("dummy_athena_table"),
                 source_connection_settings=aws_conn,
                 etl_identifier="test",
                 destination_batch_size=100,
@@ -314,22 +293,22 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
             # etl._process_data_frame(test_df)
             first_actual = etl._process_data_frame(test_df)
             self.assertListEqual(first_actual, [])
+
             # Repeat process to cause Duplicates
             actual = etl._process_data_frame(test_df)
             # actual = etl.upload_next()
-
             expected = [{'data': {'conversionCurrencyCode': 'AUD',
                                   'conversionName': 'claim_attempts_testing',
                                   'conversionTime': '20200309 074357 UTC',
                                   'conversionValue': 17.0,
                                   'googleClickId': 'theFirst'},
-                         'error': 'Current state of this record is EtlStates.Succeeded.'},
+                         'error': 'Current state is not Ready'},
                         {'data': {'conversionCurrencyCode': 'AUD',
                                   'conversionName': 'claim_attempts_testing',
                                   'conversionTime': '20200309 074357 UTC',
                                   'conversionValue': 17.0,
                                   'googleClickId': 'failedSecond'},
-                         'error': 'Current state of this record is EtlStates.Failed.'}]
+                         'error': 'Current state is not Ready'}]
 
             self.assertListEqual(actual, expected)
 

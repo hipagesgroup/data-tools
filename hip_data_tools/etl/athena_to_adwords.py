@@ -28,21 +28,14 @@ class AthenaToAdWordsOfflineConversionSettings(AthenaToDataFrameSettings):
 
 
 def _get_record_signature(record: dict):
-    return f"{record['googleClickId']}||||{record['conversionName']}"
+    return f"{record['googleClickId']}||{record['conversionName']}||{record['conversionTime']}"
 
 
 def _get_structured_issue(error, data):
     return {
         "error": error,
         "data": data,
-        "issue_time": datetime.now()
     }
-
-
-def _handle_validation_error(dat, e, issues):
-    log.warning("Issue while trying to ready a record for the upload \n %s \n %s", e,
-                dat)
-    issues.append(_get_structured_issue(str(e), dat))
 
 
 class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
@@ -121,8 +114,9 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         ready_data, issues = self._verify_data_before_upsert(data_dict)
         data_dict_batches = self._chunk_batches(ready_data)
         for data_batch in data_dict_batches:
-            self._mark_processing(data_batch)
-            success, fail = self._upload_conversions(data_batch)
+            data_to_process, processing_issue = self._mark_processing(data_batch)
+            issues.extend(processing_issue)
+            success, fail = self._upload_conversions(data_to_process)
             self._mark_upload_results(fail, success)
         return issues
 
@@ -134,9 +128,16 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         conn.setup_connection(self.settings.etl_state_manager_keyspace)
         sync_etl_state_table()
 
-    def _mark_processing(self, data: List[dict]) -> None:
+    def _mark_processing(self, data: List[dict]) -> (List[dict], List[dict]):
+        data_for_processing = []
+        issues = []
         for dat in data:
-            self._get_sink_manager(dat).processing()
+            try:
+                self._get_sink_manager(dat).processing()
+                data_for_processing.append(dat)
+            except ValidationError as e:
+                issues.append(_get_structured_issue(str(e), dat))
+        return data_for_processing, issues
 
     def _mark_upload_results(self, fail: List[dict], success: List[dict]) -> None:
         for dat in success:
@@ -145,18 +146,21 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
             self._get_sink_manager(dat["data"]).failed()
 
     def _verify_data_before_upsert(self, data: List[dict]) -> (List[dict], List[dict]):
-        ready = []
-        issues = []
-        for dat in data:
-            try:
-                if self._verify_state(dat):
-                    ready.append(dat)
-                else:
-                    issues.append(_get_structured_issue(f"Current state is not Ready", dat))
-            except ValidationError as e:
-                _handle_validation_error(dat, e, issues)
-        return ready, issues
+        data, issues = map(list, zip(*[self._sanitise_data(dat) for dat in data]))
+        # Remove None from the List
+        return [i for i in data if i], [i for i in issues if i]
+
+    def _sanitise_data(self, dat):
+        try:
+            if self._verify_state(dat):
+                return dat, None
+            else:
+                return None, _get_structured_issue(f"Current state is not Ready", dat)
+        except ValidationError as e:
+            log.warning("Issue while trying to ready a record for the upload \n %s \n %s", e,
+                        dat)
+            return None, _get_structured_issue(str(e), dat)
 
     def _verify_state(self, data):
         current_state = self._get_sink_manager(data).current_state()
-        return current_state == EtlStates.Ready, current_state
+        return current_state == EtlStates.Ready
