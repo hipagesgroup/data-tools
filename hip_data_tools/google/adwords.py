@@ -180,7 +180,8 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
                 },
             ]
 
-        Returns (List[dict], List[dict]): A tuple of lists holding succeeded and failed records, respectively eg.
+        Returns (List[dict], List[dict]): A tuple of lists holding succeeded and failed records,
+        respectively eg.
         (
             [
                 {
