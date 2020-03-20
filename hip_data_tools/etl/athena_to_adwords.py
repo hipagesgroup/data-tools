@@ -2,6 +2,7 @@
 handle ETL of data from Athena to Cassandra
 """
 import logging as log
+from datetime import datetime
 from typing import List
 
 from attr import dataclass
@@ -28,6 +29,20 @@ class AthenaToAdWordsOfflineConversionSettings(AthenaToDataFrameSettings):
 
 def _get_record_signature(record: dict):
     return f"{record['googleClickId']}||||{record['conversionName']}"
+
+
+def _get_structured_issue(error, data):
+    return {
+        "error": error,
+        "data": data,
+        "issue_time": datetime.now()
+    }
+
+
+def _handle_validation_error(dat, e, issues):
+    log.warning("Issue while trying to ready a record for the upload \n %s \n %s", e,
+                dat)
+    issues.append(_get_structured_issue(str(e), dat))
 
 
 class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
@@ -134,19 +149,14 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         issues = []
         for dat in data:
             try:
-                current = self._get_sink_manager(dat).current_state()
-                if current == EtlStates.Ready:
+                if self._verify_state(dat):
                     ready.append(dat)
                 else:
-                    issues.append({
-                        "error": f"Current state of this record is {current}.",
-                        "data": dat,
-                    })
+                    issues.append(_get_structured_issue(f"Current state is not Ready", dat))
             except ValidationError as e:
-                log.warning("Issue while trying to ready a record for the upload \n %s \n %s", e,
-                            dat)
-                issues.append({
-                    "error": str(e),
-                    "data": dat,
-                })
+                _handle_validation_error(dat, e, issues)
         return ready, issues
+
+    def _verify_state(self, data):
+        current_state = self._get_sink_manager(data).current_state()
+        return current_state == EtlStates.Ready, current_state
