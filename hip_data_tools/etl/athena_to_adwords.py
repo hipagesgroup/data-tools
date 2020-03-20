@@ -2,7 +2,6 @@
 handle ETL of data from Athena to Cassandra
 """
 import logging as log
-from datetime import datetime
 from typing import List
 
 from attr import dataclass
