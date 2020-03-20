@@ -119,7 +119,7 @@ You can get the data in the Google sheet as a Pandas DataFrame using the SheetUt
 You need to provide the "field_names_row_number" and "field_types_row_number" to call "get_dataframe()" method in SheetUtil.
 
 ```python
-sheet_data = sheet_util.get_dataframe(
+sheet_data = sheet_util.get_data_frame(
                 field_names_row_number=8,
                 field_types_row_number=7,
                 row_range="12:20",

@@ -38,7 +38,7 @@ class S3ToDataFrame:
         return self
 
     def __next__(self) -> DataFrame:
-        data = self.get_dataframe(self.list_source_files()[self._processed_counter])
+        data = self.get_data_frame(self.list_source_files()[self._processed_counter])
         self._processed_counter += 1
         return data
 
@@ -53,14 +53,14 @@ class S3ToDataFrame:
             self._iterator = iter(self)
         return self._iterator
 
-    def get_all_files_as_dataframe(self) -> DataFrame:
+    def get_all_files_as_data_frame(self) -> DataFrame:
         """
         Downloads and collates all files in a given s3 dir and returns a single DataFrame
         Returns: DataFrame
         """
-        return pd.concat([self.get_dataframe(key) for key in self.list_source_files()])
+        return pd.concat([self.get_data_frame(key) for key in self.list_source_files()])
 
-    def get_dataframe(self, key: str) -> DataFrame:
+    def get_data_frame(self, key: str) -> DataFrame:
         """
         Read a parquet file from s3 and convert it to a parquet DataFrame
         Args:
@@ -82,7 +82,11 @@ class S3ToDataFrame:
 
     def next(self) -> DataFrame:
         """
-        Gets the next DataFrame from the next file on s3
+        Gets the next DataFrame from the next file on s3.
+
+        Please note, if you are trying to run window functions or operations on the data set that
+        spans multiple rows, then using this method may result in incorrect or inaccurate
+        results. For such use cases, use `get_all_files_as_data_frame()`
         Returns: DataFrame
         """
         return next(self._get_iterator())

@@ -158,12 +158,12 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
 
     def upload_conversions(self, data: List[dict]) -> (List[dict], List[dict]):
         """
-        Uplaod a list of conversions as a batch
+        Upload a list of conversions as a batch
         Args:
-            data List[dict]: a List of conversion dictonaries like:
+            data List[dict]: a List of conversion dictionaries like:
             [
                 {
-                    'googleClickId': 'some valid gclit',
+                    'googleClickId': 'some valid gclid',
                     'conversionName': 'some conversion name',
                     'conversionTime': '20200309 074353 UTC',
                     'conversionValue': 17.0,
@@ -180,12 +180,12 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
                 },
             ]
 
-        Returns (List[dict], List[dict]): A tup[le of succeded records and failed records eg.
+        Returns (List[dict], List[dict]): A tup[le of succeed records and failed records eg.
         (
             [
                 {
-                    'googleClickId': 'gclid that suceeded',
-                    'conversionName': 'some conversion name',
+                    'googleClickId': 'gclid that succeeded',
+                    'conversionName': 'some conversions name',
                     'conversionTime': '20200309 074353 UTC',
                     'conversionValue': 17.0,
                     'conversionCurrencyCode': 'AUD',
@@ -211,7 +211,7 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
                     'ApiError.Type': 'OfflineConversionError',
                     'reason': 'UNPARSEABLE_GCLID',
                     'data': {
-                        'googleClickId': 'gclid that failed',
+                        'googleClickId': 'Gclid that failed',
                         'conversionName': 'some conversion name',
                         'conversionTime': '20200309 074353 UTC',
                         'conversionValue': 17.0,

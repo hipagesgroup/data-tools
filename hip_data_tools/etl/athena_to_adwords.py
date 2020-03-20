@@ -10,7 +10,7 @@ from pandas import DataFrame
 
 from hip_data_tools.apache.cassandra import CassandraConnectionManager, CassandraConnectionSettings
 from hip_data_tools.etl.athena_to_dataframe import AthenaToDataFrame, AthenaToDataFrameSettings
-from hip_data_tools.etl.common import EtlSinkRecordStateManager
+from hip_data_tools.etl.common import EtlSinkRecordStateManager, sync_etl_state_table, EtlStates
 from hip_data_tools.google.adwords import AdWordsOfflineConversionUtil, \
     GoogleAdWordsConnectionManager, GoogleAdWordsConnectionSettings
 
@@ -24,6 +24,10 @@ class AthenaToAdWordsOfflineConversionSettings(AthenaToDataFrameSettings):
     etl_state_manager_connection: CassandraConnectionSettings
     destination_batch_size: int
     destination_connection_settings: GoogleAdWordsConnectionSettings
+
+
+def _get_record_signature(record: dict):
+    return f"{record['googleClickId']}||||{record['conversionName']}"
 
 
 class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
@@ -68,7 +72,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         """
         issues = []
         for key in self.list_source_files():
-            issues.extend(self._process_data_frame(self.get_dataframe(key)))
+            issues.extend(self._process_data_frame(self.get_data_frame(key)))
         return issues
 
     def _get_adwords_util(self):
@@ -78,13 +82,10 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
             )
         return self._adwords
 
-    def _get_record_signature(self, record: dict):
-        return f"{record['googleClickId']}||||{record['conversionName']}"
-
     def _get_sink_manager(self, record: dict) -> EtlSinkRecordStateManager:
-        # Need to setup the cassandra connection
+        # Need to set up the cassandra connection
         return EtlSinkRecordStateManager(
-            record_identifier=self._get_record_signature(record),
+            record_identifier=_get_record_signature(record),
             etl_signature=self.settings.etl_identifier
         )
 
@@ -106,13 +107,17 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         data_dict_batches = self._chunk_batches(ready_data)
         for data_batch in data_dict_batches:
             self._mark_processing(data_batch)
-            success, fail = self._get_adwords_util().upload_conversions(data_batch)
+            success, fail = self._upload_conversions(data_batch)
             self._mark_upload_results(fail, success)
         return issues
+
+    def _upload_conversions(self, data_batch):
+        return self._get_adwords_util().upload_conversions(data_batch)
 
     def _state_manager_connect(self):
         conn = CassandraConnectionManager(self.settings.etl_state_manager_connection)
         conn.setup_connection(self.settings.etl_state_manager_keyspace)
+        sync_etl_state_table()
 
     def _mark_processing(self, data: List[dict]) -> None:
         for dat in data:
@@ -129,8 +134,14 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         issues = []
         for dat in data:
             try:
-                self._get_sink_manager(dat).ready()
-                ready.append(dat)
+                current = self._get_sink_manager(dat).current_state()
+                if current == EtlStates.Ready:
+                    ready.append(dat)
+                else:
+                    issues.append({
+                        "error": f"Current state of this record is {current}.",
+                        "data": dat,
+                    })
             except ValidationError as e:
                 log.warning(f"Issue while trying to ready a record for upload \n {e} \n {dat}")
                 issues.append({

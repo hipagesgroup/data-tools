@@ -67,7 +67,7 @@ class S3ToCassandra(S3ToDataFrame):
 
     def create_and_upsert_all(self) -> List[List[Result]]:
         """
-        First creates the table and then upserts all s3 files to the table
+        First creates the table and then upsert all s3 files to the table
         Returns: None
         """
         self.create_table()
@@ -78,17 +78,17 @@ class S3ToCassandra(S3ToDataFrame):
         Upsert all files from s3 sequentially into cassandra
         Returns: None
         """
-        return [self._upsert_dataframe(df) for df in self._get_iterator()]
+        return [self._upsert_data_frame(df) for df in self._get_iterator()]
 
-    def _upsert_dataframe(self, data_frame):
+    def _upsert_data_frame(self, data_frame):
         if self.settings.destination_batch_size > 1:
-            log.info("upserting batches of size %s", self.settings.destination_batch_size)
+            log.info("Going to upsert batches of size %s", self.settings.destination_batch_size)
             result = self._get_cassandra_util().upsert_dataframe_in_batches(
                 dataframe=data_frame,
                 table=self.settings.destination_table,
                 batch_size=self.settings.destination_batch_size)
         else:
-            log.info("upserting one row at a time")
+            log.info("Going to upsert one row at a time")
             result = self._get_cassandra_util().upsert_dataframe(
                 dataframe=data_frame,
                 table=self.settings.destination_table)
@@ -101,5 +101,5 @@ class S3ToCassandra(S3ToDataFrame):
             key: s3 key for the parquet file
         Returns: None
         """
-        data_frame = self.get_dataframe(key)
-        return self._upsert_dataframe(data_frame)
+        data_frame = self.get_data_frame(key)
+        return self._upsert_data_frame(data_frame)
