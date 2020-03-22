@@ -24,17 +24,20 @@ class AthenaToDataFrame(S3ToDataFrame):
     """
 
     def __init__(self, settings: AthenaToDataFrameSettings):
+        self._athena = None
         self.settings = settings
-        self._get_athena_util()
-        (bucket, key) = self._athena.get_table_data_location(self.settings.source_table)
+        (bucket, key) = self._get_athena_util().get_table_data_location(settings.source_table)
         self.s3_settings = S3ToDataFrameSettings(
             source_bucket=bucket,
             source_key_prefix=key,
-            source_connection_settings=self.settings.source_connection_settings
+            source_connection_settings=settings.source_connection_settings,
         )
         super().__init__(self.s3_settings)
+        self.settings = settings
 
     def _get_athena_util(self):
-        self._athena = AthenaUtil(
-            database=self.settings.source_database,
-            conn=AwsConnectionManager(self.settings.source_connection_settings))
+        if self._athena is None:
+            self._athena = AthenaUtil(
+                database=self.settings.source_database,
+                conn=AwsConnectionManager(self.settings.source_connection_settings))
+        return self._athena

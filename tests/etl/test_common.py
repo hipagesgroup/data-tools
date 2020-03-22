@@ -1,5 +1,6 @@
 import os
 from unittest import TestCase, mock
+from unittest.mock import MagicMock
 
 from cassandra.cqlengine import ValidationError
 from cassandra.policies import DCAwareRoundRobinPolicy
@@ -46,49 +47,55 @@ class TestCommonEtl(TestCase):
             self.assertEqual(sm.current_state(), EtlStates.Succeeded)
 
     def test__state_manager_transitions_should_fail_ready_to_succeded(self):
+        mock_remote_state = MagicMock()
+        mock_remote_state.record_state = EtlStates.Ready
         with mock.patch.object(EtlSinkRecordStateManager, '_get_or_create_state',
-                               return_value={"record_state": EtlStates.Ready}):
+                               return_value=mock_remote_state):
             m = EtlSinkRecordStateManager("abc", "def")
             with self.assertRaises(ValidationError):
                 m.succeeded()
 
     def test__state_manager_transitions_should_fail_ready_to_falied(self):
+        mock_remote_state = MagicMock()
+        mock_remote_state.record_state = EtlStates.Ready
         with mock.patch.object(EtlSinkRecordStateManager, '_get_or_create_state',
-                               return_value={"record_state": EtlStates.Ready}):
+                               return_value=mock_remote_state):
             m = EtlSinkRecordStateManager("abc", "def")
             with self.assertRaises(ValidationError):
                 m.failed()
 
     def test__state_manager_transitions_should_be_ok_ready_to_processing(self):
+        mock_remote_state = MagicMock()
+        mock_remote_state.record_state = EtlStates.Ready
         with mock.patch.object(EtlSinkRecordStateManager, '_get_or_create_state',
-                               return_value={"record_state": EtlStates.Ready}):
+                               return_value=mock_remote_state):
             m = EtlSinkRecordStateManager("abc", "def")
-            with mock.patch(
-                "hip_data_tools.etl.common.EtlSinkRecordState") as MockedEtlSinkRecordState:
-                m.processing()
-                MockedEtlSinkRecordState.update.assert_called_once()
+            m.processing()
+            mock_remote_state.save.assert_called_once()
 
     def test__state_manager_transitions_should_be_ok_processing_to_succeded(self):
+        mock_remote_state = MagicMock()
+        mock_remote_state.record_state = EtlStates.Processing
         with mock.patch.object(EtlSinkRecordStateManager, '_get_or_create_state',
-                               return_value={"record_state": EtlStates.Processing}):
+                               return_value=mock_remote_state):
             m = EtlSinkRecordStateManager("abc", "def")
-            with mock.patch(
-                "hip_data_tools.etl.common.EtlSinkRecordState") as MockedEtlSinkRecordState:
-                m.succeeded()
-                MockedEtlSinkRecordState.update.assert_called_once()
+            m.succeeded()
+            mock_remote_state.save.assert_called_once()
 
     def test__state_manager_transitions_should_be_ok_processing_to_failed(self):
+        mock_remote_state = MagicMock()
+        mock_remote_state.record_state = EtlStates.Processing
         with mock.patch.object(EtlSinkRecordStateManager, '_get_or_create_state',
-                               return_value={"record_state": EtlStates.Processing}):
+                               return_value=mock_remote_state):
             m = EtlSinkRecordStateManager("abc", "def")
-            with mock.patch(
-                "hip_data_tools.etl.common.EtlSinkRecordState") as MockedEtlSinkRecordState:
-                m.succeeded()
-                MockedEtlSinkRecordState.update.assert_called_once()
+            m.succeeded()
+            mock_remote_state.save.assert_called_once()
 
     def test__state_manager_transitions_should_fail_after_succeded(self):
+        mock_remote_state = MagicMock()
+        mock_remote_state.record_state = EtlStates.Succeeded
         with mock.patch.object(EtlSinkRecordStateManager, '_get_or_create_state',
-                               return_value={"record_state": EtlStates.Succeeded}):
+                               return_value=mock_remote_state):
             m = EtlSinkRecordStateManager("abc", "def")
             with self.assertRaises(ValidationError):
                 m.ready()
@@ -100,8 +107,10 @@ class TestCommonEtl(TestCase):
                 m.succeeded()
 
     def test__state_manager_transitions_should_fail_to_ready(self):
+        mock_remote_state = MagicMock()
+        mock_remote_state.record_state = EtlStates.Failed
         with mock.patch.object(EtlSinkRecordStateManager, '_get_or_create_state',
-                               return_value={"record_state": EtlStates.Failed}):
+                               return_value=mock_remote_state):
             m = EtlSinkRecordStateManager("abc", "def")
             with self.assertRaises(ValidationError):
                 m.processing()
@@ -109,10 +118,8 @@ class TestCommonEtl(TestCase):
                 m.succeeded()
             with self.assertRaises(ValidationError):
                 m.failed()
-            with mock.patch(
-                "hip_data_tools.etl.common.EtlSinkRecordState") as MockedEtlSinkRecordState:
-                m.ready()
-                MockedEtlSinkRecordState.update.assert_called_once()
+            m.ready()
+            mock_remote_state.save.assert_called_once()
 
 
 @retry(wait_random_max=10, )

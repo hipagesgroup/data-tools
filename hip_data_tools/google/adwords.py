@@ -158,12 +158,12 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
 
     def upload_conversions(self, data: List[dict]) -> (List[dict], List[dict]):
         """
-        Uplaod a list of conversions as a batch
+        Upload a list of conversions as a batch
         Args:
-            data List[dict]: a List of conversion dictonaries like:
+            data List[dict]: a List of conversion dictionaries like:
             [
                 {
-                    'googleClickId': 'some valid gclit',
+                    'googleClickId': 'some valid gclid',
                     'conversionName': 'some conversion name',
                     'conversionTime': '20200309 074353 UTC',
                     'conversionValue': 17.0,
@@ -180,12 +180,13 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
                 },
             ]
 
-        Returns (List[dict], List[dict]): A tup[le of succeded records and failed records eg.
+        Returns (List[dict], List[dict]): A tuple of lists holding succeeded and failed records,
+        respectively eg.
         (
             [
                 {
-                    'googleClickId': 'gclid that suceeded',
-                    'conversionName': 'some conversion name',
+                    'googleClickId': 'gclid that succeeded',
+                    'conversionName': 'some conversions name',
                     'conversionTime': '20200309 074353 UTC',
                     'conversionValue': 17.0,
                     'conversionCurrencyCode': 'AUD',
@@ -211,7 +212,7 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
                     'ApiError.Type': 'OfflineConversionError',
                     'reason': 'UNPARSEABLE_GCLID',
                     'data': {
-                        'googleClickId': 'gclid that failed',
+                        'googleClickId': 'Gclid that failed',
                         'conversionName': 'some conversion name',
                         'conversionTime': '20200309 074353 UTC',
                         'conversionValue': 17.0,
@@ -224,16 +225,19 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
         )
 
         """
-        mutations = self._get_mutations_from_conversions_batch(data)
-        result = self._upload_mutations_batch(mutations)
-        if result['ListReturnValue.Type'] != 'OfflineConversionFeedReturnValue':
-            raise Exception(
-                f"Unhandled Exception while loading batch of conversions, response: {result}")
-        uploaded = [x for x in result['value'] if x is not None]
-        #  Append actual data to the failed conversions
-        fails = [_find_and_append_data(fail, data) for fail in result['partialFailureErrors']]
+        if not data:
+            return [], []
+        else:
+            mutations = self._get_mutations_from_conversions_batch(data)
+            result = self._upload_mutations_batch(mutations)
+            if result['ListReturnValue.Type'] != 'OfflineConversionFeedReturnValue':
+                raise Exception(
+                    f"Unhandled Exception while loading batch of conversions, response: {result}")
+            uploaded = [x for x in result['value'] if x is not None]
+            #  Append actual data to the failed conversions
+            fails = [_find_and_append_data(fail, data) for fail in result['partialFailureErrors']]
 
-        return uploaded, fails
+            return uploaded, fails
 
     def _upload_mutations_batch(self, mutations: List[dict]) -> dict:
         return self._get_service(partial_failure=True).mutate(mutations)
