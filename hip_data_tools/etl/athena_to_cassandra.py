@@ -36,17 +36,14 @@ class AthenaToCassandra(S3ToCassandra):
             database=self.__settings.source_database,
             conn=AwsConnectionManager(self.__settings.source_connection_settings))
         (bucket, key) = self._athena.get_table_data_location(self.__settings.source_table)
-        super().__init__(
-            S3ToCassandraSettings(
-                source_bucket=bucket,
-                source_key_prefix=key,
-                source_connection_settings=self.__settings.source_connection_settings,
-                destination_keyspace=self.__settings.destination_keyspace,
-                destination_table=self.__settings.destination_table,
-                destination_table_primary_keys=self.__settings.destination_table_primary_keys,
-                destination_table_options_statement=self.__settings
-                    .destination_table_options_statement,
-                destination_batch_size=self.__settings.destination_batch_size,
-                destination_connection_settings=self.__settings.destination_connection_settings,
-            )
-        )
+        super().__init__(S3ToCassandraSettings(
+            source_bucket=bucket,
+            source_key_prefix=key,
+            source_connection_settings=self.__settings.source_connection_settings,
+            destination_keyspace=self.__settings.destination_keyspace,
+            destination_table=self.__settings.destination_table,
+            destination_table_primary_keys=self.__settings.destination_table_primary_keys,
+            destination_table_options_statement=self.__settings.destination_table_options_statement,
+            destination_batch_size=self.__settings.destination_batch_size,
+            destination_connection_settings=self.__settings.destination_connection_settings,
+        ))
