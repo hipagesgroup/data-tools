@@ -6,13 +6,11 @@ from attr import dataclass
 
 from hip_data_tools.aws.athena import AthenaUtil, get_table_settings_for_sheets_table
 from hip_data_tools.aws.common import AwsConnectionManager
-from hip_data_tools.aws.common import AwsConnectionSettings
-from hip_data_tools.etl.google_sheet_to_s3 import GoogleSheetToS3
-from hip_data_tools.google.common import GoogleApiConnectionSettings
+from hip_data_tools.etl.google_sheet_to_s3 import GoogleSheetToS3, GoogleSheetsToS3Settings
 
 
 @dataclass
-class GoogleSheetsToAthenaSettings:
+class GoogleSheetsToAthenaSettings(GoogleSheetsToS3Settings):
     """
     Google sheets to Athena ETL settings
     Args:
@@ -37,20 +35,8 @@ class GoogleSheetsToAthenaSettings:
         target_connection_settings: aws connection settings
         target_table_ddl_progress: if this is true, the target table will be dropped and recreated
     """
-
-    source_workbook_url: str
-    source_sheet: str
-    source_row_range: str
-    source_field_names_row_number: int
-    source_field_types_row_number: int
-    source_data_start_row_number: int
-    source_connection_settings: GoogleApiConnectionSettings
-    manual_partition_key_value: dict
     target_database: str
     target_table_name: str
-    target_s3_bucket: str
-    target_s3_dir: str
-    target_connection_settings: AwsConnectionSettings
     target_table_ddl_progress: bool
 
 
@@ -62,17 +48,17 @@ class GoogleSheetToAthena(GoogleSheetToS3):
     """
 
     def __init__(self, settings: GoogleSheetsToAthenaSettings):
-        self.settings = settings
-        self.base_s3_dir = self.settings.target_s3_dir
-        self.settings.target_s3_dir = self._calculate_s3_key()
-        super().__init__(self.settings)
+        self.__settings = settings
+        self.base_s3_dir = self.__settings.target_s3_dir
+        self.__settings.target_s3_dir = self._calculate_s3_key()
+        super().__init__(self.__settings)
         self.keys_to_transfer = None
 
     def _get_athena_util(self):
-        return AthenaUtil(database=self.settings.target_database,
+        return AthenaUtil(database=self.__settings.target_database,
                           conn=AwsConnectionManager(
-                              settings=self.settings.target_connection_settings),
-                          output_bucket=self.settings.target_s3_bucket)
+                              settings=self.__settings.target_connection_settings),
+                          output_bucket=self.__settings.target_s3_bucket)
 
     def load_sheet_to_athena(self):
         """
@@ -82,30 +68,30 @@ class GoogleSheetToAthena(GoogleSheetToS3):
         self.write_sheet_data_to_s3()
 
         athena_util = self._get_athena_util()
-        if self.settings.target_table_ddl_progress:
-            athena_util.drop_table(self.settings.target_table_name)
+        if self.__settings.target_table_ddl_progress:
+            athena_util.drop_table(self.__settings.target_table_name)
 
         athena_util.create_table(table_settings=get_table_settings_for_sheets_table(
             dataframe=self._get_sheet_dataframe(),
-            partitions=self.settings.manual_partition_key_value,
-            table=self.settings.target_table_name,
-            s3_bucket=self.settings.target_s3_bucket,
+            partitions=self.__settings.manual_partition_key_value,
+            table=self.__settings.target_table_name,
+            s3_bucket=self.__settings.target_s3_bucket,
             s3_dir=self.base_s3_dir))
 
-        if self.settings.target_table_ddl_progress:
-            athena_util.repair_table_partitions(table=self.settings.target_table_name)
+        if self.__settings.target_table_ddl_progress:
+            athena_util.repair_table_partitions(table=self.__settings.target_table_name)
         else:
             athena_util.add_partitions(
-                table=self.settings.target_table_name,
-                partition_keys=[self.settings.manual_partition_key_value["column"]],
-                partition_values=[self.settings.manual_partition_key_value["value"]]
+                table=self.__settings.target_table_name,
+                partition_keys=[self.__settings.manual_partition_key_value["column"]],
+                partition_values=[self.__settings.manual_partition_key_value["value"]]
             )
 
     def _calculate_s3_key(self):
-        s3_key_with_partition = self.settings.target_s3_dir
-        if self.settings.manual_partition_key_value is not None:
-            column_name = self.settings.manual_partition_key_value["column"]
-            column_value = self.settings.manual_partition_key_value["value"]
+        s3_key_with_partition = self.__settings.target_s3_dir
+        if self.__settings.manual_partition_key_value is not None:
+            column_name = self.__settings.manual_partition_key_value["column"]
+            column_value = self.__settings.manual_partition_key_value["value"]
             partition_path = f"/{column_name}={column_value}"
             s3_key_with_partition += partition_path
         return s3_key_with_partition

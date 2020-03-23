@@ -31,20 +31,19 @@ class AthenaToCassandra(S3ToCassandra):
     """
 
     def __init__(self, settings: AthenaToCassandraSettings):
-        self.settings = settings
+        self.__settings = settings
         self._athena = AthenaUtil(
-            database=self.settings.source_database,
-            conn=AwsConnectionManager(self.settings.source_connection_settings))
-        (bucket, key) = self._athena.get_table_data_location(self.settings.source_table)
-        self.s3_settings = S3ToCassandraSettings(
+            database=self.__settings.source_database,
+            conn=AwsConnectionManager(self.__settings.source_connection_settings))
+        (bucket, key) = self._athena.get_table_data_location(self.__settings.source_table)
+        super().__init__(S3ToCassandraSettings(
             source_bucket=bucket,
             source_key_prefix=key,
-            source_connection_settings=self.settings.source_connection_settings,
-            destination_keyspace=self.settings.destination_keyspace,
-            destination_table=self.settings.destination_table,
-            destination_table_primary_keys=self.settings.destination_table_primary_keys,
-            destination_table_options_statement=self.settings.destination_table_options_statement,
-            destination_batch_size=self.settings.destination_batch_size,
-            destination_connection_settings=self.settings.destination_connection_settings,
-        )
-        super().__init__(self.s3_settings)
+            source_connection_settings=self.__settings.source_connection_settings,
+            destination_keyspace=self.__settings.destination_keyspace,
+            destination_table=self.__settings.destination_table,
+            destination_table_primary_keys=self.__settings.destination_table_primary_keys,
+            destination_table_options_statement=self.__settings.destination_table_options_statement,
+            destination_batch_size=self.__settings.destination_batch_size,
+            destination_connection_settings=self.__settings.destination_connection_settings,
+        ))
