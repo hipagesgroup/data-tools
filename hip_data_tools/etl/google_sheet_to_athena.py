@@ -6,9 +6,7 @@ from attr import dataclass
 
 from hip_data_tools.aws.athena import AthenaUtil, get_table_settings_for_sheets_table
 from hip_data_tools.aws.common import AwsConnectionManager
-from hip_data_tools.aws.common import AwsConnectionSettings
 from hip_data_tools.etl.google_sheet_to_s3 import GoogleSheetToS3, GoogleSheetsToS3Settings
-from hip_data_tools.google.common import GoogleApiConnectionSettings
 
 
 @dataclass
