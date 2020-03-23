@@ -29,7 +29,7 @@ class S3ToDataFrame:
 
     def __init__(self, settings: S3ToDataFrameSettings):
         self._iterator = None
-        self.settings = settings
+        self.__settings = settings
         self.keys_to_transfer = None
         self._processed_counter = 0
 
@@ -38,14 +38,18 @@ class S3ToDataFrame:
         return self
 
     def __next__(self) -> DataFrame:
-        data = self.get_data_frame(self.list_source_files()[self._processed_counter])
-        self._processed_counter += 1
-        return data
+        source_files = self.list_source_files()
+        if source_files:
+            data = self.get_data_frame(source_files[self._processed_counter])
+            self._processed_counter += 1
+            return data
+        else:
+            return DataFrame()
 
     def _get_s3_util(self) -> S3Util:
         return S3Util(
-            bucket=self.settings.source_bucket,
-            conn=AwsConnectionManager(self.settings.source_connection_settings),
+            bucket=self.__settings.source_bucket,
+            conn=AwsConnectionManager(self.__settings.source_connection_settings),
         )
 
     def _get_iterator(self) -> Iterator:
@@ -76,7 +80,7 @@ class S3ToDataFrame:
         """
         if self.keys_to_transfer is None:
             self.keys_to_transfer = self._get_s3_util().get_keys(
-                self.settings.source_key_prefix)
+                self.__settings.source_key_prefix)
             log.info("Listed and cached %s source files", len(self.keys_to_transfer))
         return self.keys_to_transfer
 

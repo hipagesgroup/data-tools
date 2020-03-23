@@ -45,9 +45,9 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
     """
 
     def __init__(self, settings: AthenaToAdWordsOfflineConversionSettings):
+        self.__settings = settings
         super().__init__(settings)
         self._adwords = None
-        self.settings = settings
 
     def upload_next(self) -> List[dict]:
         """
@@ -85,7 +85,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
     def _get_adwords_util(self):
         if self._adwords is None:
             self._adwords = AdWordsOfflineConversionUtil(
-                GoogleAdWordsConnectionManager(self.settings.destination_connection_settings)
+                GoogleAdWordsConnectionManager(self.__settings.destination_connection_settings)
             )
         return self._adwords
 
@@ -93,18 +93,18 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         # Need to set up the cassandra connection
         return EtlSinkRecordStateManager(
             record_identifier=_get_record_signature(record),
-            etl_signature=self.settings.etl_identifier
+            etl_signature=self.__settings.etl_identifier
         )
 
     def _data_frame_to_destination_dict(self, data_frame: DataFrame) -> List[dict]:
-        data_frame = data_frame.rename(columns=self.settings.transformation_column_mapping)
+        data_frame = data_frame.rename(columns=self.__settings.transformation_column_mapping)
         approved_fields = self._get_adwords_util().valid_fields
         drop_fields = [col for col in list(data_frame.columns) if col not in approved_fields]
         data_frame = data_frame.drop(drop_fields, axis=1)
         return data_frame.to_dict('records')
 
     def _chunk_batches(self, lst: List[dict]) -> List[List[dict]]:
-        n = self.settings.destination_batch_size
+        n = self.__settings.destination_batch_size
         return [lst[i * n:(i + 1) * n] for i in range((len(lst) + n - 1) // n)]
 
     def _process_data_frame(self, data_frame) -> List[dict]:
@@ -123,8 +123,8 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         return self._get_adwords_util().upload_conversions(data_batch)
 
     def _state_manager_connect(self):
-        conn = CassandraConnectionManager(self.settings.etl_state_manager_connection)
-        conn.setup_connection(self.settings.etl_state_manager_keyspace)
+        conn = CassandraConnectionManager(self.__settings.etl_state_manager_connection)
+        conn.setup_connection(self.__settings.etl_state_manager_keyspace)
         sync_etl_state_table()
 
     def _mark_processing(self, data: List[dict]) -> (List[dict], List[dict]):

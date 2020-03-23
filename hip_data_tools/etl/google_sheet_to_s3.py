@@ -49,28 +49,28 @@ class GoogleSheetToS3:
     """
 
     def __init__(self, settings: GoogleSheetsToS3Settings):
-        self.settings = settings
+        self.__settings = settings
         self.data = None
 
     def _get_sheets_util(self):
         return SheetUtil(
-            conn_manager=GoogleSheetConnectionManager(self.settings.source_connection_settings),
-            workbook_url=self.settings.source_workbook_url,
-            sheet=self.settings.source_sheet)
+            conn_manager=GoogleSheetConnectionManager(self.__settings.source_connection_settings),
+            workbook_url=self.__settings.source_workbook_url,
+            sheet=self.__settings.source_sheet)
 
     def _get_s3_util(self):
         return S3Util(
-            bucket=self.settings.target_s3_bucket,
-            conn=AwsConnectionManager(settings=self.settings.target_connection_settings))
+            bucket=self.__settings.target_s3_bucket,
+            conn=AwsConnectionManager(settings=self.__settings.target_connection_settings))
 
     def _get_sheet_dataframe(self):
         if self.data is None:
             sheet_util = self._get_sheets_util()
             self.data = sheet_util.get_dataframe(
-                field_names_row_number=self.settings.source_field_names_row_number,
-                field_types_row_number=self.settings.source_field_types_row_number,
-                row_range=self.settings.source_row_range,
-                data_start_row_number=self.settings.source_data_start_row_number)
+                field_names_row_number=self.__settings.source_field_names_row_number,
+                field_types_row_number=self.__settings.source_field_types_row_number,
+                row_range=self.__settings.source_row_range,
+                data_start_row_number=self.__settings.source_data_start_row_number)
         return self.data
 
     def write_sheet_data_to_s3(self):
@@ -83,5 +83,5 @@ class GoogleSheetToS3:
         s3_util = self._get_s3_util()
         s3_util.upload_dataframe_as_parquet(
             dataframe=self._get_sheet_dataframe(),
-            key=self.settings.target_s3_dir,
+            key=self.__settings.target_s3_dir,
             file_name="sheet_data")

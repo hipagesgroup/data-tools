@@ -312,6 +312,64 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
 
             self.assertListEqual(actual, expected)
 
+    def test_full_integration_with_local_cassandra(self):
+        aws_conn = AwsConnectionSettings(
+            region="ap-southeast-2",
+            secrets_manager=None,
+            profile="default")
+        execfile("../../secrets.py")
+
+        compose = DockerCompose(filepath=os.path.dirname(base.__file__))
+        with compose:
+            host = compose.get_service_host("cassandra", 9042)
+            port = int(compose.get_service_port("cassandra", 9042))
+
+            cassandra_conn_setting = CassandraConnectionSettings(
+                cluster_ips=[host],
+                port=port,
+                load_balancing_policy=DCAwareRoundRobinPolicy(),
+                secrets_manager=CassandraSecretsManager(
+                    source=DictKeyValueSource({
+                        "CASSANDRA_USERNAME": "",
+                        "CASSANDRA_PASSWORD": "",
+                    })
+                ),
+            )
+
+            conn = verify_container_is_up(cassandra_conn_setting)
+            # conn.get_session('system').execute(""" DROP TABLE test.etl_sink_record_state""")
+
+            settings = AthenaToAdWordsOfflineConversionSettings(
+                source_database=os.getenv("dummy_athena_database"),
+                source_table=os.getenv("dummy_athena_table"),
+                source_connection_settings=aws_conn,
+                etl_identifier="test",
+                destination_batch_size=100,
+                etl_state_manager_connection=cassandra_conn_setting,
+                etl_state_manager_keyspace="test",
+                transformation_column_mapping={
+                    'google_click_id': 'googleClickId',
+                    'conversion_name': 'conversionName',
+                    'conversion_time': 'conversionTime',
+                    'conversion_value': 'conversionValue',
+                    'conversion_currency_code': 'conversionCurrencyCode'
+                },
+                destination_connection_settings=GoogleAdWordsConnectionSettings(
+                    client_id=os.getenv("adwords_client_id"),
+                    user_agent="Tester",
+                    client_customer_id=os.getenv("adwords_client_customer_id"),
+                    secrets_manager=GoogleAdWordsSecretsManager()
+                ),
+            )
+            etl = AthenaToAdWordsOfflineConversion(settings)
+            files_actual = etl.list_source_files()
+            #
+            # self.assertListEqual(files_actual, [])
+
+            # etl.upload_all()
+            act = etl.upload_all()
+            self.assertListEqual(act, [])
+
 
 @retry(wait_random_max=10, )
 def verify_container_is_up(settings):
