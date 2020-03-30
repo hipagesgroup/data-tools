@@ -1,9 +1,12 @@
 """
 Common ETL specific utilities and methods
 """
+import string
 from datetime import datetime
 from enum import Enum
+from random import random
 
+import time
 from cassandra.cqlengine import columns, ValidationError
 from cassandra.cqlengine.management import sync_table
 from cassandra.cqlengine.models import Model
@@ -119,3 +122,12 @@ class EtlSinkRecordStateManager:
         Returns: None
         """
         self._change_state(EtlStates.Ready)
+
+
+def current_epoch() -> int:
+    return int(round(time.time() * 1000))
+
+
+def get_random_string(length) -> str:
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(length))
