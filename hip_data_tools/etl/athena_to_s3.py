@@ -51,16 +51,18 @@ class AthenaToS3:
         Execute the ETL to transfer data from Athena to S3
         Returns: None
         """
-        etl = AthenaToAthena(AthenaToAthenaSettings(
-            source_sql=self.__settings.source_sql,
-            source_database=self.__settings.source_database,
-            target_database=self.__settings.temporary_database,
-            target_table=self.__settings.temporary_table,
-            target_data_format=self.__settings.target_data_format,
-            target_s3_bucket=self.__settings.target_s3_bucket,
-            target_s3_dir=self.__settings.target_s3_dir,
-            target_partition_columns=self.__settings.target_partition_columns,
-            connection_settings=self.__settings.connection_settings)
+        etl = AthenaToAthena(
+            AthenaToAthenaSettings(
+                source_sql=self.__settings.source_sql,
+                source_database=self.__settings.source_database,
+                target_database=self.__settings.temporary_database,
+                target_table=self.__settings.temporary_table,
+                target_data_format=self.__settings.target_data_format,
+                target_s3_bucket=self.__settings.target_s3_bucket,
+                target_s3_dir=self.__settings.target_s3_dir,
+                target_partition_columns=self.__settings.target_partition_columns,
+                connection_settings=self.__settings.connection_settings
+            )
         )
         etl.execute()
         # Delete temporary table
