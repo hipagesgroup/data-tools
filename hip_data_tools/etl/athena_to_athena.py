@@ -1,5 +1,5 @@
 """
-handle ETL of data from Athena to Cassandra
+handle ETL of data from Athena to Athena
 """
 from typing import Optional, List
 
@@ -11,7 +11,7 @@ from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManage
 
 @dataclass
 class AthenaToAthenaSettings:
-    """Athena To S3 ETL settings"""
+    """Athena To Athena ETL settings"""
     source_sql: str
     source_database: str
     target_database: str
@@ -24,11 +24,21 @@ class AthenaToAthenaSettings:
 
 
 class AthenaToAthena:
+    """
+    ETL To transfer data from an Athena SQL into an Athena Table
+    Args:
+        settings (AthenaToAthenaSettings): Settings for the ETL
+    """
 
     def __init__(self, settings: AthenaToAthenaSettings):
         self.__settings = settings
+        self._athena = None
 
     def generate_create_table_statement(self) -> str:
+        """
+        Generates an Athena compliant ctas sql statement for the ETL
+        Returns: str
+        """
         partition_statement = ""
         if self.__settings.target_partition_columns:
             col_list = ','.join([f"'{c}'" for c in self.__settings.target_partition_columns])
@@ -45,7 +55,7 @@ class AthenaToAthena:
             {self.__settings.source_sql}
             """
 
-    def _get_athena_util(self)->AthenaUtil:
+    def _get_athena_util(self) -> AthenaUtil:
         if self._athena is None:
             self._athena = AthenaUtil(
                 database=self.__settings.source_database,
@@ -53,4 +63,8 @@ class AthenaToAthena:
         return self._athena
 
     def execute(self):
+        """
+        Execute the ETL by running an Athena CTAS statement
+        Returns: None
+        """
         self._get_athena_util().run_query(self.generate_create_table_statement())

@@ -1,5 +1,5 @@
 """
-handle ETL of data from Athena to Cassandra
+handle ETL of data from Athena to S3
 """
 from typing import Optional, List
 
@@ -26,6 +26,11 @@ class AthenaToS3Settings:
 
 
 class AthenaToS3:
+    """
+    ETL To transfer data from an Athena sql to an s3 location
+    Args:
+        settings (AthenaToS3Settings): Settings for the etl
+    """
 
     def __init__(self, settings: AthenaToS3Settings):
         self.__settings = settings
@@ -34,14 +39,18 @@ class AthenaToS3:
         if self.__settings.temporary_table:
             self.__settings.temporary_table = f"temp__{current_epoch()}__{get_random_string(5)}"
 
-    def _drop_temporary_table(self):
+    def _drop_temporary_table(self) -> None:
         au = AthenaUtil(
             database=self.__settings.temporary_database,
             conn=AwsConnectionManager(self.__settings.connection_settings)
         )
         au.drop_table(self.__settings.temporary_table)
 
-    def execute(self):
+    def execute(self) -> None:
+        """
+        Execute the ETL to transfer data from Athena to S3
+        Returns: None
+        """
         etl = AthenaToAthena(AthenaToAthenaSettings(
             source_sql=self.__settings.source_sql,
             source_database=self.__settings.source_database,
