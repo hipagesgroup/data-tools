@@ -34,7 +34,6 @@ class TestS3ToS3(TestCase):
                 source_bucket=source_bucket,
                 source_key_prefix="source/prefix",
                 suffix=None,
-                clean_target_before_copy=False,
                 target_bucket=target_bucket,
                 target_key_prefix="target/prefix",
                 connection_settings=aws_setting
@@ -71,7 +70,6 @@ class TestS3ToS3(TestCase):
                 source_bucket=source_bucket,
                 source_key_prefix="source/prefix",
                 suffix=".txt",
-                clean_target_before_copy=False,
                 target_bucket=target_bucket,
                 target_key_prefix="target/prefix",
                 connection_settings=aws_setting
@@ -108,7 +106,6 @@ class TestS3ToS3(TestCase):
                 source_bucket=source_bucket,
                 source_key_prefix="source/prefix",
                 suffix=".txt",
-                clean_target_before_copy=False,
                 target_bucket=target_bucket,
                 target_key_prefix="target/prefix",
                 connection_settings=aws_setting
@@ -144,7 +141,6 @@ class TestS3ToS3(TestCase):
                 source_bucket=source_bucket,
                 source_key_prefix="source/prefix",
                 suffix=None,
-                clean_target_before_copy=False,
                 target_bucket=target_bucket,
                 target_key_prefix="target/prefix",
                 connection_settings=aws_setting

@@ -18,7 +18,6 @@ class S3ToS3Settings:
     source_bucket: str
     source_key_prefix: str
     suffix: Optional[str]
-    clean_target_before_copy: bool
     target_bucket: str
     target_key_prefix: str
     connection_settings: AwsConnectionSettings
@@ -35,7 +34,6 @@ class S3ToS3:
     ...            source_bucket=source_bucket,
     ...            source_key_prefix="source/prefix",
     ...            suffix=None,
-    ...            clean_target_before_copy=False,
     ...            target_bucket=target_bucket,
     ...            target_key_prefix="target/prefix",
     ...            connection_settings=aws_setting
