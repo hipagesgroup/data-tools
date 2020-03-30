@@ -128,6 +128,6 @@ def current_epoch() -> int:
     return int(round(time.time() * 1000))
 
 
-def get_random_string(length) -> str:
+def get_random_string(length: int) -> str:
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(length))
