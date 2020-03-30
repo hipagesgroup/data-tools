@@ -62,7 +62,7 @@ class AthenaToAthena:
                 conn=AwsConnectionManager(self.__settings.connection_settings))
         return self._athena
 
-    def execute(self):
+    def execute(self) -> None:
         """
         Execute the ETL by running an Athena CTAS statement
         Returns: None
