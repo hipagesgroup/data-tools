@@ -125,9 +125,19 @@ class EtlSinkRecordStateManager:
 
 
 def current_epoch() -> int:
+    """
+    Get the current epoch to millisecond precision
+    Returns: int
+    """
     return int(round(time.time() * 1000))
 
 
 def get_random_string(length: int) -> str:
+    """
+    A random ascii lowercase string of certain length
+    Args:
+        length (int): length of the random string
+    Returns: str
+    """
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(length))
