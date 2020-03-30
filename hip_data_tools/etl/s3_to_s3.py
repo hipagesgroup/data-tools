@@ -29,6 +29,18 @@ class S3ToS3:
     Class to transfer objects from s3 to s3
     Args:
         settings (S3ToS3Settings): settings for the etl to be executed
+    Eg:
+    >>> etl = S3ToS3(
+    ...        S3ToS3Settings(
+    ...            source_bucket=source_bucket,
+    ...            source_key_prefix="source/prefix",
+    ...            suffix=None,
+    ...            clean_target_before_copy=False,
+    ...            target_bucket=target_bucket,
+    ...            target_key_prefix="target/prefix",
+    ...            connection_settings=aws_setting
+    ...        )
+    ...    )
     """
 
     def __init__(self, settings: S3ToS3Settings):
