@@ -1,14 +1,18 @@
 """
 This Module handles the connection and operations on Google AdWords accounts using adwords API
 """
+import logging
 from typing import List, Optional
 
 from attr import dataclass
 from googleads import oauth2, AdWordsClient
+from googleads.adwords import ServiceQueryBuilder
 from googleads.common import GoogleSoapService
 from googleads.oauth2 import GoogleOAuth2Client
 
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
+
+log = logging.getLogger(__name__)
 
 
 class GoogleAdWordsSecretsManager(SecretsManager):
@@ -35,14 +39,28 @@ class GoogleAdWordsSecretsManager(SecretsManager):
 
 
 @dataclass
-class GoogleAdWordsConnectionSettings:
+class GoogleOAuthConnectionSettings:
     """
     Handle connection settings for AdWords client
     """
     client_id: str
+    secrets_manager: GoogleAdWordsSecretsManager
+
+    def get_oauth_client(self) -> GoogleOAuth2Client:
+        return oauth2.GoogleRefreshTokenClient(
+            client_id=self.client_id,
+            client_secret=self.secrets_manager.client_secret,
+            refresh_token=self.secrets_manager.refresh_token
+        )
+
+
+@dataclass
+class GoogleAdWordsConnectionSettings(GoogleOAuthConnectionSettings):
+    """
+    Handle connection settings for AdWords client
+    """
     user_agent: str
     client_customer_id: Optional[str]
-    secrets_manager: GoogleAdWordsSecretsManager
 
 
 class GoogleAdWordsConnectionManager:
@@ -64,11 +82,11 @@ class GoogleAdWordsConnectionManager:
 
         """
         if self._adwords_client is None:
-            self._adwords_client = self._create_adwords_client(**kwargs)
+            self._adwords_client = self._create_client(**kwargs)
         return self._adwords_client
 
-    def _create_adwords_client(self, **kwargs) -> AdWordsClient:
-        oauth2_client = self._get_oauth_client()
+    def _create_client(self, **kwargs) -> AdWordsClient:
+        oauth2_client = self.settings.get_oauth_client()
         adwords_client = AdWordsClient(
             developer_token=self.settings.secrets_manager.developer_key,
             oauth2_client=oauth2_client,
@@ -76,14 +94,6 @@ class GoogleAdWordsConnectionManager:
             client_customer_id=self.settings.client_customer_id,
             **kwargs)
         return adwords_client
-
-    def _get_oauth_client(self) -> GoogleOAuth2Client:
-        oauth2_client = oauth2.GoogleRefreshTokenClient(
-            client_id=self.settings.client_id,
-            client_secret=self.settings.secrets_manager.client_secret,
-            refresh_token=self.settings.secrets_manager.refresh_token
-        )
-        return oauth2_client
 
 
 class AdWordsUtil:
@@ -98,9 +108,55 @@ class AdWordsUtil:
         self.service = service
         self.version = version
         self.conn = conn
+        self.__service_object = None
+        self.__pager = None
+        self.query = None
+
+    def download_all_as_dict(self) -> List[dict]:
+        """
+        Generates list of Dict from the adwords query language query as described in adwords api
+        Returns: List[dict]
+        """
+        complete_result = []
+        for page in self._get_query_pager(self._get_query()):
+            complete_result.extend(_get_page_as_dict(page))
+        return complete_result
+
+    def download_next_page_as_dict(self) -> List[dict]:
+        """
+        Generates a list of dict from the next page of the API call to adwords
+        Returns: List[dict]
+        """
+        return _get_page_as_dict(next(self._get_query_pager(self._get_query())))
+
+    def set_query(self, query: ServiceQueryBuilder) -> None:
+        """
+        Sets the new query for adwords util to use awql, once the query is set, the download methods
+        can iterate over paged results
+        Args:
+            query (ServiceQueryBuilder): query built as per adwords query language
+        Returns: None
+        """
+        self.__pager = None
+        self.query = query
+
+    def _get_query(self) -> ServiceQueryBuilder:
+        if self.query is None:
+            raise Exception("Please set the query attribute using the method set_query(...)")
+        return self.query
 
     def _get_service(self, **kwargs) -> GoogleSoapService:
+        if not self.__service_object:
+            self.__service_object = self._create_service()
+        return self.__service_object
+
+    def _create_service(self, **kwargs) -> GoogleSoapService:
         return self.conn.get_adwords_client(**kwargs).GetService(self.service, version=self.version)
+
+    def _get_query_pager(self, query):
+        if self.__pager is None:
+            self.__pager = query.Pager(self._get_service())
+        return self.__pager
 
 
 class AdWordsCustomerUtil(AdWordsUtil):
@@ -262,3 +318,201 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
                 raise ValueError(
                     f"The column {col} present in the DataFrame is not in the allowed column list "
                     f"{self.valid_fields}")
+
+
+def _get_page_as_dict(page) -> List[dict]:
+    log.debug(f"page header is {page}")
+    if 'entries' in page:
+        return [item for item in page['entries']]
+    else:
+        log.warning('No entries were found.')
+        return []
+
+
+class AdWordsCampaignUtil(AdWordsUtil):
+    """
+    Adwords Utility to handle Campaign details
+    Args:
+        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+    """
+
+    def __init__(self, conn: GoogleAdWordsConnectionManager, page_size: int = 500):
+        super().__init__(conn, 'CampaignService', 'v201809')
+        self.page_size = page_size
+
+    def set_query_to_fetch_all(self) -> None:
+        """
+        Get all campaigns associated with and adwords account query set on utility
+        Returns: None
+        """
+        query = (ServiceQueryBuilder()
+                 .Select('Id', 'Name', 'Status')
+                 # .Where('Status').EqualTo('ENABLED')
+                 .OrderBy('Id')
+                 .Limit(0, self.page_size)
+                 .Build())
+        self.set_query(query)
+
+
+class AdWordsAdGroupUtil(AdWordsUtil):
+    """
+    Adwords Utility to handle AdGroup details
+    Args:
+        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+    """
+
+    def __init__(self, conn: GoogleAdWordsConnectionManager, page_size: int = 500):
+        super().__init__(conn, 'AdGroupService', 'v201809')
+        self.page_size = page_size
+        self._all_query = None
+
+    def set_query_to_fetch_by_campaign(self, campaign_id: str) -> None:
+        """
+        Get Ad groups for the given Campaign query set on utility
+        Args:
+            campaign_id (str): the adwords campaign to query
+        Returns: None
+        """
+        query = (ServiceQueryBuilder()
+                 .Select('Id', 'CampaignId', 'CampaignName', 'Status')
+                 .Where('CampaignId').EqualTo(campaign_id)
+                 .OrderBy('Id')
+                 .Limit(0, self.page_size)
+                 .Build())
+        self.set_query(query)
+
+    def set_query_to_fetch_all(self) -> None:
+        """
+        Get all Ad groups in the account query set on utility
+        Returns: None
+        """
+        query = (ServiceQueryBuilder()
+                 .Select('Id', 'CampaignId', 'CampaignName', 'Status', 'Settings', 'Labels',
+                         'ContentBidCriterionTypeGroup', 'BaseCampaignId', 'BaseAdGroupId',
+                         'TrackingUrlTemplate', 'FinalUrlSuffix', 'UrlCustomParameters',
+                         'AdGroupType')
+                 .OrderBy('Id')
+                 .Limit(0, self.page_size)
+                 .Build())
+        self.set_query(query)
+
+
+class AdWordsAdGroupAdUtil(AdWordsUtil):
+    """
+    Adwords Utility to handle AdGroup details
+    Args:
+        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+    """
+
+    def __init__(self, conn: GoogleAdWordsConnectionManager, page_size=500):
+        super().__init__(conn, service='AdGroupAdService', version='v201809')
+        self._all_query = None
+        self.page_size = page_size
+
+    def set_query_to_fetch_all(self):
+        """
+        Get all Ad groups Ads in the account query set on utility
+        Returns: None
+        """
+        query = (ServiceQueryBuilder()
+                 .Select('Id')
+                 .OrderBy('Id')
+                 .Limit(0, self.page_size)
+                 .Build())
+        self.set_query(query)
+
+# This piece of code is left out here to be fleshed out when google ad manager is implemented.
+# @dataclass
+# class GoogleAdManagerConnectionSettings(GoogleOAuthConnectionSettings):
+#     """
+#     Handle connection settings for AdWords client
+#     """
+#     application_name: str
+#     network_code: Optional[str]
+#
+#
+# class GoogleAdManagerConnectionManager:
+#     """
+#     AdWords Connection Manager that manages the lifecycle of authentication and the resulting
+#     ad manager client
+#     Args:
+#         settings (GoogleAdManagerConnectionSettings): setting to use for connecting to ad_manager
+#     """
+#
+#     def __init__(self, settings: GoogleAdManagerConnectionSettings):
+#         self.settings = settings
+#         self._ad_manger_client = None
+#
+#     def get_ad_manager_client(self, **kwargs) -> AdManagerClient:
+#         """
+#         Gets the connected ad manager client, and creates one if not exist
+#         Returns (AdManagerClient): Ad Manager Client
+#
+#         """
+#         if self._ad_manger_client is None:
+#             self._ad_manger_client = self._create_client(**kwargs)
+#         return self._ad_manger_client
+#
+#     def _create_client(self, **kwargs) -> AdManagerClient:
+#         oauth2_client = self.settings.get_oauth_client()
+#         ad_manager_client = AdManagerClient(
+#             oauth2_client=oauth2_client,
+#             application_name=self.settings.application_name,
+#             network_code=self.settings.network_code,
+#             **kwargs)
+#         return ad_manager_client
+#
+#
+# class AdManagerUtil:
+#     """
+#     Generic Ad Manager Utility generates the required services that perform actions on ad manager
+#     Args:
+#         conn (GoogleAdManagerConnectionManager): Connection manager to handle the creation of
+#         adwords client
+#     """
+#
+#     def __init__(self, conn: GoogleAdManagerConnectionManager, service: str, version: str):
+#         self.service = service
+#         self.version = version
+#         self.conn = conn
+#         self._service = None
+#
+#     def get_service(self, **kwargs) -> GoogleSoapService:
+#         if not self._service:
+#             self._service = self._create_service(**kwargs)
+#         return self._service
+#
+#     def _create_service(self, **kwargs):
+#         client = self.conn.get_ad_manager_client(**kwargs)
+#         return client.GetService(self.service, version=self.version)
+#
+#
+# class CreativeTemplateServiceUtil(AdManagerUtil):
+#     def __init__(self, conn: GoogleAdManagerConnectionManager):
+#         super().__init__(conn, service='CreativeTemplateService', version='v202002')
+#
+#     def get_all_creative_templates(self):
+#         result = []
+#         # Create a statement to select creative templates.
+#         statement = ad_manager.StatementBuilder(version='v202002')
+#
+#         # Retrieve a small amount of creative templates at a time, paging
+#         # through until all creative templates have been retrieved.
+#         while True:
+#             response = self.get_service().getCreativeTemplatesByStatement(
+#                 statement.ToStatement())
+#             if 'results' in response and len(response['results']):
+#                 for creative_template in response['results']:
+#                     result.append(creative_template)
+#                     # Print out some information for each creative template.
+#                     log.info('Creative template with ID "%d" and name "%s" was found.\n' %
+#                              (creative_template['id'], creative_template['name']))
+#                 statement.offset += statement.limit
+#             else:
+#                 break
+#
+#         log.info('\nNumber of results found: %s' % response['totalResultSetSize'])
+#         return result
