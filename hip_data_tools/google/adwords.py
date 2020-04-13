@@ -326,7 +326,7 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
 
 def _get_page_as_dict(page) -> List[dict]:
     if 'entries' in page:
-        return [item for item in page['entries']]
+        return page['entries']
     else:
         log.warning('No entries were found.')
         return []
