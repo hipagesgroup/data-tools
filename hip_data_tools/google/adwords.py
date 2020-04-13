@@ -47,6 +47,10 @@ class GoogleOAuthConnectionSettings:
     secrets_manager: GoogleAdWordsSecretsManager
 
     def get_oauth_client(self) -> GoogleOAuth2Client:
+        """
+        Create an oAuth refresh-token client for all google adwords and manager api
+        Returns: GoogleOAuth2Client
+        """
         return oauth2.GoogleRefreshTokenClient(
             client_id=self.client_id,
             client_secret=self.secrets_manager.client_secret,
