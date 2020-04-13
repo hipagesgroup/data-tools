@@ -321,7 +321,6 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
 
 
 def _get_page_as_dict(page) -> List[dict]:
-    log.debug(f"page header is {page}")
     if 'entries' in page:
         return [item for item in page['entries']]
     else:
