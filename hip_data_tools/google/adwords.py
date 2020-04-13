@@ -151,7 +151,7 @@ class AdWordsUtil:
 
     def _get_service(self, **kwargs) -> GoogleSoapService:
         if not self.__service_object:
-            self.__service_object = self._create_service()
+            self.__service_object = self._create_service(**kwargs)
         return self.__service_object
 
     def _create_service(self, **kwargs) -> GoogleSoapService:
