@@ -7,6 +7,9 @@ import os
 import re
 import uuid
 from abc import ABC, abstractmethod
+from typing import List
+
+from pandas import DataFrame
 
 LOG = logging.getLogger(__name__)
 """
@@ -219,3 +222,8 @@ def to_snake_case(column_name: str) -> str:
     # Detect all instances of Camel Casing
     camel_column_name = camel_case_detect.sub('_', str_replaced_special_chars).lower()
     return camel_column_name
+
+
+def nested_list_of_dict_to_dataframe(data: List[dict]) -> DataFrame:
+    flattened_dicts = [flatten_nested_dict(d) for d in data]
+    return DataFrame(data=flattened_dicts)

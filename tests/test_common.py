@@ -2,7 +2,7 @@ import os
 from unittest import TestCase
 
 from hip_data_tools.common import get_release_version, get_long_description, flatten_nested_dict, \
-    to_snake_case
+    to_snake_case, nested_list_of_dict_to_dataframe
 
 
 class TestCommon(TestCase):
@@ -119,3 +119,25 @@ class TestCommon(TestCase):
         expected = "this__is__camel_______case"
         actual = to_snake_case(input)
         self.assertEqual(expected, actual)
+
+    def test__should__convert_list_of_dict_to_proper_df__with__nested_items(self):
+        input = [
+            {
+                "abc": 123,
+                "def": "qwe",
+                "fooBar": {
+                    "Baz": "boo2"
+                }
+            },
+            {
+                "abc": 345,
+                "def": "wer",
+                "fooBar": {
+                    "Baz": "bgt"
+                }
+            },
+        ]
+        expected = ['abc', 'def', 'foo_bar_baz']
+        actual = nested_list_of_dict_to_dataframe(input)
+        print(actual.columns.values)
+        self.assertListEqual(expected, list(actual.columns.values))

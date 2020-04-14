@@ -9,8 +9,10 @@ from googleads import oauth2, AdWordsClient
 from googleads.adwords import ServiceQueryBuilder
 from googleads.common import GoogleSoapService
 from googleads.oauth2 import GoogleOAuth2Client
+from pandas import DataFrame
 
-from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
+from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager, \
+    nested_list_of_dict_to_dataframe
 
 log = logging.getLogger(__name__)
 
@@ -53,6 +55,7 @@ class GoogleOAuthConnectionManager:
     Args:
         settings (GoogleOAuthConnectionSettings): connection settings to use for creation
     """
+
     def __init__(self, settings: GoogleOAuthConnectionSettings):
         self.__settings = settings
 
@@ -137,12 +140,26 @@ class AdWordsUtil:
             complete_result.extend(_get_page_as_list_of_dict(page))
         return complete_result
 
+    def download_all_as_dataframe(self) -> DataFrame:
+        """
+        Generates a data frame from the next page of the API call to adwords
+        Returns: List[dict]
+        """
+        return nested_list_of_dict_to_dataframe(self.download_all_as_dict())
+
     def download_next_page_as_dict(self) -> List[dict]:
         """
         Generates a list of dict from the next page of the API call to adwords
         Returns: List[dict]
         """
         return _get_page_as_list_of_dict(next(self._get_query_pager(self._get_query())))
+
+    def download_next_page_as_dataframe(self) -> DataFrame:
+        """
+        Generates a data frame from the next page of the API call to adwords
+        Returns: List[dict]
+        """
+        return nested_list_of_dict_to_dataframe(self.download_next_page_as_dict())
 
     def set_query(self, query: ServiceQueryBuilder) -> None:
         """
