@@ -30,7 +30,7 @@ class GoogleAdWordsSecretsManager(SecretsManager):
                  source: KeyValueSource = ENVIRONMENT,
                  client_secret_var: str = "adwords_client_secret",
                  refresh_token_var: str = "adwords_refresh_token",
-                 developer_token_var="adwords_developer_token"):
+                 developer_token_var: str = "adwords_developer_token"):
         self._required_keys = [client_secret_var, refresh_token_var, developer_token_var, ]
         super().__init__(self._required_keys, source)
         self.client_secret = self.get_secret(client_secret_var)
@@ -157,7 +157,7 @@ class AdWordsUtil:
     def _create_service(self, **kwargs) -> GoogleSoapService:
         return self.conn.get_adwords_client(**kwargs).GetService(self.service, version=self.version)
 
-    def _get_query_pager(self, query):
+    def _get_query_pager(self, query: ServiceQueryBuilder):
         if self.__pager is None:
             self.__pager = query.Pager(self._get_service())
         return self.__pager
@@ -173,7 +173,7 @@ class AdWordsCustomerUtil(AdWordsUtil):
     """
 
     def __init__(self, conn: GoogleAdWordsConnectionManager):
-        super().__init__(conn, 'CustomerService', 'v201809')
+        super().__init__(conn, service='CustomerService', version='v201809')
 
     def get_customers(self) -> List[dict]:
         """
@@ -202,7 +202,7 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
     """
 
     def __init__(self, conn: GoogleAdWordsConnectionManager):
-        super().__init__(conn, 'OfflineConversionFeedService', 'v201809')
+        super().__init__(conn, service='OfflineConversionFeedService', version='v201809')
         self.required_fields = [
             'conversionName',
             'conversionTime',
@@ -341,7 +341,7 @@ class AdWordsCampaignUtil(AdWordsUtil):
     """
 
     def __init__(self, conn: GoogleAdWordsConnectionManager, page_size: int = 500):
-        super().__init__(conn, 'CampaignService', 'v201809')
+        super().__init__(conn, service='CampaignService', version='v201809')
         self.page_size = page_size
 
     def set_query_to_fetch_all(self) -> None:
@@ -367,7 +367,7 @@ class AdWordsAdGroupUtil(AdWordsUtil):
     """
 
     def __init__(self, conn: GoogleAdWordsConnectionManager, page_size: int = 500):
-        super().__init__(conn, 'AdGroupService', 'v201809')
+        super().__init__(conn, service='AdGroupService', version='v201809')
         self.page_size = page_size
         self._all_query = None
 
