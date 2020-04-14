@@ -4,6 +4,7 @@ Module contains variables and methods used for common / shared operations throug
 
 import logging
 import os
+import re
 import uuid
 from abc import ABC, abstractmethod
 
@@ -175,3 +176,46 @@ class SecretsManager(ABC):
         Returns: str
         """
         return self._source.get(key)
+
+
+def flatten_nested_dict(data: dict, delimiter: str = "_", snake_cased_keys: bool = True) -> dict:
+    """
+    takes arbitrarily nested levels of a dictionary and un nests it to one level of key value pairs
+    Args:
+        data (dict): the dictionary ro be un nested
+        delimiter (str): the delimiter to concatenate nested keys
+        snake_cased_keys (bool): convert the keys in resulting dict to snake case
+    Returns: dict
+    """
+
+    def expand(key, value):
+        if isinstance(value, dict):
+            return [(key + delimiter + k, v) for k, v in flatten_nested_dict(value).items()]
+        else:
+            return [(key, value)]
+
+    items = [item for k, v in data.items() for item in expand(k, v)]
+    if snake_cased_keys:
+        items = [(to_snake_case(k), v) for k, v in items]
+    return dict(items)
+
+
+camel_case_detect = re.compile(r'(?<!^)(?=[A-Z])')
+"""Regex pattern to be reused for Camel Case"""
+
+special_characters_detect = re.compile(r'[^a-zA-Z0-9]')
+"""Regex pattern to detect special characters"""
+
+
+def to_snake_case(column_name: str) -> str:
+    """
+    Converts the column name to Athena compatible snake_case
+    Args:
+        column_name (str): column name string to be sanitized
+    Returns: str
+    """
+    # Detect and replace special_chars
+    str_replaced_special_chars = special_characters_detect.sub('_', column_name)
+    # Detect all instances of Camel Casing
+    camel_column_name = camel_case_detect.sub('_', str_replaced_special_chars).lower()
+    return camel_column_name
