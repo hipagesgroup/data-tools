@@ -139,5 +139,4 @@ class TestCommon(TestCase):
         ]
         expected = ['abc', 'def', 'foo_bar_baz']
         actual = nested_list_of_dict_to_dataframe(input)
-        print(actual.columns.values)
         self.assertListEqual(expected, list(actual.columns.values))
