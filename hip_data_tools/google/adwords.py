@@ -328,7 +328,7 @@ def _get_page_as_list_of_dict(page: dict) -> List[dict]:
     if 'entries' in page:
         return page['entries']
     else:
-        log.warning('No entries were found.')
+        log.info('No entries were found.')
         return []
 
 
