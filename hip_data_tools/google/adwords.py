@@ -334,7 +334,7 @@ def _get_page_as_list_of_dict(page: dict) -> List[dict]:
 
 class AdWordsCampaignUtil(AdWordsUtil):
     """
-    Adwords Utility to handle Campaign details
+    Handles the querying of Adwords Campaign service
     Args:
         conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
         adwords client
@@ -360,7 +360,7 @@ class AdWordsCampaignUtil(AdWordsUtil):
 
 class AdWordsAdGroupUtil(AdWordsUtil):
     """
-    Adwords Utility to handle AdGroup details
+    Handles the querying of Adwords AdGroup service
     Args:
         conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
         adwords client
@@ -404,7 +404,7 @@ class AdWordsAdGroupUtil(AdWordsUtil):
 
 class AdWordsAdGroupAdUtil(AdWordsUtil):
     """
-    Adwords Utility to handle AdGroup details
+    Handles the querying of Adwords AdGroupAd service
     Args:
         conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
         adwords client
