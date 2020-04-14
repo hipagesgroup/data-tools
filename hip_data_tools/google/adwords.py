@@ -346,7 +346,7 @@ class AdWordsCampaignUtil(AdWordsUtil):
 
     def set_query_to_fetch_all(self) -> None:
         """
-        Get all campaigns associated with and adwords account query set on utility
+        Get all campaigns associated with an account
         Returns: None
         """
         query = (ServiceQueryBuilder()
@@ -373,7 +373,7 @@ class AdWordsAdGroupUtil(AdWordsUtil):
 
     def set_query_to_fetch_by_campaign(self, campaign_id: str) -> None:
         """
-        Get Ad groups for the given Campaign query set on utility
+        Get all AdGroups for the given Campaign
         Args:
             campaign_id (str): the adwords campaign to query
         Returns: None
@@ -388,7 +388,7 @@ class AdWordsAdGroupUtil(AdWordsUtil):
 
     def set_query_to_fetch_all(self) -> None:
         """
-        Get all Ad groups in the account query set on utility
+        Get all Ad groups in the account
         Returns: None
         """
         query = (ServiceQueryBuilder()
@@ -417,7 +417,7 @@ class AdWordsAdGroupAdUtil(AdWordsUtil):
 
     def set_query_to_fetch_all(self):
         """
-        Get all Ad groups Ads in the account query set on utility
+        Get all Ad groups Ads in the account
         Returns: None
         """
         query = (ServiceQueryBuilder()
