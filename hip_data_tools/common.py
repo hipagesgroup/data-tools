@@ -201,12 +201,10 @@ def flatten_nested_dict(data: dict, delimiter: str = "_", snake_cased_keys: bool
 
 
 camel_case_detect = re.compile(r'(?<!^)(?=[A-Z])')
-# Regex pattern to be reused for Camel Case
+"""Regex pattern to be reused for Camel Case"""
 
 special_characters_detect = re.compile(r'[^a-zA-Z0-9]')
-
-
-# Regex pattern to detect special characters
+"""Regex pattern to detect special characters"""
 
 
 def to_snake_case(column_name: str) -> str:
