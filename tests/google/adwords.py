@@ -69,7 +69,7 @@ class TestAdWordsUtil(TestCase):
         self.assertEqual(len(uploaded), 2)
         self.assertEqual(len(failed), 1)
 
-    def test__should_be_able_to_get_all_campaigns(self):
+    def test__should__be_able_to_get_all_campaigns__with_one_account(self):
         # Load secrets via env vars
         execfile("../../secrets.py")
         util = AdWordsCampaignUtil(
@@ -85,7 +85,7 @@ class TestAdWordsUtil(TestCase):
         print(actual)
         self.assertEqual(expected, len(actual))
 
-    def test__should_be_able_to_get_all_ad_groups_of_all_campaigns(self):
+    def test__should__be_able_to_get_all_ad_groups_of_all_campaigns__with_one_account(self):
         # Load secrets via env vars
         execfile("../../secrets.py")
         conn = GoogleAdWordsConnectionManager(
@@ -104,7 +104,7 @@ class TestAdWordsUtil(TestCase):
         print(actual)
         self.assertEqual(expected, len(actual))
 
-    def test__should_be_able_to_get_all_ads(self):
+    def test__should__be_able_to_get_all_ads__when__run_multiple_times(self):
         # Load secrets via env vars
         execfile("../../secrets.py")
         conn = GoogleAdWordsConnectionManager(
