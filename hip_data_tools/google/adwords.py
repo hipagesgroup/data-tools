@@ -410,7 +410,7 @@ class AdWordsAdGroupAdUtil(AdWordsUtil):
         adwords client
     """
 
-    def __init__(self, conn: GoogleAdWordsConnectionManager, page_size=500):
+    def __init__(self, conn: GoogleAdWordsConnectionManager, page_size: int = 500):
         super().__init__(conn, service='AdGroupAdService', version='v201809')
         self._all_query = None
         self.page_size = page_size
