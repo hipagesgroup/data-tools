@@ -1,7 +1,8 @@
 import os
 from unittest import TestCase
 
-from hip_data_tools.common import get_release_version, get_long_description
+from hip_data_tools.common import get_release_version, get_long_description, flatten_nested_dict, \
+    to_snake_case
 
 
 class TestCommon(TestCase):
@@ -21,3 +22,100 @@ class TestCommon(TestCase):
         actual = get_long_description()[0:16]
         expected = "# hip-data-tools"
         self.assertEqual(actual, expected)
+
+    def test__should__flatten_dict__with_one_level_of_nesting(self):
+        input = {
+            "abc": 123,
+            "def": "qwe",
+            "foo": {
+                "bar": "baz"
+            }
+        }
+        expected = {
+            "abc": 123,
+            "def": "qwe",
+            "foo_bar": "baz"
+        }
+        actual = flatten_nested_dict(input, "_")
+        self.assertDictEqual(expected, actual)
+
+    def test__should__flatten_dict__with_two_levels_of_nesting(self):
+        input = {
+
+            "abc": 123,
+            "def": "qwe",
+            "foo": {
+                "bar": {
+                    "baz": "boo"
+                }
+            }
+        }
+        expected = {
+            "abc": 123,
+            "def": "qwe",
+            "foo_bar_baz": "boo"
+        }
+        actual = flatten_nested_dict(input)
+        self.assertDictEqual(expected, actual)
+
+    def test__should__flatten_dict__with_duplicate_keys(self):
+        input = {
+
+            "abc": 123,
+            "def": "qwe",
+            "foo": {
+                "bar": {
+                    "baz": "boo"
+                }
+            },
+            "foo_bar": {
+                "baz": "boo2"
+            }
+        }
+        expected = {
+            "abc": 123,
+            "def": "qwe",
+            "foo_bar_baz": "boo2"
+        }
+        actual = flatten_nested_dict(input)
+        self.assertDictEqual(expected, actual)
+
+    def test__should__flatten_dict__with_camel_case(self):
+        input = {
+
+            "abc": 123,
+            "def": "qwe",
+            "foo": {
+                "bar": {
+                    "baz": "boo"
+                }
+            },
+            "fooBar": {
+                "Baz": "boo2"
+            }
+        }
+        expected = {
+            "abc": 123,
+            "def": "qwe",
+            "foo_bar_baz": "boo2"
+        }
+        actual = flatten_nested_dict(input)
+        self.assertDictEqual(expected, actual)
+
+    def test__should__convert_to_snake_case__with_camel_case(self):
+        input = "ThisIsCamelCase"
+        expected = "this_is_camel_case"
+        actual = to_snake_case(input)
+        self.assertEqual(expected, actual)
+
+    def test__should__convert_to_snake_case__with_spaces(self):
+        input = "ThisIs Camel Case"
+        expected = "this_is__camel__case"
+        actual = to_snake_case(input)
+        self.assertEqual(expected, actual)
+
+    def test__should__convert_to_snake_case__with_special_chars(self):
+        input = "This%Is.Camel$%#@!^Case"
+        expected = "this__is__camel_______case"
+        actual = to_snake_case(input)
+        self.assertEqual(expected, actual)

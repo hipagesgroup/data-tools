@@ -123,7 +123,7 @@ class AdWordsUtil:
         """
         complete_result = []
         for page in self._get_query_pager(self._get_query()):
-            complete_result.extend(_get_page_as_dict(page))
+            complete_result.extend(_get_page_as_list_of_dict(page))
         return complete_result
 
     def download_next_page_as_dict(self) -> List[dict]:
@@ -131,7 +131,7 @@ class AdWordsUtil:
         Generates a list of dict from the next page of the API call to adwords
         Returns: List[dict]
         """
-        return _get_page_as_dict(next(self._get_query_pager(self._get_query())))
+        return _get_page_as_list_of_dict(next(self._get_query_pager(self._get_query())))
 
     def set_query(self, query: ServiceQueryBuilder) -> None:
         """
@@ -324,7 +324,7 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
                     f"{self.valid_fields}")
 
 
-def _get_page_as_dict(page) -> List[dict]:
+def _get_page_as_list_of_dict(page: dict) -> List[dict]:
     if 'entries' in page:
         return page['entries']
     else:
