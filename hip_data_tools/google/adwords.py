@@ -46,15 +46,25 @@ class GoogleOAuthConnectionSettings:
     client_id: str
     secrets_manager: GoogleAdWordsSecretsManager
 
-    def get_oauth_client(self) -> GoogleOAuth2Client:
+
+class GoogleOAuthConnectionManager:
+    """
+    Creates an OAuth client from google adwords library
+    Args:
+        settings (GoogleOAuthConnectionSettings): connection settings to use for creation
+    """
+    def __init__(self, settings: GoogleOAuthConnectionSettings):
+        self.__settings = settings
+
+    def _get_oauth_client(self) -> GoogleOAuth2Client:
         """
-        Create an oAuth refresh-token client for all google adwords and manager api
+        Create an OAuth refresh-token client for all google adwords and manager api
         Returns: GoogleOAuth2Client
         """
         return oauth2.GoogleRefreshTokenClient(
-            client_id=self.client_id,
-            client_secret=self.secrets_manager.client_secret,
-            refresh_token=self.secrets_manager.refresh_token
+            client_id=self.__settings.client_id,
+            client_secret=self.__settings.secrets_manager.client_secret,
+            refresh_token=self.__settings.secrets_manager.refresh_token
         )
 
 
@@ -67,7 +77,7 @@ class GoogleAdWordsConnectionSettings(GoogleOAuthConnectionSettings):
     client_customer_id: Optional[str]
 
 
-class GoogleAdWordsConnectionManager:
+class GoogleAdWordsConnectionManager(GoogleOAuthConnectionManager):
     """
     AdWords Connection Manager that manages the lifecycle of authentication and the resulting
     adwords client
@@ -76,6 +86,7 @@ class GoogleAdWordsConnectionManager:
     """
 
     def __init__(self, settings: GoogleAdWordsConnectionSettings):
+        super().__init__(settings)
         self.settings = settings
         self._adwords_client = None
 
@@ -90,7 +101,7 @@ class GoogleAdWordsConnectionManager:
         return self._adwords_client
 
     def _create_client(self, **kwargs) -> AdWordsClient:
-        oauth2_client = self.settings.get_oauth_client()
+        oauth2_client = self._get_oauth_client()
         adwords_client = AdWordsClient(
             developer_token=self.settings.secrets_manager.developer_key,
             oauth2_client=oauth2_client,
@@ -102,7 +113,7 @@ class GoogleAdWordsConnectionManager:
 
 class AdWordsUtil:
     """
-    Generic Adwords Utility that generates the required services that perform actions on adwords
+    Generic Adwords Utility class generates the required services to consume adwords API
     Args:
         conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
         adwords client
@@ -135,7 +146,7 @@ class AdWordsUtil:
 
     def set_query(self, query: ServiceQueryBuilder) -> None:
         """
-        Sets the new query for adwords util to use awql, once the query is set, the download methods
+        Sets the new query for the class to use awql, once the query is set, the download methods
         can iterate over paged results
         Args:
             query (ServiceQueryBuilder): query built as per adwords query language
