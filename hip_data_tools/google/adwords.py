@@ -2,7 +2,7 @@
 This Module handles the connection and operations on Google AdWords accounts using adwords API
 """
 import logging
-from typing import List, Optional
+from typing import List, Optional, Any, OrderedDict
 
 from attr import dataclass
 from googleads import oauth2, AdWordsClient
@@ -126,9 +126,35 @@ class AdWordsUtil:
         self.service = service
         self.version = version
         self.conn = conn
-        self.__service_object = None
+        self._service_object = None
+        self._pager = None
+        self.query = None
+
+    def _get_service(self, **kwargs) -> GoogleSoapService:
+        if not self._service_object:
+            self._service_object = self._create_service(**kwargs)
+        return self._service_object
+
+    def _create_service(self, **kwargs) -> GoogleSoapService:
+        client = self.conn.get_adwords_client(**kwargs)
+        service = client.GetService(self.service, version=self.version)
+        return service
+
+
+class AdWordsDataReader(AdWordsUtil):
+    """
+    Generic Adwords Utility class generates the required services to consume adwords API
+    Args:
+        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+    """
+
+    def __init__(self, conn: GoogleAdWordsConnectionManager, service: str, version: str,
+                 page_size: int = 1000):
+        super().__init__(conn, service, version)
         self.__pager = None
         self.query = None
+        self.page_size = page_size
 
     def download_all_as_dict(self) -> List[dict]:
         """
@@ -137,7 +163,7 @@ class AdWordsUtil:
         """
         complete_result = []
         for page in self._get_query_pager(self._get_query()):
-            complete_result.extend(_get_page_as_list_of_dict(page))
+            complete_result.extend(get_page_as_list_of_dict(page))
         return complete_result
 
     def download_all_as_dataframe(self) -> DataFrame:
@@ -145,21 +171,23 @@ class AdWordsUtil:
         Generates a data frame from the next page of the API call to adwords
         Returns: List[dict]
         """
-        return nested_list_of_dict_to_dataframe(self.download_all_as_dict())
+        data_list = self.download_all_as_dict()
+        return nested_list_of_dict_to_dataframe(data_list)
 
     def download_next_page_as_dict(self) -> List[dict]:
         """
         Generates a list of dict from the next page of the API call to adwords
         Returns: List[dict]
         """
-        return _get_page_as_list_of_dict(next(self._get_query_pager(self._get_query())))
+        return get_page_as_list_of_dict(next(self._get_query_pager(self._get_query())))
 
     def download_next_page_as_dataframe(self) -> DataFrame:
         """
         Generates a data frame from the next page of the API call to adwords
         Returns: List[dict]
         """
-        return nested_list_of_dict_to_dataframe(self.download_next_page_as_dict())
+        data_list = self.download_next_page_as_dict()
+        return nested_list_of_dict_to_dataframe(data_list)
 
     def set_query(self, query: ServiceQueryBuilder) -> None:
         """
@@ -177,21 +205,78 @@ class AdWordsUtil:
             raise Exception("Please set the query attribute using the method set_query(...)")
         return self.query
 
-    def _get_service(self, **kwargs) -> GoogleSoapService:
-        if not self.__service_object:
-            self.__service_object = self._create_service(**kwargs)
-        return self.__service_object
-
-    def _create_service(self, **kwargs) -> GoogleSoapService:
-        return self.conn.get_adwords_client(**kwargs).GetService(self.service, version=self.version)
-
     def _get_query_pager(self, query: ServiceQueryBuilder):
         if self.__pager is None:
             self.__pager = query.Pager(self._get_service())
         return self.__pager
 
+    def get_parallel_payloads(self, page_size: int, number_of_workers: int) -> List[dict]:
+        """
+        gives a list of dicts that contain start index, page size, and number of iterations
+        Args:
+            page_size (int): number of elements in each page / api call
+            number_of_workers (int): total number of parallel workers for which the payload needs
+            to be distributed
+        Returns: List[dict] eg:
+        [
+            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 0, 'worker': 0},
+            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 393000, 'worker': 1},
+            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 786000, 'worker': 2},
+        ]
+        """
+        estimator = AdWordsParallelDataReadEstimator(
+            conn=self.conn, service=self.service, version=self.version, query=self._get_query())
+        return estimator.get_parallel_payloads(page_size, number_of_workers)
 
-class AdWordsCustomerUtil(AdWordsUtil):
+
+class AdWordsParallelDataReadEstimator(AdWordsUtil):
+    def __init__(self, conn: GoogleAdWordsConnectionManager, service: str, version: str,
+                 query: ServiceQueryBuilder):
+        super().__init__(conn, service, version)
+        self.query = query
+
+    def get_parallel_payloads(self, page_size: int, number_of_workers: int) -> List[dict]:
+        """
+        gives a list of dicts that contain start index, page size, and number of iterations
+        Args:
+            page_size (int): number of elements in each page / api call
+            number_of_workers (int): total number of parallel workers for which the payload needs
+            to be distributed
+        Returns: List[dict] eg:
+        [
+            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 0, 'worker': 0},
+            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 393000, 'worker': 1},
+            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 786000, 'worker': 2},
+        ]
+        """
+        total_entries = self._get_total_entries()
+        last_page_residue = total_entries % page_size
+        number_of_pages = int(total_entries / page_size)
+        if last_page_residue > 0:
+            number_of_pages += 1
+        pages_per_worker = round(number_of_pages / number_of_workers)
+        start_index = 0
+        result = []
+        for worker in range(number_of_workers):
+            payload = {
+                "worker": worker,
+                "start_index": start_index,
+                "number_of_pages": pages_per_worker,
+                "page_size": page_size,
+            }
+            start_index = start_index + (page_size * pages_per_worker)
+            result.append(payload)
+        return result
+
+    def _get_total_entries(self) -> int:
+        query = self.query
+        result = next(query.Pager(self._get_service()))
+        if 'totalNumEntries' in result:
+            return result['totalNumEntries']
+        return 0
+
+
+class AdWordsCustomerUtil(AdWordsDataReader):
     """
     Adwords Utility to handle customer details, customer here meaning, the Adwords customer
     account, ie. the accounts that you see on top right corner on the AdWords console
@@ -352,15 +437,39 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
                     f"{self.valid_fields}")
 
 
-def _get_page_as_list_of_dict(page: dict) -> List[dict]:
+def get_page_as_list_of_dict(page: dict) -> List[OrderedDict]:
+    """
+    Converts a list of entries from google adwords response into a list of Ordered Dictionaries
+    Args:
+        page (dict): the response page from google adwords api
+    Returns: List[dict]
+    """
+    result = []
     if 'entries' in page:
-        return page['entries']
+        entries = page['entries']
+        # These entries are a list of zeep Objects that need conversion to Dict
+        result = [zeep_object_to_dict(entry) for entry in entries]
     else:
         log.info('No entries were found.')
-        return []
+    return result
 
 
-class AdWordsCampaignUtil(AdWordsUtil):
+def zeep_object_to_dict(obj: Any) -> OrderedDict:
+    """
+    converts the zeep client objects used in google adwords to Ordered Dict, also converts nested
+    objects to ordered dict recursively
+    Args:
+        obj (Any): the Zeep object to be converted
+    Returns: OrderedDict
+    """
+    obj_dict = obj.__dict__["__values__"]
+    for key, val in obj_dict.items():
+        if "zeep.objects" in f"{type(val)}":
+            obj_dict[key] = zeep_object_to_dict(val)
+    return obj_dict
+
+
+class AdWordsCampaignUtil(AdWordsDataReader):
     """
     Handles the querying of Adwords Campaign service
     Args:
@@ -368,11 +477,11 @@ class AdWordsCampaignUtil(AdWordsUtil):
         adwords client
     """
 
-    def __init__(self, conn: GoogleAdWordsConnectionManager, page_size: int = 500):
+    def __init__(self, conn: GoogleAdWordsConnectionManager):
         super().__init__(conn, service='CampaignService', version='v201809')
-        self.page_size = page_size
 
-    def set_query_to_fetch_all(self) -> None:
+    def set_query_to_fetch_all(self, start_index: int = 0,
+                               page_size: int = 500) -> None:
         """
         Get all campaigns associated with an account
         Returns: None
@@ -381,12 +490,12 @@ class AdWordsCampaignUtil(AdWordsUtil):
                  .Select('Id', 'Name', 'Status')
                  # .Where('Status').EqualTo('ENABLED')
                  .OrderBy('Id')
-                 .Limit(0, self.page_size)
+                 .Limit(start_index, page_size)
                  .Build())
         self.set_query(query)
 
 
-class AdWordsAdGroupUtil(AdWordsUtil):
+class AdWordsAdGroupUtil(AdWordsDataReader):
     """
     Handles the querying of Adwords AdGroup service
     Args:
@@ -394,29 +503,34 @@ class AdWordsAdGroupUtil(AdWordsUtil):
         adwords client
     """
 
-    def __init__(self, conn: GoogleAdWordsConnectionManager, page_size: int = 500):
+    def __init__(self, conn: GoogleAdWordsConnectionManager):
         super().__init__(conn, service='AdGroupService', version='v201809')
-        self.page_size = page_size
         self._all_query = None
 
-    def set_query_to_fetch_by_campaign(self, campaign_id: str) -> None:
+    def set_query_to_fetch_by_campaign(self, campaign_id: str, start_index: int = 0,
+                                       page_size: int = 500) -> None:
         """
         Get all AdGroups for the given Campaign
         Args:
             campaign_id (str): the adwords campaign to query
+            page_size:
+            start_index:
         Returns: None
         """
         query = (ServiceQueryBuilder()
                  .Select('Id', 'CampaignId', 'CampaignName', 'Status')
                  .Where('CampaignId').EqualTo(campaign_id)
                  .OrderBy('Id')
-                 .Limit(0, self.page_size)
+                 .Limit(start_index, page_size)
                  .Build())
         self.set_query(query)
 
-    def set_query_to_fetch_all(self) -> None:
+    def set_query_to_fetch_all(self, start_index: int = 0, page_size: int = 500) -> None:
         """
         Get all Ad groups in the account
+        Args:\
+            page_size:
+            start_index:
         Returns: None
         """
         query = (ServiceQueryBuilder()
@@ -424,13 +538,12 @@ class AdWordsAdGroupUtil(AdWordsUtil):
                          'ContentBidCriterionTypeGroup', 'BaseCampaignId', 'BaseAdGroupId',
                          'TrackingUrlTemplate', 'FinalUrlSuffix', 'UrlCustomParameters',
                          'AdGroupType')
-                 .OrderBy('Id')
-                 .Limit(0, self.page_size)
+                 .OrderBy('Id')                 .Limit(start_index, page_size)
                  .Build())
         self.set_query(query)
 
 
-class AdWordsAdGroupAdUtil(AdWordsUtil):
+class AdWordsAdGroupAdUtil(AdWordsDataReader):
     """
     Handles the querying of Adwords AdGroupAd service
     Args:
@@ -438,19 +551,21 @@ class AdWordsAdGroupAdUtil(AdWordsUtil):
         adwords client
     """
 
-    def __init__(self, conn: GoogleAdWordsConnectionManager, page_size: int = 500):
+    def __init__(self, conn: GoogleAdWordsConnectionManager):
         super().__init__(conn, service='AdGroupAdService', version='v201809')
         self._all_query = None
-        self.page_size = page_size
 
-    def set_query_to_fetch_all(self):
+    def set_query_to_fetch_all(self, start_index: int = 0, page_size: int = 500):
         """
         Get all Ad groups Ads in the account
+        Args:
+            page_size:
+            start_index:
         Returns: None
         """
         query = (ServiceQueryBuilder()
                  .Select('Id')
                  .OrderBy('Id')
-                 .Limit(0, self.page_size)
+                 .Limit(start_index, page_size)
                  .Build())
         self.set_query(query)

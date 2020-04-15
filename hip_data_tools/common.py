@@ -7,6 +7,7 @@ import os
 import re
 import uuid
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 from typing import List
 
 from pandas import DataFrame
@@ -192,7 +193,7 @@ def flatten_nested_dict(data: dict, delimiter: str = "_", snake_cased_keys: bool
     """
 
     def expand(key, value):
-        if isinstance(value, dict):
+        if isinstance(value, dict) or isinstance(value, OrderedDict):
             return [(key + delimiter + k, v) for k, v in flatten_nested_dict(value).items()]
         else:
             return [(key, value)]
