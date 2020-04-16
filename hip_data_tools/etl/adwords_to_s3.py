@@ -1,7 +1,6 @@
 """
 Module to deal with data transfer from Adwords to S3
 """
-import logging
 from typing import List
 
 from attr import dataclass
@@ -12,7 +11,6 @@ from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionSettings, AdWordsDataReader, \
     GoogleAdWordsConnectionManager, AdWordsParallelDataReadEstimator
 
-log = logging.getLogger(__name__)
 
 
 @dataclass

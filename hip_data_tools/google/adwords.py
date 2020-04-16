@@ -1,7 +1,6 @@
 """
 This Module handles the connection and operations on Google AdWords accounts using adwords API
 """
-import logging
 from typing import List, Optional, Any, OrderedDict
 
 from attr import dataclass
@@ -12,9 +11,7 @@ from googleads.oauth2 import GoogleOAuth2Client
 from pandas import DataFrame
 
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager, \
-    nested_list_of_dict_to_dataframe
-
-log = logging.getLogger(__name__)
+    nested_list_of_dict_to_dataframe, LOG
 
 
 class GoogleAdWordsSecretsManager(SecretsManager):
@@ -230,7 +227,19 @@ class AdWordsDataReader(AdWordsUtil):
 
 
 class AdWordsParallelDataReadEstimator(AdWordsUtil):
-    def __init__(self, conn: GoogleAdWordsConnectionManager, service: str, version: str,
+    """
+    Class to use a service endpoint and awql query to estimate the number of parallel payloads, and
+    their offsets
+    Args:
+        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+        service (str): Adwords service api to use for querying
+        version (str): Adwords service api version to use for querying
+        query (ServiceQueryBuilder): the Query builder object without limit clause
+    """
+    def __init__(self, conn: GoogleAdWordsConnectionManager,
+                 service: str,
+                 version: str,
                  query: ServiceQueryBuilder):
         super().__init__(conn, service, version)
         self.query = query
@@ -450,7 +459,7 @@ def get_page_as_list_of_dict(page: dict) -> List[OrderedDict]:
         # These entries are a list of zeep Objects that need conversion to Dict
         result = [zeep_object_to_dict(entry) for entry in entries]
     else:
-        log.info('No entries were found.')
+        LOG.info('No entries were found.')
     return result
 
 
@@ -538,7 +547,7 @@ class AdWordsAdGroupUtil(AdWordsDataReader):
                          'ContentBidCriterionTypeGroup', 'BaseCampaignId', 'BaseAdGroupId',
                          'TrackingUrlTemplate', 'FinalUrlSuffix', 'UrlCustomParameters',
                          'AdGroupType')
-                 .OrderBy('Id')                 .Limit(start_index, page_size)
+                 .OrderBy('Id').Limit(start_index, page_size)
                  .Build())
         self.set_query(query)
 
