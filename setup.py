@@ -1,6 +1,8 @@
 """
 Setup and release this package for wider consumption using setup tools
 """
+import os
+
 import sys
 
 from setuptools import setup, find_packages
