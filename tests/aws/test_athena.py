@@ -172,7 +172,7 @@ class TestAthenaUtil(TestCase):
         mock_au = Mock()
         expected = ("abc", "def/pqr/")
         # 
-        mock_au._get_glue_table_metadata.return_value = {
+        mock_au.get_glue_table_metadata.return_value = {
             'Table': {
                 'StorageDescriptor': {
                     'Location': "s3://abc/def/pqr/",
@@ -189,7 +189,7 @@ class TestAthenaUtil(TestCase):
                                 {'column': 'report', 'type': 'STRING'}], 's3_bucket': 'test',
                     's3_dir': 'data/external/'}
 
-        actual = athena.get_table_settings_for_sheets_table(dataframe=DataFrame(
+        actual = athena.get_table_settings_for_dataframe(dataframe=DataFrame(
             data=[{"source": "source_value_1", "report": "report_value_1"},
                   {"source": "source_value_2", "report": "report_value_2"}]), partitions=None,
             s3_bucket="test",

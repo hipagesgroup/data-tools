@@ -1,7 +1,8 @@
 """
 This Module handles the connection and operations on Google AdWords accounts using adwords API
 """
-from typing import List, Optional, Any, OrderedDict
+from collections import OrderedDict
+from typing import List, Optional, Any
 
 from attr import dataclass
 from googleads import oauth2, AdWordsClient

@@ -4,7 +4,7 @@ Module to deal with data transfer from Google sheets to Athena
 
 from attr import dataclass
 
-from hip_data_tools.aws.athena import AthenaUtil, get_table_settings_for_sheets_table
+from hip_data_tools.aws.athena import AthenaUtil, get_table_settings_for_dataframe
 from hip_data_tools.aws.common import AwsConnectionManager
 from hip_data_tools.etl.google_sheet_to_s3 import GoogleSheetToS3, GoogleSheetsToS3Settings
 
@@ -71,7 +71,7 @@ class GoogleSheetToAthena(GoogleSheetToS3):
         if self.__settings.target_table_ddl_progress:
             athena_util.drop_table(self.__settings.target_table_name)
 
-        athena_util.create_table(table_settings=get_table_settings_for_sheets_table(
+        athena_util.create_table(table_settings=get_table_settings_for_dataframe(
             dataframe=self._get_sheet_dataframe(),
             partitions=self.__settings.manual_partition_key_value,
             table=self.__settings.target_table_name,

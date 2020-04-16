@@ -3,7 +3,7 @@ Utility to connect to, and perform DML and DDL operations on aws Athena
 """
 
 import csv
-from typing import List
+from typing import List, Any
 
 import sys
 import time
@@ -20,7 +20,10 @@ _PYTHON_TO_ATHENA_DATA_TYPE_MAP = {
     "dict": "MAP",
     "float64": "DOUBLE",
     "UUID": "STRING",
-    "object": "STRING"
+    "object": "STRING",
+    "int": "INT",
+    "list": "STRING",
+    "NoneType": "STRING"
 }
 
 
@@ -37,14 +40,18 @@ def get_partitions_from_partitions_dict(partitions: dict):
     return None
 
 
-def get_table_settings_for_sheets_table(dataframe, partitions, s3_bucket, s3_dir, table):
+def extract_athena_type_from_value(val: Any) -> str:
+    return _PYTHON_TO_ATHENA_DATA_TYPE_MAP[type(val).__name__]
+
+
+def get_table_settings_for_dataframe(dataframe, partitions, s3_bucket, s3_dir, table):
     """
     Get the Athena table settings
     Args:
         dataframe (DataFrame): data frame with column types and names
         partitions (dict): dictionary of partition column name and value
-        s3_bucket (str): Name of the str bucket
-        s3_dir (str): S3 directory
+        s3_bucket (str): S3 bucket name to store Athena table's data
+        s3_dir (str): S3 directory to store Athena table's data
         table (str): Name of the table
     :return: table settings
     """
@@ -271,13 +278,13 @@ class AthenaUtil(AwsUtil):
             table (str): name of the table
         Returns: tuple of s3 bucket and key
         """
-        table = self._get_glue_table_metadata(table)
+        table = self.get_glue_table_metadata(table)
         location = table['Table']['StorageDescriptor']['Location']
         bucket = location.split("/")[2]
         key = "/".join(location.split("/")[3:])
         return (bucket, key)
 
-    def _get_glue_table_metadata(self, table: str) -> dict:
+    def get_glue_table_metadata(self, table: str) -> dict:
         return self.conn.client('glue').get_table(DatabaseName=self.database, Name=table)
 
     def drop_table(self, table_name):
