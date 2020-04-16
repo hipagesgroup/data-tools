@@ -1,6 +1,7 @@
 import os
 from unittest import TestCase
 
+from googleads.adwords import ServiceQueryBuilder
 from py.builtin import execfile
 
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionManager, \
@@ -97,7 +98,7 @@ class TestAdWordsUtil(TestCase):
         # campaign_util = AdWordsCampaignUtil(conn)
         # all_campaigns = campaign_util.get_all_campaigns()
 
-        ad_group_util = AdWordsAdGroupUtil(conn, page_size=1000)
+        ad_group_util = AdWordsAdGroupUtil(conn)
         ad_group_util.set_query_to_fetch_all()
         actual = ad_group_util.download_all_as_dict()
         expected = 2581
@@ -114,8 +115,8 @@ class TestAdWordsUtil(TestCase):
                 client_customer_id=os.getenv("adwords_client_customer_id"),
                 secrets_manager=GoogleAdWordsSecretsManager()))
 
-        ad_util = AdWordsAdGroupAdUtil(conn, page_size=10)
-        ad_util.set_query_to_fetch_all()
+        ad_util = AdWordsAdGroupAdUtil(conn)
+        ad_util.set_query_to_fetch_all(page_size=10)
         actual1 = ad_util.download_next_page_as_dict()
         expected1 = 10
         print(actual1[0])
@@ -126,9 +127,34 @@ class TestAdWordsUtil(TestCase):
         self.assertEqual(expected2, len(actual2))
         self.assertNotEqual(actual1[0], actual2[0])
         # Does a reset of page position
-        ad_util.set_query_to_fetch_all()
+        ad_util.set_query_to_fetch_all(page_size=10)
         actual3 = ad_util.download_next_page_as_dict()
         expected3 = 10
         print(actual3[0])
         self.assertEqual(expected3, len(actual3))
         self.assertEqual(actual1[0], actual3[0])
+
+    def test__should__be_able_to_estimate_splits__when__run_with_subclass(self):
+        # Load secrets via env vars
+        execfile("../../secrets.py")
+        conn = GoogleAdWordsConnectionManager(
+            GoogleAdWordsConnectionSettings(
+                client_id=os.getenv("adwords_client_id"),
+                user_agent="Tester",
+                client_customer_id=os.getenv("adwords_client_customer_id"),
+                secrets_manager=GoogleAdWordsSecretsManager()))
+        print(conn)
+        # <hip_data_tools.google.adwords.GoogleAdWordsConnectionManager object at 0x111ecc438>
+        # <hip_data_tools.google.adwords.GoogleAdWordsConnectionManager object at 0x111ecc4a8>
+        # <googleads.adwords.AdWordsClient object at 0x111ecc588>
+        # <googleads.common.ZeepServiceProxy object at 0x111ecc5c0>
+        ad_util = AdWordsAdGroupAdUtil(conn)
+        ad_util.set_query_to_fetch_all(page_size=10)
+        actual = ad_util.get_parallel_payloads(1000, 3)
+        expected = [
+            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 0, 'worker': 0},
+            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 393000, 'worker': 1},
+            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 786000, 'worker': 2},
+        ]
+        self.assertListEqual(expected, actual)
+

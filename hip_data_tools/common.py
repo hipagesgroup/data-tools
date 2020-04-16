@@ -7,33 +7,15 @@ import os
 import re
 import uuid
 from abc import ABC, abstractmethod
+from collections import OrderedDict
+from typing import List
+
+from pandas import DataFrame
 
 LOG = logging.getLogger(__name__)
 """
 logger object to handle logging in the entire package
 """
-
-
-def get_release_version():
-    """
-    Gets the Release version based on the latest git tag from GIT_TAG env var, else returns 0.0
-    Returns: string containing version for the release
-
-    """
-    git_version = os.getenv("GIT_TAG", "v0.0")
-    pypi_version = git_version.lstrip("v").strip()
-    return pypi_version
-
-
-def get_long_description():
-    """
-    Get the contents of readme file as long_description
-    Returns: bytes containing readme file
-
-    """
-    file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'README.md'))
-    with open(file_path) as readme_file:
-        return readme_file.read()
 
 
 def _generate_random_file_name():
@@ -189,7 +171,7 @@ def flatten_nested_dict(data: dict, delimiter: str = "_", snake_cased_keys: bool
     """
 
     def expand(key, value):
-        if isinstance(value, dict):
+        if isinstance(value, dict) or isinstance(value, OrderedDict):
             return [(key + delimiter + k, v) for k, v in flatten_nested_dict(value).items()]
         else:
             return [(key, value)]
@@ -219,3 +201,8 @@ def to_snake_case(column_name: str) -> str:
     # Detect all instances of Camel Casing
     camel_column_name = camel_case_detect.sub('_', str_replaced_special_chars).lower()
     return camel_column_name
+
+
+def nested_list_of_dict_to_dataframe(data: List[dict]) -> DataFrame:
+    flattened_dicts = [flatten_nested_dict(d) for d in data]
+    return DataFrame(data=flattened_dicts)

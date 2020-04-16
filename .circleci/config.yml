@@ -120,7 +120,7 @@ jobs:
       - run:
           name: install python dependencies
           command: |
-            sudo pip3 install --upgrade setuptools coverage
+            sudo pip3 install --upgrade setuptools coverage wheel
       - run:
           name: install snappy as its used in tests
           command: |

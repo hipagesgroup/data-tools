@@ -1,15 +1,13 @@
 """
 Module to deal with data transfer from S3 to Cassandra
 """
-import logging
 from typing import Optional, List
 
 from attr import dataclass
 
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
-
-log = logging.getLogger(__name__)
+from hip_data_tools.common import LOG
 
 
 @dataclass
@@ -68,7 +66,7 @@ class S3ToS3:
             if self.__settings.suffix:
                 keys = [key for key in keys if key.endswith(self.__settings.suffix)]
             self._source_keys = keys
-            log.info("Listed and cached %s source files", len(self._source_keys))
+            LOG.info("Listed and cached %s source files", len(self._source_keys))
         return self._source_keys
 
     def transfer_file(self, source_key: str) -> None:
@@ -84,7 +82,7 @@ class S3ToS3:
             'Key': source_key
         }
         target_key = self._get_target_key(source_key)
-        log.info("Transferring Key s3://%s/%s to s3://%s/%s",
+        LOG.info("Transferring Key s3://%s/%s to s3://%s/%s",
                  self.__settings.source_bucket,
                  source_key,
                  self.__settings.target_bucket,
