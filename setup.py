@@ -26,7 +26,7 @@ def get_long_description():
     Returns: bytes containing readme file
 
     """
-    file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'README.md'))
+    file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'README.md'))
     with open(file_path) as readme_file:
         return readme_file.read()
 
