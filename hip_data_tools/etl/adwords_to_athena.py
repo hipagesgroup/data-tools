@@ -13,6 +13,7 @@ from hip_data_tools.etl.adwords_to_s3 import AdWordsToS3Settings, AdWordsToS3
 
 @dataclass
 class AdWordsToAthenaSettings(AdWordsToS3Settings):
+    """Settings container for Adwords to Athena ETL"""
     target_database: str
     target_table: str
     target_table_ddl_progress: bool
@@ -43,6 +44,10 @@ class AdWordsToAthena(AdWordsToS3):
             output_bucket=self.__settings.target_bucket)
 
     def create_athena_table(self):
+        """
+        Creates an athena table on top of the transferred data
+        Returns: None
+        """
         self.build_query(start_index=0, page_size=1, num_iterations=1)
         data = self._get_next_page()
         athena_util = self._get_athena_util()

@@ -41,6 +41,12 @@ def get_partitions_from_partitions_dict(partitions: dict):
 
 
 def extract_athena_type_from_value(val: Any) -> str:
+    """
+    Extracts athena compatible datatype from a given python object
+    Args:
+        val (Any): Any value from primitive python types
+    Returns: str
+    """
     return _PYTHON_TO_ATHENA_DATA_TYPE_MAP[type(val).__name__]
 
 
