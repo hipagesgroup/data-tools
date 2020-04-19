@@ -50,7 +50,8 @@ def extract_athena_type_from_value(val: Any) -> str:
     return _PYTHON_TO_ATHENA_DATA_TYPE_MAP[type(val).__name__]
 
 
-def get_table_settings_for_dataframe(dataframe, partitions, s3_bucket, s3_dir, table):
+def get_table_settings_for_dataframe(dataframe: DataFrame, partitions: dict, s3_bucket: str,
+                                     s3_dir: str, table: str) -> dict:
     """
     Get the Athena table settings
     Args:
