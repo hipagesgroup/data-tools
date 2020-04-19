@@ -58,7 +58,7 @@ class AdWordsToAthena(AdWordsToS3):
         # Reset query state
         self.query = None
 
-    def _construct_athena_table_settings(self, data):
+    def _construct_athena_table_settings(self, data: DataFrame) -> dict:
         partition_settings = []
         if self.__settings.is_partitioned_table:
             partition_settings = [{"column": k, "type": extract_athena_type_from_value(v)}
