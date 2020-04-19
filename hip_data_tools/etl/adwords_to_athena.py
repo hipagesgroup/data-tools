@@ -43,7 +43,7 @@ class AdWordsToAthena(AdWordsToS3):
                 settings=self.__settings.target_connection_settings),
             output_bucket=self.__settings.target_bucket)
 
-    def create_athena_table(self):
+    def create_athena_table(self) -> None:
         """
         Creates an athena table on top of the transferred data
         Returns: None
