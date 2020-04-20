@@ -598,18 +598,22 @@ class AdWordsReportDefinitionReader(AdWordsUtil):
 
     def get_report_fields(self, report_type: str) -> List[dict]:
         """
-        Get a list of fields for a given report. Possible reports are defined in the documentation
-        here - https://developers.google.com/adwords/api/docs/appendix/reports/all-reports
+        Get a list of fields for a given report.
         Args:
-            report_type:
-
-        Returns:
-
+            report_type (str): Possible reports are defined in the documentation here -
+            https://developers.google.com/adwords/api/docs/appendix/reports/all-reports
+        Returns: List[dict]
         """
         return self._get_service().getReportFields(report_type)
 
 
 class AdWordsReportReader:
+    """
+    Generic data reader class for downloading data from report awql efficiently
+    Args:
+            conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+    """
 
     def __init__(self, conn: GoogleAdWordsConnectionManager):
         self.conn = conn
@@ -623,6 +627,15 @@ class AdWordsReportReader:
         return self.__downloader
 
     def awql_to_dataframe(self, query: ReportQuery) -> DataFrame:
+        """
+        Download the data returned by report query in a compressed format and return it in form of
+        a pandas dataframe
+        Args:
+            query (ReportQuery): an awql report query, see example
+            https://github.com/googleads/googleads-python-lib/blob/master/examples/adwords
+            /v201809/reporting/stream_criteria_report_results.py#L34-L39
+        Returns: DataFrame
+        """
         with NamedTemporaryFile(mode="w+b") as temp_file:
             self._get_report_downloader().DownloadReportWithAwql(
                 query,
