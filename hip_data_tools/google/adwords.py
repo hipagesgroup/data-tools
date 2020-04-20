@@ -238,6 +238,7 @@ class AdWordsParallelDataReadEstimator(AdWordsUtil):
         version (str): Adwords service api version to use for querying
         query (ServiceQueryBuilder): the Query builder object without limit clause
     """
+
     def __init__(self, conn: GoogleAdWordsConnectionManager,
                  service: str,
                  version: str,
@@ -579,3 +580,12 @@ class AdWordsAdGroupAdUtil(AdWordsDataReader):
                  .Limit(start_index, page_size)
                  .Build())
         self.set_query(query)
+
+
+class AdWordsReportDefinitionReader(AdWordsUtil):
+
+    def __init__(self, conn: GoogleAdWordsConnectionManager):
+        super().__init__(conn, "ReportDefinitionService", "v201809")
+
+    def get_report_fields(self, report_type: str) -> object:
+        return self._get_service().getReportFields(report_type)

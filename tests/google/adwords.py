@@ -1,12 +1,12 @@
 import os
 from unittest import TestCase
 
-from googleads.adwords import ServiceQueryBuilder
 from py.builtin import execfile
 
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionManager, \
     GoogleAdWordsConnectionSettings, GoogleAdWordsSecretsManager, AdWordsCustomerUtil, \
-    AdWordsOfflineConversionUtil, AdWordsCampaignUtil, AdWordsAdGroupUtil, AdWordsAdGroupAdUtil
+    AdWordsOfflineConversionUtil, AdWordsCampaignUtil, AdWordsAdGroupUtil, AdWordsAdGroupAdUtil, \
+    AdWordsReportDefinitionReader
 
 
 class TestAdWordsUtil(TestCase):
@@ -144,17 +144,251 @@ class TestAdWordsUtil(TestCase):
                 client_customer_id=os.getenv("adwords_client_customer_id"),
                 secrets_manager=GoogleAdWordsSecretsManager()))
         print(conn)
-        # <hip_data_tools.google.adwords.GoogleAdWordsConnectionManager object at 0x111ecc438>
-        # <hip_data_tools.google.adwords.GoogleAdWordsConnectionManager object at 0x111ecc4a8>
-        # <googleads.adwords.AdWordsClient object at 0x111ecc588>
-        # <googleads.common.ZeepServiceProxy object at 0x111ecc5c0>
         ad_util = AdWordsAdGroupAdUtil(conn)
-        ad_util.set_query_to_fetch_all(page_size=10)
-        actual = ad_util.get_parallel_payloads(1000, 3)
-        expected = [
-            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 0, 'worker': 0},
-            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 393000, 'worker': 1},
-            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 786000, 'worker': 2},
-        ]
-        self.assertListEqual(expected, actual)
 
+    def test__should__be_able_to_get_report_fields__when__choosing_one_report_type(self):
+        # Load secrets via env vars
+        execfile("../../secrets.py")
+        conn = GoogleAdWordsConnectionManager(
+            GoogleAdWordsConnectionSettings(
+                client_id=os.getenv("adwords_client_id"),
+                user_agent="Tester",
+                client_customer_id=os.getenv("adwords_client_customer_id"),
+                secrets_manager=GoogleAdWordsSecretsManager()))
+        ad_util = AdWordsReportDefinitionReader(conn)
+        actual = ad_util.get_report_fields("CAMPAIGN_NEGATIVE_KEYWORDS_PERFORMANCE_REPORT")
+        expected = [{
+            'fieldName': 'AccountCurrencyCode',
+            'displayFieldName': 'Currency',
+            'xmlAttributeName': 'currency',
+            'fieldType': 'String',
+            'fieldBehavior': 'ATTRIBUTE',
+            'enumValues': [],
+            'canSelect': True,
+            'canFilter': True,
+            'isEnumType': False,
+            'isBeta': False,
+            'isZeroRowCompatible': True,
+            'enumValuePairs': [],
+            'exclusiveFields': []
+        }, {
+            'fieldName': 'AccountDescriptiveName',
+            'displayFieldName': 'Account',
+            'xmlAttributeName': 'account',
+            'fieldType': 'String',
+            'fieldBehavior': 'ATTRIBUTE',
+            'enumValues': [],
+            'canSelect': True,
+            'canFilter': True,
+            'isEnumType': False,
+            'isBeta': False,
+            'isZeroRowCompatible': True,
+            'enumValuePairs': [],
+            'exclusiveFields': []
+        }, {
+            'fieldName': 'AccountTimeZone',
+            'displayFieldName': 'Time zone',
+            'xmlAttributeName': 'timeZone',
+            'fieldType': 'String',
+            'fieldBehavior': 'ATTRIBUTE',
+            'enumValues': [],
+            'canSelect': True,
+            'canFilter': True,
+            'isEnumType': False,
+            'isBeta': False,
+            'isZeroRowCompatible': True,
+            'enumValuePairs': [],
+            'exclusiveFields': []
+        }, {
+            'fieldName': 'BaseCampaignId',
+            'displayFieldName': 'Base Campaign ID',
+            'xmlAttributeName': 'baseCampaignID',
+            'fieldType': 'Long',
+            'fieldBehavior': 'ATTRIBUTE',
+            'enumValues': [],
+            'canSelect': True,
+            'canFilter': True,
+            'isEnumType': False,
+            'isBeta': False,
+            'isZeroRowCompatible': True,
+            'enumValuePairs': [],
+            'exclusiveFields': []
+        }, {
+            'fieldName': 'CampaignId',
+            'displayFieldName': 'Campaign ID',
+            'xmlAttributeName': 'campaignID',
+            'fieldType': 'Long',
+            'fieldBehavior': 'ATTRIBUTE',
+            'enumValues': [],
+            'canSelect': True,
+            'canFilter': True,
+            'isEnumType': False,
+            'isBeta': False,
+            'isZeroRowCompatible': True,
+            'enumValuePairs': [],
+            'exclusiveFields': []
+        }, {
+            'fieldName': 'CampaignName',
+            'displayFieldName': 'Campaign',
+            'xmlAttributeName': 'campaign',
+            'fieldType': 'String',
+            'fieldBehavior': 'ATTRIBUTE',
+            'enumValues': [],
+            'canSelect': True,
+            'canFilter': True,
+            'isEnumType': False,
+            'isBeta': False,
+            'isZeroRowCompatible': True,
+            'enumValuePairs': [],
+            'exclusiveFields': []
+        }, {
+            'fieldName': 'CampaignStatus',
+            'displayFieldName': 'Campaign state',
+            'xmlAttributeName': 'campaignState',
+            'fieldType': 'CampaignStatus',
+            'fieldBehavior': 'ATTRIBUTE',
+            'enumValues': [
+                'UNKNOWN',
+                'ENABLED',
+                'PAUSED',
+                'REMOVED'
+            ],
+            'canSelect': True,
+            'canFilter': True,
+            'isEnumType': True,
+            'isBeta': False,
+            'isZeroRowCompatible': True,
+            'enumValuePairs': [
+                {
+                    'enumValue': 'UNKNOWN',
+                    'enumDisplayValue': 'unknown'
+                },
+                {
+                    'enumValue': 'ENABLED',
+                    'enumDisplayValue': 'enabled'
+                },
+                {
+                    'enumValue': 'PAUSED',
+                    'enumDisplayValue': 'paused'
+                },
+                {
+                    'enumValue': 'REMOVED',
+                    'enumDisplayValue': 'removed'
+                }
+            ],
+            'exclusiveFields': []
+        }, {
+            'fieldName': 'Criteria',
+            'displayFieldName': 'Negative keyword',
+            'xmlAttributeName': 'negativeKeyword',
+            'fieldType': 'String',
+            'fieldBehavior': 'ATTRIBUTE',
+            'enumValues': [],
+            'canSelect': True,
+            'canFilter': True,
+            'isEnumType': False,
+            'isBeta': False,
+            'isZeroRowCompatible': True,
+            'enumValuePairs': [],
+            'exclusiveFields': []
+        }, {
+            'fieldName': 'CustomerDescriptiveName',
+            'displayFieldName': 'Client name',
+            'xmlAttributeName': 'clientName',
+            'fieldType': 'String',
+            'fieldBehavior': 'ATTRIBUTE',
+            'enumValues': [],
+            'canSelect': True,
+            'canFilter': True,
+            'isEnumType': False,
+            'isBeta': False,
+            'isZeroRowCompatible': True,
+            'enumValuePairs': [],
+            'exclusiveFields': []
+        }, {
+            'fieldName': 'ExternalCustomerId',
+            'displayFieldName': 'Customer ID',
+            'xmlAttributeName': 'customerID',
+            'fieldType': 'Long',
+            'fieldBehavior': 'ATTRIBUTE',
+            'enumValues': [],
+            'canSelect': True,
+            'canFilter': True,
+            'isEnumType': False,
+            'isBeta': False,
+            'isZeroRowCompatible': True,
+            'enumValuePairs': [],
+            'exclusiveFields': []
+        }, {
+            'fieldName': 'Id',
+            'displayFieldName': 'Keyword ID',
+            'xmlAttributeName': 'keywordID',
+            'fieldType': 'Long',
+            'fieldBehavior': 'ATTRIBUTE',
+            'enumValues': [],
+            'canSelect': True,
+            'canFilter': True,
+            'isEnumType': False,
+            'isBeta': False,
+            'isZeroRowCompatible': True,
+            'enumValuePairs': [],
+            'exclusiveFields': []
+        }, {
+            'fieldName': 'IsNegative',
+            'displayFieldName': 'Is negative',
+            'xmlAttributeName': 'isNegative',
+            'fieldType': 'Enum',
+            'fieldBehavior': 'ATTRIBUTE',
+            'enumValues': [
+                'TRUE',
+                'FALSE'
+            ],
+            'canSelect': True,
+            'canFilter': True,
+            'isEnumType': True,
+            'isBeta': False,
+            'isZeroRowCompatible': True,
+            'enumValuePairs': [
+                {
+                    'enumValue': 'TRUE',
+                    'enumDisplayValue': 'true'
+                },
+                {
+                    'enumValue': 'FALSE',
+                    'enumDisplayValue': 'false'
+                }
+            ],
+            'exclusiveFields': []
+        }, {
+            'fieldName': 'KeywordMatchType',
+            'displayFieldName': 'Match type',
+            'xmlAttributeName': 'matchType',
+            'fieldType': 'KeywordMatchType',
+            'fieldBehavior': 'ATTRIBUTE',
+            'enumValues': [
+                'EXACT',
+                'PHRASE',
+                'BROAD'
+            ],
+            'canSelect': True,
+            'canFilter': True,
+            'isEnumType': True,
+            'isBeta': False,
+            'isZeroRowCompatible': True,
+            'enumValuePairs': [
+                {
+                    'enumValue': 'EXACT',
+                    'enumDisplayValue': 'Exact'
+                },
+                {
+                    'enumValue': 'PHRASE',
+                    'enumDisplayValue': 'Phrase'
+                },
+                {
+                    'enumValue': 'BROAD',
+                    'enumDisplayValue': 'Broad'
+                }
+            ],
+            'exclusiveFields': []
+        }]
+        self.assertListEqual(expected, actual)
