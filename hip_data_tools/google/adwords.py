@@ -586,14 +586,14 @@ class AdWordsAdGroupAdUtil(AdWordsDataReader):
 
 
 class AdWordsReportDefinitionReader(AdWordsUtil):
+    """
+    Class to interact with the ReportDefinitionService and access fields for adwords reports
+    Args:
+        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+    adwords client
+    """
 
     def __init__(self, conn: GoogleAdWordsConnectionManager):
-        """
-        Class to interact with the ReportDefinitionService and access fields for adwords reports
-        Args:
-            conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
-        adwords client
-        """
         super().__init__(conn, "ReportDefinitionService", "v201809")
 
     def get_report_fields(self, report_type: str) -> List[dict]:
