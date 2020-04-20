@@ -5,12 +5,12 @@ from typing import List
 
 from attr import dataclass
 from googleads.adwords import ServiceQueryBuilder
+from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionSettings, AdWordsDataReader, \
     GoogleAdWordsConnectionManager, AdWordsParallelDataReadEstimator
-
 
 
 @dataclass
@@ -76,6 +76,7 @@ class AdWordsToS3:
         self.query = query_fragment.Limit(start_index=self.start_index, page_size=page_size).Build()
         self.iteration_limit = num_iterations
         self.current_iteration = 0
+        self._get_adwords_util().set_query(self.query)
 
     def transfer_next_iteration(self) -> bool:
         """
@@ -83,9 +84,7 @@ class AdWordsToS3:
         Returns: bool true if the data transfer succeeded, False if reached end of iterations
         """
         if self.current_iteration < self.iteration_limit:
-            au = self._get_adwords_util()
-            au.set_query(self.query)
-            data = au.download_next_page_as_dataframe()
+            data = self._get_next_page()
             s3u = self._get_s3_util()
             s3u.upload_dataframe_as_parquet(
                 dataframe=data,
@@ -96,6 +95,13 @@ class AdWordsToS3:
             return True
         else:
             return False
+
+    def _get_next_page(self) -> DataFrame:
+        if not self.query:
+            raise ValueError(
+                "query is not set properly. please use the build_query() method to set it up.")
+        data = self._get_adwords_util().download_next_page_as_dataframe()
+        return data
 
     def transfer_all(self) -> None:
         """
@@ -110,7 +116,7 @@ class AdWordsToS3:
         return int(self.start_index + (self.page_size * self.current_iteration))
 
     def _get_current_end_index(self) -> int:
-        return int(self._get_current_start_index() + (self.page_size-1))
+        return int(self._get_current_start_index() + (self.page_size - 1))
 
     def get_parallel_payloads(self, page_size: int, number_of_workers: int) -> List[dict]:
         """
