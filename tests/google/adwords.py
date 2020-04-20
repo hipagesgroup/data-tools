@@ -1,12 +1,15 @@
 import os
 from unittest import TestCase
 
+from googleads import adwords
+from pandas import DataFrame
+from pandas.util.testing import assert_frame_equal
 from py.builtin import execfile
 
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionManager, \
     GoogleAdWordsConnectionSettings, GoogleAdWordsSecretsManager, AdWordsCustomerUtil, \
     AdWordsOfflineConversionUtil, AdWordsCampaignUtil, AdWordsAdGroupUtil, AdWordsAdGroupAdUtil, \
-    AdWordsReportDefinitionReader
+    AdWordsReportDefinitionReader, AdWordsReportReader
 
 
 class TestAdWordsUtil(TestCase):
@@ -392,3 +395,23 @@ class TestAdWordsUtil(TestCase):
             'exclusiveFields': []
         }]
         self.assertListEqual(expected, actual)
+
+    def test__should__be_able_to_get_report_stream__when__choosing_one_query(self):
+        # Load secrets via env vars
+        execfile("../../secrets.py")
+        conn = GoogleAdWordsConnectionManager(
+            GoogleAdWordsConnectionSettings(
+                client_id=os.getenv("adwords_client_id"),
+                user_agent="Tester",
+                client_customer_id=os.getenv("adwords_client_customer_id"),
+                secrets_manager=GoogleAdWordsSecretsManager()))
+        ad_util = AdWordsReportReader(conn)
+        report_query = (adwords.ReportQueryBuilder()
+                        .Select('AdNetworkType1', 'Impressions', 'Clicks')
+                        .From('CAMPAIGN_PERFORMANCE_REPORT')
+                        .During('YESTERDAY')
+                        .Build())
+        actual = ad_util.awql_to_dataframe(query=report_query)
+        print(actual)
+        expected = (17046, 3)
+        self.assertEqual(expected, actual.shape)

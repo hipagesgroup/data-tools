@@ -1,12 +1,15 @@
 """
 This Module handles the connection and operations on Google AdWords accounts using adwords API
 """
+import gzip
 from collections import OrderedDict
+from tempfile import NamedTemporaryFile
 from typing import List, Optional, Any
 
+import pandas as pd
 from attr import dataclass
 from googleads import oauth2, AdWordsClient
-from googleads.adwords import ServiceQueryBuilder
+from googleads.adwords import ServiceQueryBuilder, ReportQuery
 from googleads.common import GoogleSoapService
 from googleads.oauth2 import GoogleOAuth2Client
 from pandas import DataFrame
@@ -585,7 +588,51 @@ class AdWordsAdGroupAdUtil(AdWordsDataReader):
 class AdWordsReportDefinitionReader(AdWordsUtil):
 
     def __init__(self, conn: GoogleAdWordsConnectionManager):
+        """
+        Class to interact with the ReportDefinitionService and access fields for adwords reports
+        Args:
+            conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+        """
         super().__init__(conn, "ReportDefinitionService", "v201809")
 
-    def get_report_fields(self, report_type: str) -> object:
+    def get_report_fields(self, report_type: str) -> List[dict]:
+        """
+        Get a list of fields for a given report. Possible reports are defined in the documentation
+        here - https://developers.google.com/adwords/api/docs/appendix/reports/all-reports
+        Args:
+            report_type:
+
+        Returns:
+
+        """
         return self._get_service().getReportFields(report_type)
+
+
+class AdWordsReportReader:
+
+    def __init__(self, conn: GoogleAdWordsConnectionManager):
+        self.conn = conn
+        self.version = 'v201809'
+        self.__downloader = None
+
+    def _get_report_downloader(self):
+        if self.__downloader is None:
+            client = self.conn.get_adwords_client()
+            self.__downloader = client.GetReportDownloader(version=self.version)
+        return self.__downloader
+
+    def awql_to_dataframe(self, query: ReportQuery) -> DataFrame:
+        with NamedTemporaryFile(mode="w+b") as temp_file:
+            self._get_report_downloader().DownloadReportWithAwql(
+                query,
+                "GZIPPED_CSV",
+                temp_file,
+                skip_report_header=False,
+                skip_column_header=False,
+                skip_report_summary=False,
+                include_zero_impressions=True
+            )
+            with gzip.open(temp_file.name, mode="rt") as csv_file:
+                dataframe = pd.read_csv(csv_file, sep=",", header=1)
+        return dataframe
