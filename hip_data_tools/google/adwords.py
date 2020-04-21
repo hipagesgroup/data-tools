@@ -695,7 +695,7 @@ class AdWordsManagedCustomerUtil(AdWordsUtil):
         return all_accounts
 
     def get_all_accounts_as_dataframe(self, page_size: int = 1000) -> DataFrame:
-        return nested_list_of_dict_to_dataframe(self.get_all_accounts())
+        return nested_list_of_dict_to_dataframe(self.get_all_accounts(page_size=page_size))
 
     def get_root_account(self, page_size: int = 1000) -> dict:
         """
