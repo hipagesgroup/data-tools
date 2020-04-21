@@ -720,16 +720,15 @@ class AdWordsManagedCustomerUtil(AdWordsUtil):
             # Get serviced account graph.
             page = self._get_service().get(selector)
             all_accounts.extend(get_page_as_list_of_dict(page))
-            if 'entries' in page and page['entries']:
+            if 'entries' in page and page['entries'] and 'links' in page:
                 # Create map from customerId to parent and child links.
-                if 'links' in page:
-                    for link in page['links']:
-                        if link['managerCustomerId'] not in child_links:
-                            child_links[link['managerCustomerId']] = []
-                        child_links[link['managerCustomerId']].append(link)
-                        if link['clientCustomerId'] not in parent_links:
-                            parent_links[link['clientCustomerId']] = []
-                        parent_links[link['clientCustomerId']].append(link)
+                for link in page['links']:
+                    if link['managerCustomerId'] not in child_links:
+                        child_links[link['managerCustomerId']] = []
+                    child_links[link['managerCustomerId']].append(link)
+                    if link['clientCustomerId'] not in parent_links:
+                        parent_links[link['clientCustomerId']] = []
+                    parent_links[link['clientCustomerId']].append(link)
                 # Map from customerID to account.
                 for account in page['entries']:
                     accounts[account['customerId']] = account
