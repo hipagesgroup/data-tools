@@ -225,17 +225,3 @@ class TestAdWordsUtil(TestCase):
         actual_frame = ad_util.get_all_accounts_as_dataframe()
         print(actual_frame)
         self.assertEqual((58, 8), actual_frame.shape)
-
-    def test__should__find_root__with_parent_id(self):
-        # Load secrets via env vars
-        execfile("../../secrets.py")
-        conn = GoogleAdWordsConnectionManager(
-            GoogleAdWordsConnectionSettings(
-                client_id=os.getenv("adwords_client_id"),
-                user_agent="Tester",
-                client_customer_id=os.getenv("adwords_client_root_customer_id"),
-                secrets_manager=GoogleAdWordsSecretsManager()))
-        ad_util = AdWordsManagedCustomerUtil(conn)
-        root_acc = ad_util.get_root_account()
-        print(root_acc)
-        self.assertEqual(str(root_acc['customerId']), os.getenv("adwords_client_root_customer_id"))
