@@ -238,3 +238,4 @@ class TestAdWordsUtil(TestCase):
         ad_util = AdWordsManagedCustomerUtil(conn)
         root_acc = ad_util.get_root_account()
         print(root_acc)
+        self.assertEqual(str(root_acc['customerId']), os.getenv("adwords_client_root_customer_id"))
