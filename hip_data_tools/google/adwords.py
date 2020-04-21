@@ -518,7 +518,7 @@ class AdWordsAdGroupUtil(AdWordsDataReader):
     """
 
     def __init__(self, conn: GoogleAdWordsConnectionManager):
-        super().__init__(conn, service='AdGroupService', version='v201809')
+        super().__init__(conn=conn, service='AdGroupService', version='v201809')
         self._all_query = None
 
     def set_query_to_fetch_by_campaign(self, campaign_id: str, start_index: int = 0,
