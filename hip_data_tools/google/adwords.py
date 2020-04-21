@@ -649,3 +649,92 @@ class AdWordsReportReader:
             with gzip.open(temp_file.name, mode="rt") as csv_file:
                 dataframe = pd.read_csv(csv_file, sep=",", header=1)
         return dataframe
+
+
+class AdWordsManagedCustomerUtil(AdWordsUtil):
+    """
+    Adwords Utility to parse through and gather Account Information for all sub accounts
+    Args:
+        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+    """
+
+    def __init__(self, conn: GoogleAdWordsConnectionManager):
+        super().__init__(conn, service='ManagedCustomerService', version='v201809')
+        self.selector_fields = ['Name', 'CustomerId', 'DateTimeZone', 'CurrencyCode',
+                                'CanManageClients', 'TestAccount', 'AccountLabels']
+
+    def _init_selector(self, offset, page_size):
+        selector = {
+            'fields': self.selector_fields,
+            'paging': {
+                'startIndex': str(offset),
+                'numberResults': str(page_size)
+            }
+        }
+        return selector
+
+    def get_all_accounts(self, page_size: int = 1000) -> List[dict]:
+        """
+        Gets the customer details of the adwords accounts associated with the connection
+        Returns: dict, List[dict]
+        """
+        # Construct selector to get all accounts.
+        offset = 0
+        selector = self._init_selector(offset, page_size)
+        more_pages = True
+        all_accounts = []
+        while more_pages:
+            # Get serviced account graph.
+            page = self._get_service().get(selector)
+            all_accounts.extend(get_page_as_list_of_dict(page))
+            offset += page_size
+            selector['paging']['startIndex'] = str(offset)
+            more_pages = offset < int(page['totalNumEntries'])
+
+        return all_accounts
+
+    def get_all_accounts_as_dataframe(self, page_size: int = 1000) -> DataFrame:
+        return nested_list_of_dict_to_dataframe(self.get_all_accounts())
+
+    def get_root_account(self, page_size: int = 1000) -> dict:
+        """
+        Gets the customer details of the adwords accounts associated with the connection, and
+        returns the root account
+        Returns: dict
+        """
+        # Construct selector to get all accounts.
+        offset = 0
+        selector = self._init_selector(offset, page_size)
+        more_pages = True
+        accounts = {}
+        child_links = {}
+        parent_links = {}
+        root_account = None
+        all_accounts = []
+        while more_pages:
+            # Get serviced account graph.
+            page = self._get_service().get(selector)
+            all_accounts.extend(get_page_as_list_of_dict(page))
+            if 'entries' in page and page['entries']:
+                # Create map from customerId to parent and child links.
+                if 'links' in page:
+                    for link in page['links']:
+                        if link['managerCustomerId'] not in child_links:
+                            child_links[link['managerCustomerId']] = []
+                        child_links[link['managerCustomerId']].append(link)
+                        if link['clientCustomerId'] not in parent_links:
+                            parent_links[link['clientCustomerId']] = []
+                        parent_links[link['clientCustomerId']].append(link)
+                # Map from customerID to account.
+                for account in page['entries']:
+                    accounts[account['customerId']] = account
+            offset += page_size
+            selector['paging']['startIndex'] = str(offset)
+            more_pages = offset < int(page['totalNumEntries'])
+
+            # Find the root account.
+        for customer_id in accounts:
+            if customer_id not in parent_links:
+                root_account = accounts[customer_id]
+        return zeep_object_to_dict(root_account)
