@@ -415,3 +415,29 @@ class TestAdWordsUtil(TestCase):
         print(actual)
         expected = (17046, 3)
         self.assertEqual(expected, actual.shape)
+
+    def test__negative_keyword_reports(self):
+        # Load secrets via env vars
+        execfile("../../secrets.py")
+        conn = GoogleAdWordsConnectionManager(
+            GoogleAdWordsConnectionSettings(
+                client_id=os.getenv("adwords_client_id"),
+                user_agent="Tester",
+                client_customer_id=os.getenv("adwords_client_customer_id"),
+                secrets_manager=GoogleAdWordsSecretsManager()))
+        ad_util = AdWordsReportReader(conn)
+        report_query = (adwords.ReportQueryBuilder()
+                        .Select('AccountDescriptiveName',
+                                'CampaignId',
+                                'CampaignName',
+                                'CampaignStatus',
+                                'Id',
+                                'KeywordMatchType',
+                                'Criteria'
+                                )
+                        .From('CAMPAIGN_NEGATIVE_KEYWORDS_PERFORMANCE_REPORT')
+                        .Build())
+        actual = ad_util.awql_to_dataframe(query=report_query)
+        print(actual)
+        expected = (125493, 7)
+        self.assertEqual(expected, actual.shape)
