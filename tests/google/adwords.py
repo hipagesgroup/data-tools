@@ -1,12 +1,13 @@
 import os
 from unittest import TestCase
 
-from googleads.adwords import ServiceQueryBuilder
+from googleads import adwords
 from py.builtin import execfile
 
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionManager, \
     GoogleAdWordsConnectionSettings, GoogleAdWordsSecretsManager, AdWordsCustomerUtil, \
-    AdWordsOfflineConversionUtil, AdWordsCampaignUtil, AdWordsAdGroupUtil, AdWordsAdGroupAdUtil
+    AdWordsOfflineConversionUtil, AdWordsCampaignUtil, AdWordsAdGroupUtil, AdWordsAdGroupAdUtil, \
+    AdWordsReportDefinitionReader, AdWordsReportReader
 
 
 class TestAdWordsUtil(TestCase):
@@ -144,17 +145,64 @@ class TestAdWordsUtil(TestCase):
                 client_customer_id=os.getenv("adwords_client_customer_id"),
                 secrets_manager=GoogleAdWordsSecretsManager()))
         print(conn)
-        # <hip_data_tools.google.adwords.GoogleAdWordsConnectionManager object at 0x111ecc438>
-        # <hip_data_tools.google.adwords.GoogleAdWordsConnectionManager object at 0x111ecc4a8>
-        # <googleads.adwords.AdWordsClient object at 0x111ecc588>
-        # <googleads.common.ZeepServiceProxy object at 0x111ecc5c0>
         ad_util = AdWordsAdGroupAdUtil(conn)
-        ad_util.set_query_to_fetch_all(page_size=10)
-        actual = ad_util.get_parallel_payloads(1000, 3)
-        expected = [
-            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 0, 'worker': 0},
-            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 393000, 'worker': 1},
-            {'number_of_pages': 393, 'page_size': 1000, 'start_index': 786000, 'worker': 2},
-        ]
-        self.assertListEqual(expected, actual)
 
+    def test__should__be_able_to_get_report_fields__when__choosing_one_report_type(self):
+        # Load secrets via env vars
+        execfile("../../secrets.py")
+        conn = GoogleAdWordsConnectionManager(
+            GoogleAdWordsConnectionSettings(
+                client_id=os.getenv("adwords_client_id"),
+                user_agent="Tester",
+                client_customer_id=os.getenv("adwords_client_customer_id"),
+                secrets_manager=GoogleAdWordsSecretsManager()))
+        ad_util = AdWordsReportDefinitionReader(conn=conn)
+        actual = ad_util.get_report_fields("CAMPAIGN_NEGATIVE_KEYWORDS_PERFORMANCE_REPORT")
+        expected = 13
+        self.assertEqual(expected, len(actual))
+
+    def test__should__be_able_to_get_report_stream__when__choosing_one_query(self):
+        # Load secrets via env vars
+        execfile("../../secrets.py")
+        conn = GoogleAdWordsConnectionManager(
+            GoogleAdWordsConnectionSettings(
+                client_id=os.getenv("adwords_client_id"),
+                user_agent="Tester",
+                client_customer_id=os.getenv("adwords_client_customer_id"),
+                secrets_manager=GoogleAdWordsSecretsManager()))
+        ad_util = AdWordsReportReader(conn=conn)
+        report_query = (adwords.ReportQueryBuilder()
+                        .Select('AdNetworkType1', 'Impressions', 'Clicks')
+                        .From('CAMPAIGN_PERFORMANCE_REPORT')
+                        .During('YESTERDAY')
+                        .Build())
+        actual = ad_util.awql_to_dataframe(query=report_query)
+        print(actual)
+        expected = (17046, 3)
+        self.assertEqual(expected, actual.shape)
+
+    def test__negative_keyword_reports(self):
+        # Load secrets via env vars
+        execfile("../../secrets.py")
+        conn = GoogleAdWordsConnectionManager(
+            GoogleAdWordsConnectionSettings(
+                client_id=os.getenv("adwords_client_id"),
+                user_agent="Tester",
+                client_customer_id=os.getenv("adwords_client_customer_id"),
+                secrets_manager=GoogleAdWordsSecretsManager()))
+        ad_util = AdWordsReportReader(conn)
+        report_query = (adwords.ReportQueryBuilder()
+                        .Select('AccountDescriptiveName',
+                                'CampaignId',
+                                'CampaignName',
+                                'CampaignStatus',
+                                'Id',
+                                'KeywordMatchType',
+                                'Criteria'
+                                )
+                        .From('CAMPAIGN_NEGATIVE_KEYWORDS_PERFORMANCE_REPORT')
+                        .Build())
+        actual = ad_util.awql_to_dataframe(query=report_query)
+        print(actual)
+        expected = (125493, 7)
+        self.assertEqual(expected, actual.shape)

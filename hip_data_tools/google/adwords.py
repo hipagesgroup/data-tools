@@ -1,12 +1,15 @@
 """
 This Module handles the connection and operations on Google AdWords accounts using adwords API
 """
+import gzip
 from collections import OrderedDict
+from tempfile import NamedTemporaryFile
 from typing import List, Optional, Any
 
+import pandas as pd
 from attr import dataclass
 from googleads import oauth2, AdWordsClient
-from googleads.adwords import ServiceQueryBuilder
+from googleads.adwords import ServiceQueryBuilder, ReportQuery
 from googleads.common import GoogleSoapService
 from googleads.oauth2 import GoogleOAuth2Client
 from pandas import DataFrame
@@ -238,6 +241,7 @@ class AdWordsParallelDataReadEstimator(AdWordsUtil):
         version (str): Adwords service api version to use for querying
         query (ServiceQueryBuilder): the Query builder object without limit clause
     """
+
     def __init__(self, conn: GoogleAdWordsConnectionManager,
                  service: str,
                  version: str,
@@ -514,7 +518,7 @@ class AdWordsAdGroupUtil(AdWordsDataReader):
     """
 
     def __init__(self, conn: GoogleAdWordsConnectionManager):
-        super().__init__(conn, service='AdGroupService', version='v201809')
+        super().__init__(conn=conn, service='AdGroupService', version='v201809')
         self._all_query = None
 
     def set_query_to_fetch_by_campaign(self, campaign_id: str, start_index: int = 0,
@@ -579,3 +583,69 @@ class AdWordsAdGroupAdUtil(AdWordsDataReader):
                  .Limit(start_index, page_size)
                  .Build())
         self.set_query(query)
+
+
+class AdWordsReportDefinitionReader(AdWordsUtil):
+    """
+    Class to interact with the ReportDefinitionService and access fields for adwords reports
+    Args:
+        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+    adwords client
+    """
+
+    def __init__(self, conn: GoogleAdWordsConnectionManager):
+        super().__init__(conn=conn, service="ReportDefinitionService", version="v201809")
+
+    def get_report_fields(self, report_type: str) -> List[dict]:
+        """
+        Get a list of fields for a given report.
+        Args:
+            report_type (str): Possible reports are defined in the documentation here -
+            https://developers.google.com/adwords/api/docs/appendix/reports/all-reports
+        Returns: List[dict]
+        """
+        return self._get_service().getReportFields(report_type)
+
+
+class AdWordsReportReader:
+    """
+    Generic data reader class for downloading data from report awql efficiently
+    Args:
+            conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+    """
+
+    def __init__(self, conn: GoogleAdWordsConnectionManager):
+        self.conn = conn
+        self.version = 'v201809'
+        self.__downloader = None
+
+    def _get_report_downloader(self):
+        if self.__downloader is None:
+            client = self.conn.get_adwords_client()
+            self.__downloader = client.GetReportDownloader(version=self.version)
+        return self.__downloader
+
+    def awql_to_dataframe(self, query: ReportQuery) -> DataFrame:
+        """
+        Download the data returned by report query in a compressed format and return it in form of
+        a pandas dataframe
+        Args:
+            query (ReportQuery): an awql report query, see example
+            https://github.com/googleads/googleads-python-lib/blob/master/examples/adwords
+            /v201809/reporting/stream_criteria_report_results.py#L34-L39
+        Returns: DataFrame
+        """
+        with NamedTemporaryFile(mode="w+b") as temp_file:
+            self._get_report_downloader().DownloadReportWithAwql(
+                query,
+                "GZIPPED_CSV",
+                temp_file,
+                skip_report_header=False,
+                skip_column_header=False,
+                skip_report_summary=False,
+                include_zero_impressions=True
+            )
+            with gzip.open(temp_file.name, mode="rt") as csv_file:
+                dataframe = pd.read_csv(csv_file, sep=",", header=1)
+        return dataframe
