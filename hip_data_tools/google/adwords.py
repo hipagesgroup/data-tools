@@ -594,7 +594,7 @@ class AdWordsReportDefinitionReader(AdWordsUtil):
     """
 
     def __init__(self, conn: GoogleAdWordsConnectionManager):
-        super().__init__(conn, "ReportDefinitionService", "v201809")
+        super().__init__(conn=conn, service="ReportDefinitionService", version="v201809")
 
     def get_report_fields(self, report_type: str) -> List[dict]:
         """
