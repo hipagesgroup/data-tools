@@ -10,6 +10,7 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from typing import List
 
+import stringcase
 from pandas import DataFrame
 
 LOG = logging.getLogger(__name__)
@@ -198,11 +199,16 @@ def to_snake_case(column_name: str) -> str:
     """
     # Detect and replace special_chars
     str_replaced_special_chars = special_characters_detect.sub('_', column_name)
-    # Detect all instances of Camel Casing
-    camel_column_name = camel_case_detect.sub('_', str_replaced_special_chars).lower()
+    # Convert to Snake Case
+    camel_column_name = stringcase.snakecase(str_replaced_special_chars)
     return camel_column_name
 
 
 def nested_list_of_dict_to_dataframe(data: List[dict]) -> DataFrame:
     flattened_dicts = [flatten_nested_dict(d) for d in data]
     return DataFrame(data=flattened_dicts)
+
+
+def dataframe_columns_to_snake_case(data: DataFrame) -> None:
+    original_columns = data.columns
+    data.columns = [to_snake_case(col) for col in original_columns]

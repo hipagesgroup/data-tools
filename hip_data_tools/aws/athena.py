@@ -258,7 +258,9 @@ class AthenaUtil(AwsUtil):
 
         Returns: None
         """
-        self.run_query(self._build_create_table_sql(table_settings))
+        table_sql = self._build_create_table_sql(table_settings)
+        LOG.info(table_sql)
+        self.run_query(table_sql)
 
     def get_table_ddl(self, table):
         """
