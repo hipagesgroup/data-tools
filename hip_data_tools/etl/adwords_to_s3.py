@@ -7,7 +7,7 @@ from attr import dataclass
 from googleads.adwords import ServiceQueryBuilder, ReportQuery
 from pandas import DataFrame
 
-from common import dataframe_columns_to_snake_case
+from hip_data_tools.common import dataframe_columns_to_snake_case
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionSettings, AdWordsDataReader, \
@@ -180,6 +180,10 @@ class AdWordsReportsToS3:
         return self._adwords_util
 
     def transfer(self):
+        """
+        Transfer the entire report to s3 in parquet format
+        Returns: None
+        """
         data = self._get_report_data()
         s3u = self._get_s3_util()
         file_name = "report_data"

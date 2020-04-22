@@ -6,7 +6,7 @@ from typing import List, Any, Optional, Tuple
 from attr import dataclass
 from pandas import DataFrame
 
-from common import LOG
+from hip_data_tools.common import LOG
 from hip_data_tools.aws.athena import AthenaUtil, get_athena_columns_from_dataframe, \
     extract_athena_type_from_value
 from hip_data_tools.aws.common import AwsConnectionManager
@@ -113,6 +113,10 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
             output_bucket=self.__settings.target_bucket)
 
     def add_partitions(self):
+        """
+        Add the current Data Transfer's partition to Athena's Metadata
+        Returns: None
+        """
         if self.__settings.is_partitioned_table:
             athena_util = self._get_athena_util()
             athena_util.add_partitions(
