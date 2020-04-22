@@ -188,7 +188,7 @@ class AdWordsReportsToS3:
         s3u = self._get_s3_util()
         file_name = "report_data"
         if self.__settings.target_file_prefix:
-            file_name = self.__settings.target_file_prefix + file_name
+            file_name = f"{self.__settings.target_file_prefix}{file_name}"
         dataframe_columns_to_snake_case(data)
         s3u.upload_dataframe_as_parquet(
             dataframe=data,
