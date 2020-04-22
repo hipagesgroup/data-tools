@@ -119,6 +119,12 @@ class TestCommon(TestCase):
         actual = to_snake_case(input)
         self.assertEqual(expected, actual)
 
+    def test__should__convert_to_snake_case__with_id(self):
+        input = "ThisIsAnID"
+        expected = "this_is_an_i_d"
+        actual = to_snake_case(input)
+        self.assertEqual(expected, actual)
+
     def test__should__convert_list_of_dict_to_proper_df__with__nested_items(self):
         input = [
             {

@@ -649,3 +649,54 @@ class AdWordsReportReader:
             with gzip.open(temp_file.name, mode="rt") as csv_file:
                 dataframe = pd.read_csv(csv_file, sep=",", header=1)
         return dataframe
+
+
+class AdWordsManagedCustomerUtil(AdWordsUtil):
+    """
+    Adwords Utility to parse through and gather Account Information for all sub accounts
+    Args:
+        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
+        adwords client
+    """
+
+    def __init__(self, conn: GoogleAdWordsConnectionManager):
+        super().__init__(conn, service='ManagedCustomerService', version='v201809')
+        self.selector_fields = ['Name', 'CustomerId', 'DateTimeZone', 'CurrencyCode',
+                                'CanManageClients', 'TestAccount', 'AccountLabels']
+
+    def _init_selector(self, offset, page_size):
+        selector = {
+            'fields': self.selector_fields,
+            'paging': {
+                'startIndex': str(offset),
+                'numberResults': str(page_size)
+            }
+        }
+        return selector
+
+    def get_all_accounts(self, page_size: int = 1000) -> List[dict]:
+        """
+        Gets the customer details of the adwords accounts associated with the connection
+        Returns: List[dict]
+        """
+        # Construct selector to get all accounts.
+        offset = 0
+        selector = self._init_selector(offset, page_size)
+        more_pages = True
+        all_accounts = []
+        while more_pages:
+            # Get serviced account graph.
+            page = self._get_service().get(selector)
+            all_accounts.extend(get_page_as_list_of_dict(page))
+            offset += page_size
+            selector['paging']['startIndex'] = str(offset)
+            more_pages = offset < int(page['totalNumEntries'])
+
+        return all_accounts
+
+    def get_all_accounts_as_dataframe(self, page_size: int = 1000) -> DataFrame:
+        """
+        Gets the customer details of the adwords accounts associated with the connection
+        Returns: DataFrame
+        """
+        return nested_list_of_dict_to_dataframe(self.get_all_accounts(page_size=page_size))
