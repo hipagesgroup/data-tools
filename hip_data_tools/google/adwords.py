@@ -626,7 +626,9 @@ class AdWordsReportReader:
             self.__downloader = client.GetReportDownloader(version=self.version)
         return self.__downloader
 
-    def awql_to_dataframe(self, query: ReportQuery) -> DataFrame:
+    def awql_to_dataframe(self, query: ReportQuery,
+                          include_zero_impressions: bool = True,
+                          **kwargs) -> DataFrame:
         """
         Download the data returned by report query in a compressed format and return it in form of
         a pandas dataframe
@@ -634,6 +636,7 @@ class AdWordsReportReader:
             query (ReportQuery): an awql report query, see example
             https://github.com/googleads/googleads-python-lib/blob/master/examples/adwords
             /v201809/reporting/stream_criteria_report_results.py#L34-L39
+            include_zero_impressions (bool): include_zero_impressions
         Returns: DataFrame
         """
         with NamedTemporaryFile(mode="w+b") as temp_file:
@@ -644,7 +647,8 @@ class AdWordsReportReader:
                 skip_report_header=False,
                 skip_column_header=False,
                 skip_report_summary=False,
-                include_zero_impressions=True
+                include_zero_impressions=include_zero_impressions,
+                **kwargs
             )
             with gzip.open(temp_file.name, mode="rt") as csv_file:
                 dataframe = pd.read_csv(csv_file, sep=",", header=1)
