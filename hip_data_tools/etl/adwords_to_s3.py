@@ -7,9 +7,9 @@ from attr import dataclass
 from googleads.adwords import ServiceQueryBuilder, ReportQuery
 from pandas import DataFrame
 
-from hip_data_tools.common import dataframe_columns_to_snake_case
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
+from hip_data_tools.common import dataframe_columns_to_snake_case
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionSettings, AdWordsDataReader, \
     GoogleAdWordsConnectionManager, AdWordsParallelDataReadEstimator, AdWordsReportReader
 
@@ -146,6 +146,7 @@ class AdWordsToS3:
 class AdWordsReportToS3Settings:
     """S3 to Cassandra ETL settings"""
     source_query: ReportQuery
+    source_include_zero_impressions: bool
     source_connection_settings: GoogleAdWordsConnectionSettings
     target_bucket: str
     target_key_prefix: str
@@ -179,12 +180,12 @@ class AdWordsReportsToS3:
                 conn=GoogleAdWordsConnectionManager(self.__settings.source_connection_settings))
         return self._adwords_util
 
-    def transfer(self):
+    def transfer(self, **kwargs):
         """
         Transfer the entire report to s3 in parquet format
         Returns: None
         """
-        data = self._get_report_data()
+        data = self._get_report_data(**kwargs)
         s3u = self._get_s3_util()
         file_name = "report_data"
         if self.__settings.target_file_prefix:
@@ -195,7 +196,10 @@ class AdWordsReportsToS3:
             key=self.__settings.target_key_prefix,
             file_name=file_name)
 
-    def _get_report_data(self):
+    def _get_report_data(self, **kwargs):
         au = self._get_adwords_util()
-        data = au.awql_to_dataframe(self.__settings.source_query)
+        data = au.awql_to_dataframe(
+            self.__settings.source_query,
+            self.__settings.source_include_zero_impressions,
+            **kwargs)
         return data

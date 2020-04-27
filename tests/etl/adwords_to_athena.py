@@ -102,6 +102,7 @@ class TestAdwordsToS3(TestCase):
                                   )
                           .From('CAMPAIGN_NEGATIVE_KEYWORDS_PERFORMANCE_REPORT')
                           .Build()),
+            source_include_zero_impressions=True,
             source_connection_settings=adwords_settings,
             target_bucket=target_bucket,
             target_key_prefix=target_key_prefix,
