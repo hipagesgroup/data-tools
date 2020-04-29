@@ -102,7 +102,11 @@ class S3Util(AwsUtil):
             file_name (str): the name of the file at destination
         Returns: None
         """
-        log.debug("Uploading the dataframe as parquet: \n %s", dataframe.to_string)
+        log.debug("Uploading the dataframe as parquet")
+        log.debug("Column names of the dataframe: %s", list(dataframe))
+        log.debug("Top 2 rows of the dataframe: \n%s", dataframe.head(2))
+        log.debug("Shape of the dataframe: %s", dataframe.shape)
+
         tmp_file = NamedTemporaryFile(delete=False)
         destination = f"{key}/{file_name}.parquet"
         dataframe.to_parquet(fname=tmp_file.name)
