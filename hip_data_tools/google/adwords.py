@@ -2,6 +2,7 @@
 This Module handles the connection and operations on Google AdWords accounts using adwords API
 """
 import gzip
+import logging as log
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 from typing import List, Optional, Any
@@ -209,6 +210,7 @@ class AdWordsDataReader(AdWordsUtil):
     def _get_query_pager(self, query: ServiceQueryBuilder):
         if self.__pager is None:
             self.__pager = query.Pager(self._get_service())
+        log.debug("The pager %s", self.__pager)
         return self.__pager
 
     def get_parallel_payloads(self, page_size: int, number_of_workers: int) -> List[dict]:
