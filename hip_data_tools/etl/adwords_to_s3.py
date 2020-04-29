@@ -85,7 +85,10 @@ class AdWordsToS3:
         Returns: bool true if the data transfer succeeded, False if reached end of iterations
         """
         if self.current_iteration < self.iteration_limit:
-            data = self._get_next_page()
+            try:
+                data = self._get_next_page()
+            except StopIteration:
+                return False
             s3u = self._get_s3_util()
             s3u.upload_dataframe_as_parquet(
                 dataframe=data,
