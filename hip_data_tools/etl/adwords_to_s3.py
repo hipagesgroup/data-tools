@@ -89,6 +89,8 @@ class AdWordsToS3:
                 data = self._get_next_page()
             except StopIteration:
                 return False
+            if data.empty:
+                return False
             s3u = self._get_s3_util()
             s3u.upload_dataframe_as_parquet(
                 dataframe=data,
