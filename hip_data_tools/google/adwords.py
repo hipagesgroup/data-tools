@@ -646,14 +646,14 @@ class AdWordsReportReader:
                 query,
                 "GZIPPED_CSV",
                 temp_file,
-                skip_report_header=False,
+                skip_report_header=True,
                 skip_column_header=False,
-                skip_report_summary=False,
+                skip_report_summary=True,
                 include_zero_impressions=include_zero_impressions,
                 **kwargs
             )
             with gzip.open(temp_file.name, mode="rt") as csv_file:
-                dataframe = pd.read_csv(csv_file, sep=",", header=1)
+                dataframe = pd.read_csv(csv_file, sep=",", header=0)
         return dataframe
 
 
