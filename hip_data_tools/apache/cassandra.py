@@ -1,7 +1,6 @@
 """
 Utility for connecting to and transforming data in Cassandra clusters
 """
-import logging as log
 import os
 from typing import List
 
@@ -20,7 +19,7 @@ from pandas._libs.tslibs.nattype import NaT
 from pandas._libs.tslibs.timestamps import Timestamp
 from retrying import retry
 
-from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
+from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager, LOG
 
 _RETRY_WAIT_MULTIPLIER_MS: int = int(os.getenv("CASSANDRA_RETRY_WAIT_MULTIPLIER_MS", "1000"))
 """Exponential backoff settings for connections to cassandra"""
@@ -267,7 +266,7 @@ class CassandraUtil:
         ({", ".join(data)}) 
         VALUES ({", ".join(['?' for key in data])});
             """
-        log.debug(upsert_sql)
+        LOG.debug(upsert_sql)
         return upsert_sql
 
     def _cql_upsert_from_dataframe(self, dataframe: DataFrame, table: str):
@@ -276,7 +275,7 @@ class CassandraUtil:
         ({", ".join(list(dataframe.columns.values))}) 
         VALUES ({", ".join(['?' for key in dataframe.columns.values])});
             """
-        log.debug(upsert_sql)
+        LOG.debug(upsert_sql)
         return upsert_sql
 
     def upsert_dataframe_in_batches(self,
@@ -326,17 +325,17 @@ class CassandraUtil:
 
     def _execute_batches(self, batches: List):
         results = []
-        log.info("Executing cassandra batches")
+        LOG.info("Executing cassandra batches")
         for batch in batches:
             results.append(self._execute_batch(batch))
-        log.info("finished %s batches", len(results))
+        LOG.info("finished %s batches", len(results))
         return results
 
     @retry(wait_exponential_multiplier=_RETRY_WAIT_MULTIPLIER_MS,
            wait_exponential_max=_RETRY_WAIT_MAX_MS,
            )
     def _execute_batch(self, batch):
-        log.debug("Executing query: %s", batch)
+        LOG.debug("Executing query: %s", batch)
         return self._session.execute(batch, timeout=300.0)
 
     def upsert_dictonary_list_in_batches(self,
@@ -421,7 +420,7 @@ class CassandraUtil:
             PRIMARY KEY ({", ".join(primary_key_column_list)}))
         {table_options_statement};
         """
-        log.debug(cql)
+        LOG.debug(cql)
         return cql
 
     def read_as_dictonary_list(self, query: str, **kwargs) -> List[dict]:
@@ -453,7 +452,7 @@ class CassandraUtil:
             **kwargs: Kwargs to match the session.execute command in cassandra
         Returns: ResultSet
         """
-        log.debug("Executing query: %s", query)
+        LOG.debug("Executing query: %s", query)
         if row_factory is not None:
             self._session.row_factory = row_factory
         return self._session.execute(query, **kwargs)
@@ -472,12 +471,12 @@ class CassandraUtil:
         Returns: list[BatchStatement]
         """
         batches = []
-        log.debug("Preparing cassandra batches out of rows")
+        LOG.debug("Preparing cassandra batches out of rows")
         batches_of_tuples = _chunk_list(tuples, batch_size)
         for tpl in batches_of_tuples:
             batch = self._prepare_batch(prepared_statement, tpl)
             batches.append(batch)
-        log.info("created %s batches out of list of %s tuples", len(batches), len(tuples))
+        LOG.info("created %s batches out of list of %s tuples", len(batches), len(tuples))
         return batches
 
     def _prepare_batch(self, prepared_statement, tuples):

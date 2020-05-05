@@ -1,7 +1,6 @@
 """
 Module to deal with data transfer from S3 to Cassandra
 """
-import logging as log
 from typing import Iterator, List
 
 import pandas as pd
@@ -10,6 +9,7 @@ from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
+from hip_data_tools.common import LOG
 
 
 @dataclass
@@ -81,7 +81,7 @@ class S3ToDataFrame:
         if self.keys_to_transfer is None:
             self.keys_to_transfer = self._get_s3_util().get_keys(
                 self.__settings.source_key_prefix)
-            log.info("Listed and cached %s source files", len(self.keys_to_transfer))
+            LOG.info("Listed and cached %s source files", len(self.keys_to_transfer))
         return self.keys_to_transfer
 
     def next(self) -> DataFrame:

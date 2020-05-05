@@ -1,8 +1,6 @@
 """
 This module is responsible for all Google sheets operations
 """
-
-import logging as log
 import re
 from typing import List, Any
 
@@ -10,6 +8,7 @@ import pandas as pd
 from pandas import DataFrame
 import gspread
 
+from hip_data_tools.common import LOG
 from hip_data_tools.google.common import GoogleApiConnectionManager, GoogleApiConnectionSettings
 
 
@@ -47,7 +46,7 @@ def _get_value_matrix_from_skip(worksheet, data_start_row_number):
 
 def _validate_field_names_and_types_count(field_names, field_types):
     if len(field_names) != len(field_types):
-        log.error("Number of field names and number of field types are not matching")
+        LOG.error("Number of field names and number of field types are not matching")
         raise Exception("Field names and types are not matching")
 
 
@@ -55,7 +54,7 @@ def _validate_field_names(field_names):
     for field_name in field_names:
         # check for strings which only contains letters, numbers and underscores
         if not re.match("^[A-Za-z0-9_]+$", field_name):
-            log.error("Unsupported field name: %s", field_name)
+            LOG.error("Unsupported field name: %s", field_name)
             raise Exception("Unsupported field name")
 
 
@@ -130,7 +129,7 @@ class SheetUtil:
         Returns: field names list
         """
         field_names = self._get_worksheet().row_values(field_names_row_number)
-        log.debug("Field names:\n%s", field_names)
+        LOG.debug("Field names:\n%s", field_names)
         return field_names
 
     def get_fields_types(self, field_types_row_number: int) -> List[str]:
@@ -141,7 +140,7 @@ class SheetUtil:
         Returns: field types list
         """
         field_types = self._get_worksheet().row_values(field_types_row_number)
-        log.debug("Field types:\n%s", field_types)
+        LOG.debug("Field types:\n%s", field_types)
         return field_types
 
     def get_dataframe(self,

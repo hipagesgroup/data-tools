@@ -4,7 +4,6 @@ producers and consumers
 """
 
 import json
-import logging as log
 import os
 import time
 import traceback
@@ -20,7 +19,7 @@ from confluent_kafka import Producer, Consumer
 #   has errors after reading the data from Kafka
 from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 from hip_data_tools.aws.s3 import S3Util
-from hip_data_tools.common import get_from_env_or_default_with_warning
+from hip_data_tools.common import get_from_env_or_default_with_warning, LOG
 
 DEFAULT_PRODUCER_CONF = \
     """{'queue.buffering.max.messages': 10000,
@@ -350,7 +349,7 @@ def convert_msgs_to_dictionary(list_of_msgs):
             bad_data.append(bad_data_dict)
 
     if induce_warning:
-        log.warning("Json decoding error, check bad bucket")
+        LOG.warning("Json decoding error, check bad bucket")
 
     return good_data, bad_data
 
@@ -412,16 +411,16 @@ class KafkaProducer:
 
         """
         try:
-            log.debug("Instantiating Producer")
+            LOG.debug("Instantiating Producer")
             self.producer = create_producer(self.producer_config)
             # Check the connection works by polling for messages
-            log.debug("Polling Queue")
+            LOG.debug("Polling Queue")
             self.producer.poll(3)
-            log.info("Succesfully polled Kafka Queue")
+            LOG.info("Succesfully polled Kafka Queue")
 
         except Exception as exception:
             self.producer = None
-            log.error("Kafka Producer failed to instantiate: \n %s", exception)
+            LOG.error("Kafka Producer failed to instantiate: \n %s", exception)
 
             if self.raise_exception_on_failed_connection:
                 raise NoProducerInstantiatedError()
@@ -454,10 +453,10 @@ class KafkaProducer:
         self._instantiated_producer_if_required()
 
         if self.producer is not None:
-            log.debug("Producing message on topic %s : %s", self.topic, msg)
+            LOG.debug("Producing message on topic %s : %s", self.topic, msg)
             self.producer.produce(self.topic, msg)
         else:
-            log.warning(
+            LOG.warning(
                 "Kafka Connection not initialised, message not sent, "
                 "message body: %s", msg)
 
@@ -506,7 +505,7 @@ class KafkaPoller:
         Returns list(Message) : list of Kafka Messages
         """
 
-        log.debug("Getting messages from topic %s", self._topic)
+        LOG.debug("Getting messages from topic %s", self._topic)
 
         if not self._subscribed_to_topic:
             self._subscribe_consumer()
@@ -538,10 +537,10 @@ class KafkaPoller:
     def _check_msg_is_not_error(msg):
 
         if msg.error():
-            log.error("Consumer error: %s", msg.error())
+            LOG.error("Consumer error: %s", msg.error())
             return None
 
-        log.debug(
+        LOG.debug(
             "Message from topic: %s", msg.value().decode('utf-8'))
 
         return msg
@@ -582,7 +581,7 @@ class KafkaS3BatchExporter:
         self._partition_data_and_upload_to_s3(good_data, interval)
         self._partition_data_and_upload_to_s3(bad_data, interval)
 
-        log.info("Data Upload Complete")
+        LOG.info("Data Upload Complete")
 
     def _partition_data_and_upload_to_s3(self, data_list, interval):
         """
@@ -593,7 +592,7 @@ class KafkaS3BatchExporter:
 
             for msg_df, s3_path in \
                 self.partition_msgs_by_kafka_ts(data_list, interval):
-                log.debug("data path : %s", s3_path)
+                LOG.debug("data path : %s", s3_path)
 
                 self._s3_client.upload_dataframe_as_parquet(msg_df, s3_path)
 
@@ -648,7 +647,7 @@ class KafkaS3BatchExporter:
 
             full_path_on_s3 = '{}/{}'.format(batch_file_path, file_nm)
 
-            log.debug("Data path : %s", full_path_on_s3)
+            LOG.debug("Data path : %s", full_path_on_s3)
 
             dataframes_and_fld_locs.append((df_partition, full_path_on_s3))
 
@@ -683,7 +682,7 @@ class KafkaConduit:
         Returns: None
         """
         while True:
-            log.debug("Polling Kafka for messages")
+            LOG.debug("Polling Kafka for messages")
             self.create_events_snapshot()
             log.debug("Upload complete, sleeping")
             time.sleep(self._polling_interval)
