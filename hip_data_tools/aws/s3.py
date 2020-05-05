@@ -16,7 +16,7 @@ from joblib import load, dump
 from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsUtil, AwsConnectionManager, AwsConnectionSettings
-from hip_data_tools.common import _generate_random_file_name
+from hip_data_tools.common import _generate_random_file_name, LOG
 
 UTF8 = 'utf-8'
 
@@ -330,6 +330,18 @@ class S3Util(AwsUtil):
             if start_date < arrow.get(file.last_modified) <= end_date:
                 lines += [file.key]
         log.info("found %s s3 files changed", len(lines))
+        return lines
+
+    def get_all_keys(self, key_prefix: str) -> List[str]:
+        """
+        Sense all keys under a given key prefix
+        :param key_prefix: the key prefix under which all files will be sensed
+        :return: a list of keys which were modified
+        """
+        LOG.info("sensing files from s3://%s/%s ", self.bucket, key_prefix)
+        metadata = self.get_object_metadata(key_prefix)
+        lines = [file.key for file in metadata]
+        LOG.info("found %s s3 keys", len(lines))
         return lines
 
     def get_object_metadata(self, key_prefix: str) -> List:
