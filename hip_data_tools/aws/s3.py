@@ -103,7 +103,8 @@ class S3Util(AwsUtil):
         Returns: None
         """
         log.debug(
-            "Uploading the dataframe as parquet\nColumn names of the dataframe: %s\nTop 2 rows of the dataframe: %s\nShape of the dataframe: %s",
+            "Uploading the dataframe as parquet\nColumn names of the dataframe: %s\nTop 2 rows of "
+            "the dataframe: %s\nShape of the dataframe: %s",
             list(dataframe), dataframe.head(2), dataframe.shape)
 
         tmp_file = NamedTemporaryFile(delete=False)
@@ -157,6 +158,8 @@ class S3Util(AwsUtil):
             key_prefix (str): Key prefix under which all files will be deleted
         Returns: NA
         """
+        if not key_prefix.endswith("/"):
+            key_prefix = f"{key_prefix}/"
         log.info("Recursively deleting s3://%s/%s", self.bucket, key_prefix)
         response = self.get_resource().Bucket(self.bucket).objects.filter(
             Prefix=key_prefix).delete()
