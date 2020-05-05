@@ -334,8 +334,9 @@ class S3Util(AwsUtil):
     def get_all_keys(self, key_prefix: str) -> List[str]:
         """
         Sense all keys under a given key prefix
-        :param key_prefix: the key prefix under which all files will be sensed
-        :return: a list of keys which were modified
+        Args:
+            key_prefix (str): the key prefix under which all files will be sensed
+        Returns: List[str]
         """
         LOG.info("sensing files from s3://%s/%s ", self.bucket, key_prefix)
         metadata = self.get_object_metadata(key_prefix)
