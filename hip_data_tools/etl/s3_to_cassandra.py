@@ -1,7 +1,6 @@
 """
 Module to deal with data transfer from S3 to Cassandra
 """
-import logging as log
 from typing import List
 
 from attr import dataclass
@@ -11,6 +10,7 @@ from hip_data_tools.apache.cassandra import CassandraUtil, CassandraConnectionMa
     CassandraConnectionSettings
 from hip_data_tools.aws.common import AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
+from hip_data_tools.common import LOG
 from hip_data_tools.etl.s3_to_dataframe import S3ToDataFrame, S3ToDataFrameSettings
 
 
@@ -82,13 +82,13 @@ class S3ToCassandra(S3ToDataFrame):
 
     def _upsert_data_frame(self, data_frame):
         if self.__settings.destination_batch_size > 1:
-            log.info("Going to upsert batches of size %s", self.__settings.destination_batch_size)
+            LOG.info("Going to upsert batches of size %s", self.__settings.destination_batch_size)
             result = self._get_cassandra_util().upsert_dataframe_in_batches(
                 dataframe=data_frame,
                 table=self.__settings.destination_table,
                 batch_size=self.__settings.destination_batch_size)
         else:
-            log.info("Going to upsert one row at a time")
+            LOG.info("Going to upsert one row at a time")
             result = self._get_cassandra_util().upsert_dataframe(
                 dataframe=data_frame,
                 table=self.__settings.destination_table)

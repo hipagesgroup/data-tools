@@ -2,7 +2,6 @@
 This Module handles the connection and operations on Google AdWords accounts using adwords API
 """
 import gzip
-import logging as log
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 from typing import List, Optional, Any
@@ -464,7 +463,7 @@ def get_page_as_list_of_dict(page: dict) -> List[OrderedDict]:
         entries = page['entries']
         # These entries are a list of zeep Objects that need conversion to Dict
         result = [zeep_object_to_dict(entry) for entry in entries]
-        log.debug("The result from the adword API: %s", result)
+        LOG.debug("The result from the adword API: %s", result)
     else:
         LOG.info('No entries were found.')
     return result

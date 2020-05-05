@@ -1,7 +1,6 @@
 """
 handle ETL of data from Athena to Cassandra
 """
-import logging as log
 from typing import List
 
 from attr import dataclass
@@ -9,6 +8,7 @@ from cassandra.cqlengine import ValidationError
 from pandas import DataFrame
 
 from hip_data_tools.apache.cassandra import CassandraConnectionManager, CassandraConnectionSettings
+from hip_data_tools.common import LOG
 from hip_data_tools.etl.athena_to_dataframe import AthenaToDataFrame, AthenaToDataFrameSettings
 from hip_data_tools.etl.common import EtlSinkRecordStateManager, sync_etl_state_table, EtlStates
 from hip_data_tools.google.adwords import AdWordsOfflineConversionUtil, \
@@ -156,7 +156,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
             else:
                 return None, _get_structured_issue(f"Current state is not Ready", dat)
         except ValidationError as e:
-            log.warning("Issue while trying to ready a record for the upload \n %s \n %s", e,
+            LOG.warning("Issue while trying to ready a record for the upload \n %s \n %s", e,
                         dat)
             return None, _get_structured_issue(str(e), dat)
 
