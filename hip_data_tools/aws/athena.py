@@ -359,6 +359,9 @@ def generate_parquet_ctas(select_query, destination_table, destination_bucket, d
 
 def _get_ctas_statement(destination_bucket, destination_key, destination_table, partition_fields,
                         select_query, file_format):
+    delimiter = ''
+    if file_format == 'TEXTFILE':
+        delimiter = "field_delimiter=',',"
     partitioned_by = ""
     if partition_fields != '':
         partitioned_by = """,
@@ -367,6 +370,7 @@ def _get_ctas_statement(destination_bucket, destination_key, destination_table, 
     final_query = """
         CREATE TABLE {destination_table}
         WITH (
+            {delimiter}
             format='{file_format}',
             external_location='s3://{bucket}/{key}'{partitioned_by}
         ) AS
@@ -376,7 +380,8 @@ def _get_ctas_statement(destination_bucket, destination_key, destination_table, 
                    key=destination_key,
                    athena_query=select_query,
                    partitioned_by=partitioned_by,
-                   file_format=file_format)
+                   file_format=file_format,
+                   delimiter=delimiter)
     return final_query
 
 
