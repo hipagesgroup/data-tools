@@ -106,6 +106,11 @@ class AthenaUtil(AwsUtil):
                 "row_format_serde": "org.apache.hadoop.hive.serde2.OpenCSVSerde",
                 "outputformat": "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
                 "inputformat": "org.apache.hadoop.mapred.TextInputFormat"
+            },
+            "json": {
+                "row_format_serde": "org.openx.data.jsonserde.JsonSerDe",
+                "outputformat": "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
+                "inputformat": "org.apache.hadoop.mapred.TextInputFormat"
             }
         }
 
