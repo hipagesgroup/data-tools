@@ -319,7 +319,8 @@ class AthenaUtil(AwsUtil):
         self.run_query("""DROP TABLE IF EXISTS {}""".format(table_name))
 
 
-def generate_csv_ctas(select_query, destination_table, destination_bucket, destination_key):
+def generate_csv_ctas(select_query, destination_table, destination_bucket, destination_key,
+                      partition_fields=''):
     """
     Method to generate a CTAS query string for creating csv output
 
@@ -328,37 +329,13 @@ def generate_csv_ctas(select_query, destination_table, destination_bucket, desti
         destination_table (string): name of the new table being created
         destination_bucket (string): the s3 bucket where the data from select query will be stored
         destination_key (string): the s3 directory where the data from select query will be stored
+        partition_fields (string): partition field names
 
     Returns (string): CTAS Query in a string
 
     """
-    final_query = """
-    CREATE TABLE {destination_table}
-    WITH (
-        field_delimiter='{field_delimiter}',
-        format='TEXTFILE',
-        external_location='s3://{bucket}/{key}'
-    ) AS
-    {athena_query}
-    """.format(
-        field_delimiter=",",
-        destination_table=destination_table,
-        bucket=destination_bucket,
-        key=destination_key,
-        athena_query=select_query, )
-    return final_query
-
-
-def zip_columns(column_list):
-    """
-    Combine the column list into a zipped comma separated list of column name and data type
-    Args:
-        column_list (list): an array of dictionaries with keys column and type
-
-    Returns (string): a string containing comma separated list of column name and data type
-
-    """
-    return ", ".join(["{} {}".format(col['column'], col["type"]) for col in column_list])
+    return _get_ctas_statement(destination_bucket, destination_key, destination_table,
+                               partition_fields, select_query, file_format='TEXTFILE')
 
 
 def generate_parquet_ctas(select_query, destination_table, destination_bucket, destination_key,
@@ -376,6 +353,12 @@ def generate_parquet_ctas(select_query, destination_table, destination_bucket, d
     Returns (string): CTAS Query in a string
 
     """
+    return _get_ctas_statement(destination_bucket, destination_key, destination_table,
+                               partition_fields, select_query, file_format='parquet')
+
+
+def _get_ctas_statement(destination_bucket, destination_key, destination_table, partition_fields,
+                        select_query, file_format):
     partitioned_by = ""
     if partition_fields != '':
         partitioned_by = """,
@@ -386,7 +369,7 @@ def generate_parquet_ctas(select_query, destination_table, destination_bucket, d
     final_query = """
         CREATE TABLE {destination_table}
         WITH (
-            format='parquet',
+            format='{file_format}',
             external_location='s3://{bucket}/{key}'{partitioned_by}
         ) AS
         {athena_query}
@@ -396,43 +379,26 @@ def generate_parquet_ctas(select_query, destination_table, destination_bucket, d
         key=destination_key,
         athena_query=select_query,
         partitioned_by=partitioned_by,
+        file_format=file_format
     )
     return final_query
 
 
-def generate_csv_ctas(select_query, destination_table, destination_bucket, destination_key):
+def zip_columns(column_list):
     """
-        Method to generate a CTAS query string for creating csv output
+    Combine the column list into a zipped comma separated list of column name and data type
+    Args:
+        column_list (list): an array of dictionaries with keys column and type
 
-        Args:
-            select_query (string): the query to be used for table generation
-            destination_table (string): name of the new table being created
-            destination_bucket (string): the s3 bucket where the data from select query will be stored
-            destination_key (string): the s3 directory where the data from select query will be stored
-        Returns (string): CTAS Query in a string
+    Returns (string): a string containing comma separated list of column name and data type
 
-        """
-
-    final_query = """
-        CREATE TABLE {destination_table}
-        WITH (
-            field_delimiter='{field_delimiter}',
-            format='TEXTFILE',
-            external_location='s3://{bucket}/{key}'
-        ) AS
-        {athena_query}
-        """.format(
-        field_delimiter=",",
-        destination_table=destination_table,
-        bucket=destination_bucket,
-        key=destination_key,
-        athena_query=select_query,
-    )
-    return final_query
+    """
+    return ", ".join(["{} {}".format(col['column'], col["type"]) for col in column_list])
 
 
 def drop_table(self, table_name):
     self.run_query("""DROP TABLE IF EXISTS {}""".format(table_name))
+
 
 def _construct_table_partition_ddl(partitions):
     partition_query = ""
