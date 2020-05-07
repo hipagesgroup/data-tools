@@ -363,9 +363,7 @@ def _get_ctas_statement(destination_bucket, destination_key, destination_table, 
     if partition_fields != '':
         partitioned_by = """,
         partitioned_by = ARRAY[{partition_keys}]
-        """.format(
-            partition_keys=partition_fields
-        )
+        """.format(partition_keys=partition_fields)
     final_query = """
         CREATE TABLE {destination_table}
         WITH (
@@ -373,14 +371,12 @@ def _get_ctas_statement(destination_bucket, destination_key, destination_table, 
             external_location='s3://{bucket}/{key}'{partitioned_by}
         ) AS
         {athena_query}
-        """.format(
-        destination_table=destination_table,
-        bucket=destination_bucket,
-        key=destination_key,
-        athena_query=select_query,
-        partitioned_by=partitioned_by,
-        file_format=file_format
-    )
+        """.format(destination_table=destination_table,
+                   bucket=destination_bucket,
+                   key=destination_key,
+                   athena_query=select_query,
+                   partitioned_by=partitioned_by,
+                   file_format=file_format)
     return final_query
 
 
@@ -394,10 +390,6 @@ def zip_columns(column_list):
 
     """
     return ", ".join(["{} {}".format(col['column'], col["type"]) for col in column_list])
-
-
-def drop_table(self, table_name):
-    self.run_query("""DROP TABLE IF EXISTS {}""".format(table_name))
 
 
 def _construct_table_partition_ddl(partitions):
