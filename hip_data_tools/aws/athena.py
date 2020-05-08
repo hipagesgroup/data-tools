@@ -23,7 +23,10 @@ _PYTHON_TO_ATHENA_DATA_TYPE_MAP = {
     "object": "STRING",
     "int": "INT",
     "list": "STRING",
-    "NoneType": "STRING"
+    "NoneType": "STRING",
+    "bool_": "BOOLEAN",
+    "Bool": "BOOLEAN",
+    "bool": "BOOLEAN",
 }
 
 
