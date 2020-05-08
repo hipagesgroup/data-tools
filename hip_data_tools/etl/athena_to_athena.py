@@ -57,9 +57,13 @@ class AthenaToAthena:
 
     def _get_athena_util(self) -> AthenaUtil:
         if self._athena is None:
+            import uuid
             self._athena = AthenaUtil(
                 database=self.__settings.source_database,
-                conn=AwsConnectionManager(self.__settings.connection_settings))
+                conn=AwsConnectionManager(self.__settings.connection_settings),
+                output_key=f"athena_results/{uuid.uuid4().hex}",
+                output_bucket=self.__settings.target_s3_bucket,
+            )
         return self._athena
 
     def execute(self) -> None:
