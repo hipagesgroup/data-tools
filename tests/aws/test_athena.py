@@ -1,8 +1,9 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-import hip_data_tools.aws.athena as athena
 from pandas import DataFrame
+
+import hip_data_tools.aws.athena as athena
 from hip_data_tools.aws.athena import AthenaUtil
 
 
@@ -181,6 +182,65 @@ class TestAthenaUtil(TestCase):
         }
         actual = AthenaUtil.get_table_data_location(mock_au, "test")
         self.assertEqual(actual, expected)
+
+    def test__get_table_columns__should_return_tuple_when_partition_is_present(self):
+        mock_au = Mock()
+        expected = ([
+                        {"Name": "first_column", "Type": "string"},
+                        {"Name": "second_column", "Type": "string"},
+                    ], [
+                        {"Name": "first_partition_column", "Type": "string"},
+                        {"Name": "second_partition_column", "Type": "string"}
+                    ])
+        #
+        mock_au.get_glue_table_metadata.return_value = {
+            "Table":
+                {
+                    "Name":
+                        "test",
+                    "DatabaseName": "test",
+                    "StorageDescriptor": {
+                        "Columns": [
+                            {"Name": "first_column", "Type": "string"},
+                            {"Name": "second_column", "Type": "string"},
+                        ],
+                    },
+                    "PartitionKeys": [
+                        {"Name": "first_partition_column", "Type": "string"},
+                        {"Name": "second_partition_column", "Type": "string"}
+                    ]
+                }
+        }
+
+        actual = AthenaUtil.get_table_columns(mock_au, "test")
+        self.assertEqual(actual, expected)
+
+    def test__get_table_columns__should_return_tuple_when_partition_is_not_present(self):
+        mock_au = Mock()
+        expected = ([
+                        {"Name": "first_column", "Type": "string"},
+                        {"Name": "second_column", "Type": "string"},
+                    ], [])
+        #
+        mock_au.get_glue_table_metadata.return_value = {
+            "Table":
+                {
+                    "Name":
+                        "test",
+                    "DatabaseName": "test",
+                    "StorageDescriptor": {
+                        "Columns": [
+                            {"Name": "first_column", "Type": "string"},
+                            {"Name": "second_column", "Type": "string"},
+                        ],
+                    },
+                    "PartitionKeys": []
+                }
+        }
+
+        actual = AthenaUtil.get_table_columns(mock_au, "test")
+        self.assertEqual(actual, expected)
+
 
     def test__get_table_settings_for_sheets_table__shod_return_table_settings(self):
         expected = {'exists': True, 'partitions': None, 'storage_format_selector': 'parquet',

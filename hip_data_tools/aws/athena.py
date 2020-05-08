@@ -3,7 +3,7 @@ Utility to connect to, and perform DML and DDL operations on aws Athena
 """
 
 import csv
-from typing import List, Any
+from typing import List, Any, Tuple
 
 import sys
 import time
@@ -301,6 +301,18 @@ class AthenaUtil(AwsUtil):
         bucket = location.split("/")[2]
         key = "/".join(location.split("/")[3:])
         return (bucket, key)
+
+    def get_table_columns(self, table: str) -> Tuple[List[dict], List[dict]]:
+        """
+        Retrieves the table's columns using glue meta store
+        Args:
+            table (str): name of the table
+        Returns: tuple of regular and partition column dictonaries
+        """
+        table = self.get_glue_table_metadata(table)
+        regular_columns = table["Table"]["StorageDescriptor"]["Columns"]
+        partition_columns = table["Table"]["PartitionKeys"]
+        return (regular_columns, partition_columns)
 
     def get_glue_table_metadata(self, table: str) -> dict:
         """
