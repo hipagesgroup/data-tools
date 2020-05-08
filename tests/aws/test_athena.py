@@ -242,18 +242,18 @@ class TestAthenaUtil(TestCase):
         self.assertEqual(actual, expected)
 
 
-def test__get_table_settings_for_sheets_table__shod_return_table_settings(self):
-    expected = {'exists': True, 'partitions': None, 'storage_format_selector': 'parquet',
-                'encryption': False, 'table': 'branch_reports',
-                'columns': [{'column': 'source', 'type': 'STRING'},
-                            {'column': 'report', 'type': 'STRING'}], 's3_bucket': 'test',
-                's3_dir': 'data/external/'}
+    def test__get_table_settings_for_sheets_table__shod_return_table_settings(self):
+        expected = {'exists': True, 'partitions': None, 'storage_format_selector': 'parquet',
+                    'encryption': False, 'table': 'branch_reports',
+                    'columns': [{'column': 'source', 'type': 'STRING'},
+                                {'column': 'report', 'type': 'STRING'}], 's3_bucket': 'test',
+                    's3_dir': 'data/external/'}
 
-    actual = athena.get_table_settings_for_dataframe(dataframe=DataFrame(
-        data=[{"source": "source_value_1", "report": "report_value_1"},
-              {"source": "source_value_2", "report": "report_value_2"}]), partitions=None,
-        s3_bucket="test",
-        s3_dir="data/external/", table="branch_reports")
+        actual = athena.get_table_settings_for_dataframe(dataframe=DataFrame(
+            data=[{"source": "source_value_1", "report": "report_value_1"},
+                  {"source": "source_value_2", "report": "report_value_2"}]), partitions=None,
+            s3_bucket="test",
+            s3_dir="data/external/", table="branch_reports")
 
-    print(actual)
-    self.assertEqual(actual, expected)
+        print(actual)
+        self.assertEqual(actual, expected)
