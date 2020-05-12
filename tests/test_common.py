@@ -147,19 +147,19 @@ class TestCommon(TestCase):
         self.assertListEqual(expected, list(actual.columns.values))
 
     def test__should__convert_object_type_to_string_type__when__dataframe_is_given(self):
-        input = [
+        input_value = [
             {
                 "abc": 123,
                 "def": "qwe",
-                "fooBar": [1, 4]
+                "fooBar": None
             },
             {
                 "abc": 345,
                 "def": "wer",
-                "fooBar": [1, 2]
+                "fooBar": None
             },
         ]
-        expected = ['int64', 'string', 'object']
-        result_df = nested_list_of_dict_to_dataframe(input)
+        expected = ['int64', 'string', 'string']
+        result_df = nested_list_of_dict_to_dataframe(input_value)
         actual = [str(result_df[col].dtype) for col in list(result_df)]
         self.assertEqual(expected, actual)
