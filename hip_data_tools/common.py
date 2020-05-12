@@ -207,17 +207,17 @@ def to_snake_case(column_name: str) -> str:
 def nested_list_of_dict_to_dataframe(data: List[dict]) -> DataFrame:
     flattened_dicts = [flatten_nested_dict(d) for d in data]
     df = DataFrame(data=flattened_dicts)
-    _convert_objects_to_string(df)
+    for col in list(df):
+        _convert_object_to_string(col, df)
     return df
 
 
-def _convert_objects_to_string(df):
-    for col in list(df):
-        if df[col].dtype == "object":
-            try:
-                df[col] = df[col].astype("string")
-            except ValueError:
-                df[col] = df[col].astype(str)
+def _convert_object_to_string(col, df):
+    if df[col].dtype == "object":
+        try:
+            df[col] = df[col].astype("string")
+        except ValueError:
+            df[col] = df[col].astype(str)
 
 
 def dataframe_columns_to_snake_case(data: DataFrame) -> None:
