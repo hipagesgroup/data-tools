@@ -3,10 +3,10 @@ Utility to connect to, and perform DML and DDL operations on aws Athena
 """
 
 import csv
-from typing import List, Any, Tuple
-
 import sys
 import time
+from typing import List, Any, Tuple
+
 from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsUtil, AwsConnectionManager
@@ -465,5 +465,7 @@ def get_athena_columns_from_dataframe(data_frame: DataFrame) -> List[dict]:
     Returns: list of dict
     """
     column_dtype = _get_data_frame_column_types(data_frame)
-    return [{"column": field_name, "type": _PYTHON_TO_ATHENA_DATA_TYPE_MAP[field_type]} for
-            field_name, field_type in column_dtype.items()]
+    return [
+        {"column": field_name, "type": _PYTHON_TO_ATHENA_DATA_TYPE_MAP.get(field_type, "STRING")}
+        for
+        field_name, field_type in column_dtype.items()]
