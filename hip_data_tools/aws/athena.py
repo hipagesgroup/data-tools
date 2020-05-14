@@ -10,7 +10,7 @@ import time
 from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsUtil, AwsConnectionManager
-from hip_data_tools.common import LOG
+from hip_data_tools.common import LOG, _convert_object_to_string
 
 _PYTHON_TO_ATHENA_DATA_TYPE_MAP = {
     "Timestamp": "TIMESTAMP",
@@ -464,6 +464,8 @@ def get_athena_columns_from_dataframe(data_frame: DataFrame) -> List[dict]:
         data_frame (DataFrame): the dataframe which the columns need to be extracted
     Returns: list of dict
     """
+    for col in list(data_frame):
+        _convert_object_to_string(col, data_frame)
     column_dtype = _get_data_frame_column_types(data_frame)
     return [{"column": field_name, "type": _PYTHON_TO_ATHENA_DATA_TYPE_MAP[field_type]} for
             field_name, field_type in column_dtype.items()]
