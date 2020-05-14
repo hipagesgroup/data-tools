@@ -3,14 +3,14 @@ Utility to connect to, and perform DML and DDL operations on aws Athena
 """
 
 import csv
-from typing import List, Any, Tuple
-
 import sys
 import time
+from typing import List, Any, Tuple
+
 from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsUtil, AwsConnectionManager
-from hip_data_tools.common import LOG, _convert_object_to_string
+from hip_data_tools.common import LOG
 
 _PYTHON_TO_ATHENA_DATA_TYPE_MAP = {
     "Timestamp": "TIMESTAMP",
