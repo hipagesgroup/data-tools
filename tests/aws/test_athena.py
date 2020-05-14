@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from unittest import TestCase
 from unittest.mock import Mock
 
@@ -241,8 +242,7 @@ class TestAthenaUtil(TestCase):
         actual = AthenaUtil.get_table_columns(mock_au, "test")
         self.assertEqual(actual, expected)
 
-
-    def test__get_table_settings_for_sheets_table__shod_return_table_settings(self):
+    def test__get_table_settings_for_sheets_table__should_return_table_settings(self):
         expected = {'exists': True, 'partitions': None, 'storage_format_selector': 'parquet',
                     'encryption': False, 'table': 'branch_reports',
                     'columns': [{'column': 'source', 'type': 'STRING'},
@@ -256,4 +256,19 @@ class TestAthenaUtil(TestCase):
             s3_dir="data/external/", table="branch_reports")
 
         print(actual)
+        self.assertEqual(actual, expected)
+
+    def test__get_athena_columns_from_dataframe__should__return_col_names_and_types__when__a_data_frame_is_given(
+            self):
+        expected = [{'column': 'field_1', 'type': 'STRING'},
+                    {'column': 'field_2', 'type': 'BIGINT'},
+                    {'column': 'field_3', 'type': 'STRING'},
+                    {'column': 'field_4', 'type': 'BOOLEAN'},
+                    {'column': 'field_5', 'type': 'STRING'},
+                    {'column': 'field_6', 'type': 'DOUBLE'}]
+        actual = athena.get_athena_columns_from_dataframe(data_frame=DataFrame(
+            data=[{"field_1": "sample str value", "field_2": 343, "field_3": None, "field_4": True,
+                   "field_5": OrderedDict(
+                       [('policyTopicEntries', []), ('reviewState', 'REVIEWED')]),
+                   "field_6": 2.3434}]))
         self.assertEqual(actual, expected)
