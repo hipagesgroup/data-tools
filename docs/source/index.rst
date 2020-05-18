@@ -10,7 +10,8 @@ Welcome to hip-data-tools's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+.. automodule:: hip_data_tools
+   :members:
 
 Indices and tables
 ==================
