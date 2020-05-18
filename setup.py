@@ -4,10 +4,8 @@ Setup and release this package for wider consumption using setup tools
 import os
 
 import sys
-
 from setuptools import setup, find_packages
 from setuptools.command.test import test as test_command
-from sphinx.setup_command import BuildDoc
 
 
 def get_release_version():
@@ -88,8 +86,6 @@ setup(
         "oauth2client",
         "gspread",
         "googleads",
-        "stringcase",
-        "sphinx",
     ],
     test_suite="tests",
     tests_require=[
@@ -102,13 +98,7 @@ setup(
         "freezegun==0.1.11",
         "testcontainers",
     ],
-    cmdclass={'test': PyTest, 'build_sphinx': BuildDoc},
-    command_options={
-        'build_sphinx': {
-            'project': ('setup.py', "hip-data-tools"),
-            'version': ('setup.py', get_release_version()),
-            'release': ('setup.py', get_release_version()),
-            'source_dir': ('setup.py', 'docs')}},
+    cmdclass={'test': PyTest},
     python_requires='~=3.6',
     version=get_release_version(),
 

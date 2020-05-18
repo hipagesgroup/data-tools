@@ -259,7 +259,7 @@ def create_conduit(kafka_poller=None,
     """
     Factory method to create Kafka S3 Conduit, this polls the Kafka queue
     after a set interval and deposits the results onto s3
-    
+
     Args:
         kafka_poller (KafkaPoller): Kafka Poller used to poll results from a
             topic at set intervals
