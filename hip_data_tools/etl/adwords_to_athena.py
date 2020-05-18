@@ -6,10 +6,10 @@ from typing import List, Any, Optional, Tuple
 from attr import dataclass
 from pandas import DataFrame
 
-from hip_data_tools.common import LOG
 from hip_data_tools.aws.athena import AthenaUtil, get_athena_columns_from_dataframe, \
     extract_athena_type_from_value
 from hip_data_tools.aws.common import AwsConnectionManager
+from hip_data_tools.common import LOG
 from hip_data_tools.etl.adwords_to_s3 import AdWordsToS3Settings, AdWordsToS3, \
     AdWordsReportToS3Settings, AdWordsReportsToS3
 
@@ -140,10 +140,11 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
             data = s3_util.download_parquet_as_dataframe(keys[0])
             LOG.info(
                 "Downloaded parquet file from s3 to construct Athena create table statement: %s "
-                "\n made dataframe of shape %s", keys[0], data.shape)
+                "\n made dataframe of shape %s", keys[0], data.info(verbose=True))
             if self.__settings.target_table_ddl_progress:
                 athena_util.drop_table(self.__settings.target_table)
             athena_table_settings = self._construct_athena_table_settings(data)
+            LOG.debug("Prepared Athena Table settings as %s", athena_table_settings)
             athena_util.create_table(table_settings=athena_table_settings)
         else:
             raise ValueError(
@@ -165,4 +166,5 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
             "s3_bucket": self.__settings.target_bucket,
             "s3_dir": self.base_dir,
         }
+        LOG.debug(athena_table_settings)
         return athena_table_settings

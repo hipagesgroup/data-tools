@@ -128,3 +128,104 @@ class TestAdwordsToS3(TestCase):
         expected = 11
 
         self.assertEqual(expected, len(actual["ResultSet"]["Rows"]))
+
+    def test__keywords_performce_datat_type_are_correct(self):
+        aws_setting = AwsConnectionSettings(
+            region="ap-southeast-2",
+            secrets_manager=AwsSecretsManager(),
+            profile=None)
+        target_bucket = os.getenv('S3_TEST_BUCKET')
+        target_key_prefix = "something/test"
+
+        # Load secrets via env vars
+        execfile("../../secrets.py")
+        adwords_settings = GoogleAdWordsConnectionSettings(
+            client_id=os.getenv("adwords_client_id"),
+            user_agent="Tester",
+            client_customer_id=os.getenv("adwords_client_customer_id"),
+            secrets_manager=GoogleAdWordsSecretsManager())
+        KEYWORDS_PERFORMANCE_REPORT = "KEYWORDS_PERFORMANCE_REPORT"
+        target_table = f"google_adwords__{KEYWORDS_PERFORMANCE_REPORT.lower()}__daily"
+        KEYWORDS_PERFORMANCE_REPORT_QUERY_FRAGMENT = ReportQueryBuilder().Select(
+            # Attributes
+            'AccountCurrencyCode',
+            'AccountDescriptiveName',
+            'AccountTimeZone',
+            'AdGroupId',
+            'AdGroupName',
+            'AdGroupStatus',
+            'ApprovalStatus',
+            'BaseAdGroupId',
+            'BaseCampaignId',
+            'BiddingStrategyId',
+            'BiddingStrategyName',
+            'BiddingStrategySource',
+            'BiddingStrategyType',
+            'CampaignId',
+            'CampaignName',
+            'CampaignStatus',
+            'CpcBid',
+            'CpcBidSource',
+            'CpmBid',
+            'CreativeQualityScore',
+            'Criteria',
+            'CriteriaDestinationUrl',
+            'CustomerDescriptiveName',
+            'EnhancedCpcEnabled',
+            'EstimatedAddClicksAtFirstPositionCpc',
+            'EstimatedAddCostAtFirstPositionCpc',
+            'ExternalCustomerId',
+            'FinalAppUrls',
+            'FinalMobileUrls',
+            'FinalUrls',
+            'FinalUrlSuffix',
+            'FirstPageCpc',
+            'FirstPositionCpc',
+            'HasQualityScore',
+            'Id',
+            'IsNegative',
+            'KeywordMatchType',
+            'LabelIds',
+            'Labels',
+            'PostClickQualityScore',
+            'QualityScore',
+            'SearchPredictedCtr',
+            'Status',
+            'SystemServingStatus',
+            'TopOfPageCpc',
+            'TrackingUrlTemplate',
+            'UrlCustomParameters',
+            'VerticalId',
+
+            # Segments
+            'Date',
+            'Slot',
+
+            # Metrics
+            'Clicks',
+            'ConversionRate',
+            'Conversions',
+            'ConversionValue',
+            'Cost',
+            'CostPerConversion').From(KEYWORDS_PERFORMANCE_REPORT)
+        etl_settings = AdWordsReportsToAthenaSettings(
+            source_query=(KEYWORDS_PERFORMANCE_REPORT_QUERY_FRAGMENT
+                          .During(start_date="20200101",
+                                  end_date="20200102")
+                          .Build()),
+            source_include_zero_impressions=True,
+            source_connection_settings=adwords_settings,
+            target_bucket=target_bucket,
+            target_key_prefix=target_key_prefix,
+            target_connection_settings=aws_setting,
+            target_database="dev",
+            target_table=target_table,
+            target_table_ddl_progress=True,
+            is_partitioned_table=True,
+            partition_values=[("abc", "def"), ("pqr", 123)],
+            target_file_prefix="data",
+        )
+        etl = AdWordsReportsToAthena(etl_settings)
+        # etl.transfer()
+        etl.create_athena_table()
+        etl.add_partitions()

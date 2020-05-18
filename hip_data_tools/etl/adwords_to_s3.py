@@ -9,7 +9,7 @@ from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
-from hip_data_tools.common import dataframe_columns_to_snake_case
+from hip_data_tools.common import dataframe_columns_to_snake_case, LOG
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionSettings, AdWordsDataReader, \
     GoogleAdWordsConnectionManager, AdWordsParallelDataReadEstimator, AdWordsReportReader
 
@@ -190,18 +190,22 @@ class AdWordsReportsToS3:
         Transfer the entire report to s3 in parquet format
         Returns: None
         """
+        LOG.info("Starting to read data from adwords")
         data = self._get_report_data(**kwargs)
+        LOG.debug("Data downloaded in form of %s", data.info(verbose=True))
         s3u = self._get_s3_util()
         file_name = "report_data"
         if self.__settings.target_file_prefix:
             file_name = f"{self.__settings.target_file_prefix}{file_name}"
         dataframe_columns_to_snake_case(data)
+        LOG.debug("Dataframe converted to snake case %s", data.info(verbose=True))
         s3u.upload_dataframe_as_parquet(
             dataframe=data,
             key=self.__settings.target_key_prefix,
             file_name=file_name)
+        LOG.info("Data uploaded to S3")
 
-    def _get_report_data(self, **kwargs):
+    def _get_report_data(self, **kwargs) -> DataFrame:
         au = self._get_adwords_util()
         data = au.awql_to_dataframe(
             self.__settings.source_query,

@@ -3,10 +3,10 @@ Utility to connect to, and perform DML and DDL operations on aws Athena
 """
 
 import csv
-import sys
-import time
 from typing import List, Any, Tuple
 
+import sys
+import time
 from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsUtil, AwsConnectionManager
@@ -465,7 +465,11 @@ def get_athena_columns_from_dataframe(data_frame: DataFrame) -> List[dict]:
     Returns: list of dict
     """
     column_dtype = _get_data_frame_column_types(data_frame)
-    return [
+    converted_columns = [
         {"column": field_name, "type": _PYTHON_TO_ATHENA_DATA_TYPE_MAP.get(field_type, "STRING")}
-        for
-        field_name, field_type in column_dtype.items()]
+        for field_name, field_type in column_dtype.items()]
+    LOG.debug(
+        "read column data type of the Parquet file as pandas dataframe in form of: %s, \n"
+        "to the format %s",
+        column_dtype, converted_columns)
+    return converted_columns
