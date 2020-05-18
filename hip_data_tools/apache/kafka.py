@@ -76,6 +76,7 @@ class ProducerConfig:
 def create_producer(kafka_producer_config=None):
     """
     Creates a Kafka producer
+
     Args:
        kafka_producer_config (ProducerConfig) : Encapsulated
        configurations for the KafkaProducer
@@ -91,6 +92,7 @@ def create_producer(kafka_producer_config=None):
 class ConsumerConfig:
     """
     Enscapsulation of the Kafka Consumer Configurations
+
     Args:
         bootstrap_servers (string): address and port of bootstrap server
         conf (string(dictionary)) : string of dictionary of configurations
@@ -128,6 +130,7 @@ class ConsumerConfig:
 def create_consumer(kafka_consumer_config=None):
     """
     Creates a Kafka consumer
+
     Args:
         kafka_consumer_config (ConsumerConfig): Instantiated kafka
             configuration object
@@ -144,6 +147,7 @@ def create_consumer(kafka_consumer_config=None):
 class KafkaPollerConfig:
     """
     Configuration for the poller class
+
     Args:
         consumer (Consumer): Consumer configurations object
         topic (str): The topic to poll messages from
@@ -167,6 +171,7 @@ def create_poller(kafka_poller_conf=None):
     """
     Factory method to create a Kafka Poller and take values from environment
     if they aren't provided
+
     Args:
         kafka_poller_conf (KafkaPollerConfig): Kafka Consumer
     Returns (KafkaPoller): Instantiated KafkaPoller
@@ -224,6 +229,7 @@ class BatchS3UploaderConfig:
 def create_batch_s3_uploader(batch_s3_uploader_config=None):
     """
     Factory method to generate a kafka batch uploadxr
+
     Args:
         batch_s3_uploader_config (BatchS3UploaderConfig): Configuration
             object for the s3 uploader
@@ -253,6 +259,7 @@ def create_conduit(kafka_poller=None,
     """
     Factory method to create Kafka S3 Conduit, this polls the Kafka queue
     after a set interval and deposits the results onto s3
+    
     Args:
         kafka_poller (KafkaPoller): Kafka Poller used to poll results from a
             topic at set intervals
@@ -297,6 +304,7 @@ def add_interval_partitioning_column(msgs_df,
     """
     Adding column to a dataframe with a timestamp column rounded to a time
     interval.
+
     Args:
         msgs_df (DataFrame): Pandas dataframe to with at least 1 timestamp
             column
@@ -321,6 +329,7 @@ def convert_msgs_to_dictionary(list_of_msgs):
     """
     Converts json msgs into dictionaries, catching any badly formatted into
     string into their own list
+
     Args:
         list_of_msgs (list(Message Object)): list of json strings
 
@@ -407,6 +416,7 @@ class KafkaProducer:
         Try to connect to the Kafka bootstrap server. We include
         functionality to allow failure to connect to the queue to happen
         silently
+
         Returns (Producer): Kafka Producer
 
         """
@@ -432,6 +442,7 @@ class KafkaProducer:
     def publish_dict_as_json(self, in_dict):
         """
         Converts a dictionary to json and pushes it to the Kafka topic
+
         Args:
             in_dict (dict): Dictionary to be pushed to the topic
 
@@ -445,6 +456,7 @@ class KafkaProducer:
     def produce_msg(self, msg):
         """
         Produces a message to the Kafka topic
+
         Args:
             msg (str): String to be push to the Kafka topic
         Returns: None
@@ -493,6 +505,7 @@ class KafkaPoller:
     def _subscribe_consumer(self):
         """
         Subscribe the Kafka consumer to the given topic
+
         Returns: None
 
         """

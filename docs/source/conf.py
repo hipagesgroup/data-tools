@@ -11,9 +11,10 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-import sys
-sys.path.insert(0, os.path.abspath('../..'))
 
+import sys
+
+sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
@@ -21,9 +22,20 @@ project = 'hip-data-tools'
 copyright = '2020, hipages.com.au'
 author = 'Arihant Surana <arihantsurana@hipagesgroup.com.au>'
 
-# The full version, including alpha/beta/rc tags
-release = '1.42.2'
 
+# def get_release_version():
+#     """
+#     Gets the Release version based on the latest git tag from GIT_TAG env var, else returns 0.0
+#     Returns: string containing version for the release
+#
+#     """
+#     git_version = os.getenv("GIT_TAG", "v0.0")
+#     pypi_version = git_version.lstrip("v").strip()
+#     return pypi_version
+#
+#
+# # The full version, including alpha/beta/rc tags
+# release = get_release_version()
 
 # -- General configuration ---------------------------------------------------
 
@@ -44,7 +56,6 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
-
 
 # -- Options for HTML output -------------------------------------------------
 

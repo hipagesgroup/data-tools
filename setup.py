@@ -71,6 +71,7 @@ setup(
     entry_points={'console_scripts': [
         'version-tracker=hip_data_tools.hipages.version_tracking:main']},
     install_requires=[
+        "stringcase",
         "attrs",
         "boto3",
         "joblib",
@@ -89,7 +90,6 @@ setup(
         "googleads",
         "stringcase",
         "sphinx",
-        "stringcase",
     ],
     test_suite="tests",
     tests_require=[
