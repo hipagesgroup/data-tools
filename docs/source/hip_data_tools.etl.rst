@@ -1,3 +1,5 @@
+.. _etl_package:
+
 hip\_data\_tools.etl package
 ============================
 

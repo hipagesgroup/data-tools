@@ -49,8 +49,8 @@ Run unit tests using setup tools
 The hip-data-tools package is structured to be used in three different modalities:
 
 - Use base level Utility classes to interact with services (Modules with the names of their service vendors, like aws, google)
-- Use pre compiled scripts and modules that can be executed from command line (the hip\_data\_tools.hipages_ package)
-- Higher level etl classes, that allow you to build complex data transformations (the hip\_data\_tools.etl_ package)
+- Use pre compiled scripts and modules that can be executed from command line (:ref:`_hipages_package`.)
+- Higher level etl classes, that allow you to build complex data transformations (:ref:`_etl_package`.)
 
 
 .. toctree::

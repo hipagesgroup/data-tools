@@ -1,3 +1,5 @@
+.. _hipages_package:
+
 hip\_data\_tools.hipages package
 ================================
 
