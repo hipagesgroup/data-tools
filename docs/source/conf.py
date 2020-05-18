@@ -22,6 +22,7 @@ project = 'hip-data-tools'
 copyright = '2020, hipages.com.au'
 author = 'Arihant Surana <arihantsurana@hipagesgroup.com.au>'
 
+master_doc = 'index'
 
 # def get_release_version():
 #     """
