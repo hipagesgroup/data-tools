@@ -89,6 +89,7 @@ setup(
         "googleads",
         "stringcase",
         "sphinx",
+        "stringcase",
     ],
     test_suite="tests",
     tests_require=[
