@@ -1,4 +1,6 @@
-
+"""
+Module tohandle upload of DataFrame to S3
+"""
 from attr import dataclass
 from pandas import DataFrame
 
@@ -8,6 +10,9 @@ from hip_data_tools.aws.s3 import S3Util
 
 @dataclass
 class DataFrameToS3Settings:
+    """
+    Settings data class to handle the configuration around upload of DataFrame to S3
+    """
     source_dataframe: DataFrame
     target_bucket: str
     target_key_prefix: str
@@ -16,6 +21,11 @@ class DataFrameToS3Settings:
 
 
 class DataFrameToS3:
+    """
+    Class that uploads a given dataframe to S3
+    Args:
+        settings (DataFrameToS3Settings): Settings to handle the upload
+    """
     def __init__(self, settings: DataFrameToS3Settings):
         self.__settings = settings
 

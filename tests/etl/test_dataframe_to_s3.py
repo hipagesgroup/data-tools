@@ -8,7 +8,7 @@ from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.etl.dataframe_to_s3 import DataFrameToS3, DataFrameToS3Settings
 
 
-class TestS3ToS3(TestCase):
+class TestDataFrameToS3(TestCase):
 
     @mock_s3
     def test__should_be_able_to_work_with_dataframe(self):

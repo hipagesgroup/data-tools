@@ -10,7 +10,7 @@ from hip_data_tools.etl.athena_on_s3 import AthenaOnS3Settings, AthenaOnS3
 from hip_data_tools.etl.dataframe_to_s3 import DataFrameToS3, DataFrameToS3Settings
 
 
-class TestS3ToS3(TestCase):
+class TestAthenaOnS3(TestCase):
 
     def test__should_be_able_to_work_with_dataframe_without_partitions(self):
         aws_setting = AwsConnectionSettings(

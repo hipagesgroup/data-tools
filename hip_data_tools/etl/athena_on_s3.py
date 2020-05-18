@@ -1,5 +1,5 @@
 """
-
+Module to create Athena tables on existing s3 data stored in parquet files
 """
 from typing import Optional, List, Tuple
 
@@ -14,6 +14,9 @@ from hip_data_tools.common import LOG
 
 @dataclass
 class AthenaOnS3Settings:
+    """
+    Settings data class for configuring the AthenaOnS3 Class
+    """
     bucket: str
     base_key_prefix: str
     target_database: str
@@ -24,6 +27,11 @@ class AthenaOnS3Settings:
 
 
 class AthenaOnS3:
+    """
+    Class to generate appropriate Athena tables based on parquet data stored in files on S3
+    Args:
+        settings (AthenaOnS3Settings):
+    """
 
     def __init__(self, settings: AthenaOnS3Settings):
         self.__settings = settings
