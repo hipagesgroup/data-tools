@@ -1,4 +1,3 @@
-.. _etl-package:
 hip\_data\_tools.etl package
 ============================
 
