@@ -54,7 +54,7 @@ The hip-data-tools package is structured to be used in three different modalitie
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
 
 
