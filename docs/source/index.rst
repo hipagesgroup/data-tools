@@ -30,11 +30,27 @@ Install from PyPi repo:
 
 Install from source
 
+.. code:: bash
+
+   pip3 install .
+
+Install using setup tools
+
+.. code:: bash
+
+   python3 setup.py install
+
+Run unit tests using setup tools
+.. code:: bash
+
+   python3 setup.py test
+
 
 The hip-data-tools package is structured to be used in three different modalities:
-1. Use base level Utility classes to interact with services (Modules with the names of their service vendors, like aws, google)
-2. Use pre compiled scripts and modules that can be executed from command line (the hipages module)
-3. Higher level etl classes, that allow you to build complex data transformations (the etl module)
+
+- Use base level Utility classes to interact with services (Modules with the names of their service vendors, like aws, google)
+- Use pre compiled scripts and modules that can be executed from command line (the hip\_data\_tools.hipages_ package)
+- Higher level etl classes, that allow you to build complex data transformations (the hip\_data\_tools.etl_ package)
 
 
 .. toctree::
