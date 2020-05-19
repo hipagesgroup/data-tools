@@ -1,6 +1,11 @@
 hip\_data\_tools.hipages package
 ================================
 
+.. toctree::
+   :maxdepth: 4
+
+   hip_data_tools.hipages.version_tracking
+
 Submodules
 ----------
 

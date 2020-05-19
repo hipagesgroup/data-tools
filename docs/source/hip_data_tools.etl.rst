@@ -1,6 +1,24 @@
 hip\_data\_tools.etl package
 ============================
 
+.. toctree::
+   :maxdepth: 4
+
+   hip_data_tools.etl.adwords_to_athena
+   hip_data_tools.etl.adwords_to_s3
+   hip_data_tools.etl.athena_to_adwords
+   hip_data_tools.etl.athena_to_athena
+   hip_data_tools.etl.athena_to_cassandra
+   hip_data_tools.etl.athena_to_dataframe
+   hip_data_tools.etl.athena_to_s3
+   hip_data_tools.etl.common
+   hip_data_tools.etl.google_sheet_to_athena
+   hip_data_tools.etl.google_sheet_to_s3
+   hip_data_tools.etl.s3_to_cassandra
+   hip_data_tools.etl.s3_to_dataframe
+   hip_data_tools.etl.s3_to_s3
+
+
 Submodules
 ----------
 

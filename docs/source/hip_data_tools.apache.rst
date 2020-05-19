@@ -1,6 +1,12 @@
 hip\_data\_tools.apache package
 ===============================
 
+.. toctree::
+   :maxdepth: 4
+
+   hip_data_tools.apache.cassandra
+   hip_data_tools.apache.kafka
+
 Submodules
 ----------
 

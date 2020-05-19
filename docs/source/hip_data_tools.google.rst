@@ -1,6 +1,13 @@
 hip\_data\_tools.google package
 ===============================
 
+.. toctree::
+   :maxdepth: 4
+
+   hip_data_tools.google.adwords
+   hip_data_tools.google.common
+   hip_data_tools.google.sheets
+
 Submodules
 ----------
 
