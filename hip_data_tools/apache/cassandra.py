@@ -160,13 +160,13 @@ class CassandraConnectionManager:
     """
     Creates and manages connection to the cassandra cluster.
     Example -
+
     >>> from cassandra.policies import DCAwareRoundRobinPolicy
     >>> from cassandra.cqlengine import columns
     >>> from cassandra.cqlengine.management import sync_table
     >>> from cassandra.cqlengine.models import Model
-
+    >>>
     >>> load_balancing_policy = DCAwareRoundRobinPolicy(local_dc='AWS_VPC_AP_SOUTHEAST_2')
-
     >>> conn = CassandraConnectionManager(
     ...     settings = CassandraConnectionSettings(
     ...         cluster_ips=["1.1.1.1", "2.2.2.2"],
@@ -174,7 +174,7 @@ class CassandraConnectionManager:
     ...         load_balancing_policy=load_balancing_policy,
     ...     )
     ... )
-
+    >>>
     >>> conn = CassandraConnectionManager(
     ...     CassandraConnectionSettings(
     ...         cluster_ips=["1.1.1.1", "2.2.2.2"],

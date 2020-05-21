@@ -48,14 +48,16 @@ class AwsConnectionManager:
     utility class to connect to a database and perform some basic operations
     example -
     to connect using an aws cli profile
+
     >>> conn = AwsConnectionManager(
     ...     AwsConnectionSettings(region_name="ap-southeast-2", profile="default",
-    secrets_manager=None))
+    ...     secrets_manager=None))
 
     # OR if you want to connect using the standard aws environment variables
     (aws_access_key_id, aws_secret_access_key):
+
     >>> conn = AwsConnectionManager(settings=AwsConnectionSettings(region_name="ap-southeast-2",
-    profile=None, secrets_manager=AwsSecretsManager()))
+    ...     profile=None, secrets_manager=AwsSecretsManager()))
 
     # OR if you want custom set of env vars to connect
     >>> conn = AwsConnectionManager(

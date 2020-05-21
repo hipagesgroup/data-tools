@@ -81,6 +81,22 @@ def get_table_settings_for_dataframe(dataframe: DataFrame, partitions: dict, s3_
 class AthenaUtil(AwsUtil):
     """
     Utility class for connecting to athena and manipulate data in a pythonic way
+    Example -
+
+    >>> aws_setting = AwsConnectionSettings(
+    ...     region="ap-southeast-2",
+    ...     secrets_manager=AwsSecretsManager(),
+    ...     profile=None)
+    >>>
+    >>> conn = AwsConnectionManager(aws_setting)
+    >>> import uuid
+    >>> au = AthenaUtil(
+    ...     database="my_database",
+    ...     conn=conn,
+    ...     output_bucket="my_athena_results_bucket"
+    ...     output_key=uuid.uuid4().hex)
+    >>>
+    >>> au.run_query("SELECT * FROM my_table")
 
     Args:
         database (string): the athena database to run queries on

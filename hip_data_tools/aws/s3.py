@@ -23,6 +23,17 @@ UTF8 = 'utf-8'
 class S3Util(AwsUtil):
     """
     Utility class for connecting to s3 and manipulate data in a python way
+    Example -
+
+    >>> aws_setting = AwsConnectionSettings(
+    ...     region="ap-southeast-2",
+    ...     secrets_manager=AwsSecretsManager(),
+    ...     profile=None)
+    >>>
+    >>> conn = AwsConnectionManager(aws_setting)
+    >>> s3u = S3Util(conn=conn, bucket="my_bucket")
+    >>> list_of_keys = s3u.get_keys("foo/bar/")
+
     Args:
         conn (AwsConnection): AwsConnection object or a boto.Session object
         bucket (string): S3 bucket name where these operations will take place

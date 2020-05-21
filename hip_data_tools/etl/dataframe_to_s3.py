@@ -23,6 +23,25 @@ class DataFrameToS3Settings:
 class DataFrameToS3:
     """
     Class that uploads a given dataframe to S3
+    example usage:
+
+    >>> aws_setting = AwsConnectionSettings(
+    ...     region="ap-southeast-2",
+    ...     secrets_manager=AwsSecretsManager(),
+    ...     profile=None)
+    >>>
+    >>> etl = DataFrameToS3(
+    ...     DataFrameToS3Settings(
+    ...         source_dataframe=DataFrame(),
+    ...         target_bucket=target_bucket,
+    ...         target_key_prefix="foo/bar/my/dir",
+    ...         target_file_name="data",
+    ...         target_connection_settings=aws_setting
+    ...     )
+    ... )
+    >>>
+    >>> etl.upload()
+
     Args:
         settings (DataFrameToS3Settings): Settings to handle the upload
     """
