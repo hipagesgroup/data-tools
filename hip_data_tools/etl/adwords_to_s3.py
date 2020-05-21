@@ -23,7 +23,7 @@ class AdWordsToS3Settings:
     source_connection_settings: GoogleAdWordsConnectionSettings
     target_bucket: str
     target_key_prefix: str
-    target_file_prefix: str
+    target_file_prefix: Optional[str]
     target_connection_settings: AwsConnectionSettings
 
 
