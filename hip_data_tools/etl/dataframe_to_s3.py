@@ -44,6 +44,7 @@ class DataFrameToS3:
 
     Args:
         settings (DataFrameToS3Settings): Settings to handle the upload
+        
     """
     def __init__(self, settings: DataFrameToS3Settings):
         self.__settings = settings
@@ -55,6 +56,12 @@ class DataFrameToS3:
         )
 
     def upload(self) -> None:
+        """
+        Uploads a given dataframe to the s3 location specified in settings
+
+        Returns: None
+
+        """
         s3u = self._get_s3_util()
         s3u.upload_dataframe_as_parquet(
             dataframe=self.__settings.source_dataframe,
