@@ -28,24 +28,20 @@ def get_from_env_or_default_with_warning(env_var, default_val):
     """
     Get environmental variables or, if they aren't present, default to a
     specific value
+
     Args:
-        env_var (string): Name of the environmental variable to read
+        env_var (str): Name of the environmental variable to read
         default_val (any): Value to default to if relevant env var is not
                         present
-
-    Returns (any): Value
-
+    Returns (Any): Value
     """
-
     value = os.environ.get(env_var)
-
     if value is None:
         warning_string = "Environmental variable {} not found, " \
                          "defaulting to {}".format(env_var,
                                                    str(default_val))
         LOG.warning(warning_string)
         value = default_val
-
     return value
 
 
@@ -58,6 +54,7 @@ class KeyValueSource(ABC):
     def get(self, key: str) -> str:
         """
         Abstract method to get the value for a given key
+
         Args:
             key (str): the key for which the value needs to be returned
         Returns: str
@@ -81,6 +78,7 @@ class EnvironmentKeyValueSource(KeyValueSource):
     def exists(self, key):
         """
         verify if a key exists
+
         Args:
             key (str): the key to be verified for existance
         Returns: bool
@@ -92,6 +90,7 @@ class EnvironmentKeyValueSource(KeyValueSource):
     def get(self, key):
         """
         get the value for a given key
+
         Args:
             key (str): the key for which the value needs to be returned
         Returns: str
@@ -110,6 +109,7 @@ class DictKeyValueSource(KeyValueSource):
     def exists(self, key):
         """
         verify if a key exists
+
         Args:
             key (str): the key to be verified for existance
         Returns: bool
@@ -121,6 +121,7 @@ class DictKeyValueSource(KeyValueSource):
     def get(self, key):
         """
         get the value for a given key
+
         Args:
             key (str): the key for which the value needs to be returned
         Returns: str
@@ -139,6 +140,7 @@ class SecretsManager(ABC):
     A secret management abstract class that provides ways of extracting secrets
     The class allows a subsequent connection class to use env vars to extract secrets in a
     structured manner
+
     Args:
         required_keys (list[str]): a list of keys which will be checked for existence
         source (KeyValueSource): a kv source that has secrets
@@ -154,6 +156,7 @@ class SecretsManager(ABC):
     def get_secret(self, key):
         """
         get the secret valye for a given key
+
         Args:
             key (str): the key for given secret
         Returns: str
@@ -164,6 +167,7 @@ class SecretsManager(ABC):
 def flatten_nested_dict(data: dict, delimiter: str = "_", snake_cased_keys: bool = True) -> dict:
     """
     takes arbitrarily nested levels of a dictionary and un nests it to one level of key value pairs
+
     Args:
         data (dict): the dictionary ro be un nested
         delimiter (str): the delimiter to concatenate nested keys
@@ -193,6 +197,7 @@ special_characters_detect = re.compile(r'[^a-zA-Z0-9]')
 def to_snake_case(column_name: str) -> str:
     """
     Converts the column name to Athena compatible snake_case
+
     Args:
         column_name (str): column name string to be sanitized
     Returns: str

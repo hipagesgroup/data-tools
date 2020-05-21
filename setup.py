@@ -4,7 +4,6 @@ Setup and release this package for wider consumption using setup tools
 import os
 
 import sys
-
 from setuptools import setup, find_packages
 from setuptools.command.test import test as test_command
 
@@ -70,6 +69,7 @@ setup(
     entry_points={'console_scripts': [
         'version-tracker=hip_data_tools.hipages.version_tracking:main']},
     install_requires=[
+        "stringcase",
         "attrs",
         "boto3",
         "joblib",
@@ -86,7 +86,6 @@ setup(
         "oauth2client",
         "gspread",
         "googleads",
-        "stringcase",
     ],
     test_suite="tests",
     tests_require=[
