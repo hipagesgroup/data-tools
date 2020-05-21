@@ -93,18 +93,20 @@ class AdWordsToS3:
             if data.empty:
                 return False
             s3u = self._get_s3_util()
-            file_prefix_str = ""
-            if self.__settings.target_file_prefix is not None:
-                file_prefix_str = f"{self.__settings.target_file_prefix}__"
             s3u.upload_dataframe_as_parquet(
                 dataframe=data,
                 key=self.__settings.target_key_prefix,
-                file_name=f"{file_prefix_str}index_{self._get_current_start_index()}__"
-                f"{self._get_current_end_index()}")
+                file_name=self.__get_file_name())
             self.current_iteration += 1
             return True
         else:
             return False
+
+    def __get_file_name(self):
+        file_prefix_str = ""
+        if self.__settings.target_file_prefix is not None:
+            file_prefix_str = f"{self.__settings.target_file_prefix}__"
+        return f"{file_prefix_str}index_{self._get_current_start_index()}__{self._get_current_end_index()}"
 
     def _get_next_page(self) -> DataFrame:
         if not self.query:
