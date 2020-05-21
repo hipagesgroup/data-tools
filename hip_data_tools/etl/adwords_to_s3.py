@@ -23,6 +23,7 @@ class AdWordsToS3Settings:
     source_connection_settings: GoogleAdWordsConnectionSettings
     target_bucket: str
     target_key_prefix: str
+    target_file_prefix: str
     target_connection_settings: AwsConnectionSettings
 
 
@@ -92,11 +93,14 @@ class AdWordsToS3:
             if data.empty:
                 return False
             s3u = self._get_s3_util()
+            file_prefix_str = ""
+            if self.__settings.target_file_prefix is not None:
+                file_prefix_str = f"{self.__settings.target_file_prefix}__"
             s3u.upload_dataframe_as_parquet(
                 dataframe=data,
                 key=self.__settings.target_key_prefix,
-                file_name=f"index_{self._get_current_start_index()}__"
-                          f"{self._get_current_end_index()}")
+                file_name=f"{file_prefix_str}index_{self._get_current_start_index()}__"
+                f"{self._get_current_end_index()}")
             self.current_iteration += 1
             return True
         else:
