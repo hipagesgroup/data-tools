@@ -106,7 +106,8 @@ class AdWordsToS3:
         file_prefix_str = ""
         if self.__settings.target_file_prefix is not None:
             file_prefix_str = self.__settings.target_file_prefix
-        return f"{file_prefix_str}index_{self._get_current_start_index()}__{self._get_current_end_index()}"
+        return f"{file_prefix_str}index_{self._get_current_start_index()}__" \
+            f"{self._get_current_end_index()}"
 
     def _get_next_page(self) -> DataFrame:
         if not self.query:
