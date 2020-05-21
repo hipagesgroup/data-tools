@@ -86,21 +86,24 @@ class AdWordsToS3:
         Returns: bool true if the data transfer succeeded, False if reached end of iterations
         """
         if self.current_iteration < self.iteration_limit:
-            try:
-                data = self._get_next_page()
-            except StopIteration:
-                return False
-            if data.empty:
-                return False
-            s3u = self._get_s3_util()
-            s3u.upload_dataframe_as_parquet(
-                dataframe=data,
-                key=self.__settings.target_key_prefix,
-                file_name=self.__get_file_name())
-            self.current_iteration += 1
-            return True
+            return self.__upload_next_page_data()
         else:
             return False
+
+    def __upload_next_page_data(self):
+        try:
+            data = self._get_next_page()
+        except StopIteration:
+            return False
+        if data.empty:
+            return False
+        s3u = self._get_s3_util()
+        s3u.upload_dataframe_as_parquet(
+            dataframe=data,
+            key=self.__settings.target_key_prefix,
+            file_name=self.__get_file_name())
+        self.current_iteration += 1
+        return True
 
     def __get_file_name(self):
         file_prefix_str = ""
