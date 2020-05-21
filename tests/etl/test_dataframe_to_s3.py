@@ -14,8 +14,8 @@ class TestDataFrameToS3(TestCase):
     def test__should_be_able_to_work_with_dataframe(self):
         aws_setting = AwsConnectionSettings(
             region="ap-southeast-2",
-            secrets_manager=None,
-            profile="default")
+            secrets_manager=AwsSecretsManager(),
+            profile=None)
         target_bucket = "TEST_TARGET_BUCKET"
         conn = AwsConnectionManager(aws_setting)
         s3_util_for_destination = S3Util(conn=conn, bucket=target_bucket)

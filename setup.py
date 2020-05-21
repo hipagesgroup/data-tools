@@ -73,7 +73,7 @@ setup(
         "attrs",
         "boto3",
         "joblib",
-        "pandas",
+        "pandas==1.0.3",
         "GitPython",
         "confluent-kafka",
         "pyarrow",

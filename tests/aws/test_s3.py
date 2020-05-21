@@ -6,7 +6,7 @@ from unittest import TestCase
 import pandas as pd
 from botocore.exceptions import ClientError
 from moto import mock_s3
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 
 from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 from hip_data_tools.aws.s3 import S3Util, _multi_process_upload_file

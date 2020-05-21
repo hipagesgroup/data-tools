@@ -216,9 +216,8 @@ def _convert_object_to_string(col, df):
     if df[col].dtype == "object":
         try:
             df[col] = df[col].astype("string")
-        except ValueError:
+        except TypeError:
             df[col] = df[col].astype(str)
-
 
 def dataframe_columns_to_snake_case(data: DataFrame) -> None:
     original_columns = data.columns
