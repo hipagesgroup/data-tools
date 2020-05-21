@@ -27,6 +27,37 @@ class AdWordsToAthenaSettings(AdWordsToS3Settings):
 class AdWordsToAthena(AdWordsToS3):
     """
     ETL Class to handle the transfer of data from adwords based on AWQL to S3 as parquet files
+    Example -
+
+    >>> aws_setting = AwsConnectionSettings(
+    ...     region="ap-southeast-2",
+    ...     secrets_manager=AwsSecretsManager(),
+    ...     profile=None)
+    >>>
+    >>> adwords_settings = GoogleAdWordsConnectionSettings(
+    ...     client_id=os.getenv("adwords_client_id"),
+    ...     user_agent="Tester",
+    ...     client_customer_id=os.getenv("adwords_client_customer_id"),
+    ...     secrets_manager=GoogleAdWordsSecretsManager())
+    >>>
+    >>> etl_settings = AdWordsToAthenaSettings(
+    ...     source_query_fragment=ServiceQueryBuilder().Select('Id').OrderBy('Id'),
+    ...     source_service="AdGroupAdService",
+    ...     source_service_version="v201809",
+    ...     source_connection_settings=adwords_settings,
+    ...     target_bucket=target_bucket,
+    ...     target_key_prefix=target_key_prefix,
+    ...     target_connection_settings=aws_setting,
+    ...     target_database="dev",
+    ...     target_table=target_table,
+    ...     target_table_ddl_progress=True,
+    ...     is_partitioned_table=True,
+    ...     partition_values=[("abc", "def"), ("pqr", 123)]
+    ... )
+    >>> etl = AdWordsToAthena(etl_settings)
+    >>>
+    >>> actual_payloads = etl.get_parallel_payloads(page_size=1000, number_of_workers=3)
+
     Args:
         settings (AdWordsToS3Settings): the etl settings to be used
     """
