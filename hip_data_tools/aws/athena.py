@@ -7,6 +7,7 @@ import sys
 import time
 from typing import List, Any, Tuple
 
+from hip_data_tools.aws.s3 import S3Util
 from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsUtil, AwsConnectionManager
@@ -469,3 +470,68 @@ def get_athena_columns_from_dataframe(data_frame: DataFrame) -> List[dict]:
         {"column": field_name, "type": _PYTHON_TO_ATHENA_DATA_TYPE_MAP.get(field_type, "STRING")}
         for
         field_name, field_type in column_dtype.items()]
+
+
+class AthenaTablePartitionHandlerUtil(AthenaUtil):
+    """
+    Utility class for to handle athena partitions
+
+    Args:
+        database (string): the athena database to run queries on
+        conn (AwsConnection): AwsConnection object
+    """
+
+    def __init__(self,
+                 database: str,
+                 conn: AwsConnectionManager,
+                 output_bucket: str,
+                 output_key: str,
+                 table: str,
+                 s3_bucket: str,
+                 s3_key: str,
+                 partition_col_names: list[str]):
+        super().__init__(database=database, conn=conn, output_bucket=output_bucket,
+                         output_key=output_key)
+        self.table = table
+        self.s3_bucket = s3_bucket
+        self.s3_key = s3_key
+        self.partition_col_names = partition_col_names
+
+    def add_partitions_as_chunks(self, number_of_partitions_per_chunk: int):
+        s3u = S3Util(conn=self.conn, bucket=self.s3_bucket)
+        key_list = s3u.get_keys(key_prefix=self.s3_key)
+        list_of_dict = [self._get_partition_dict(key) for key in list(set(key_list))]
+        chunked_list_of_dict = [list_of_dict[i:i + number_of_partitions_per_chunk] for i in
+                                range(0, len(list_of_dict), number_of_partitions_per_chunk)]
+        for chunk in chunked_list_of_dict:
+            remove_partitions_query = self._get_remove_partitions_query_for_chunk(chunk)
+            self.run_query(query_string=remove_partitions_query)
+            add_partitions_query = self._get_add_partitions_query_for_chunk(chunk)
+            self.run_query(query_string=add_partitions_query)
+
+    def _get_add_partitions_query_for_chunk(self, chunk):
+        query = f"ALTER TABLE {self.table} ADD "
+        for partition_dict in chunk:
+            partition_str = "PARTITION ("
+            for partition_col in self.partition_col_names:
+                partition_str += f"{partition_col} = '{partition_dict[partition_col]}', "
+            partition_str = f"{partition_str[:-2]}) "
+            query += partition_str
+        query = f"{query[:-1]};"
+        return query
+
+    def _get_remove_partitions_query_for_chunk(self, chunk):
+        query = f"ALTER TABLE {self.table} DROP "
+        for partition_dict in chunk:
+            partition_str = "PARTITION ("
+            for partition_col in self.partition_col_names:
+                partition_str += f"{partition_col} = '{partition_dict[partition_col]}', "
+            partition_str = f"{partition_str[:-2]}), "
+            query += partition_str
+        query = f"{query[:-2]};"
+        return query
+
+    def _get_partition_dict(self, s3_key):
+        key_splits = s3_key.split("/")
+        filtered_key_splits = list(filter(lambda k: '=' in k, key_splits))
+        return dict(tuple([tuple(item.split('=')) for item in filtered_key_splits]))
