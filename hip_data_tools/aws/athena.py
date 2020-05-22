@@ -489,7 +489,7 @@ class AthenaTablePartitionHandlerUtil(AthenaUtil):
                  table: str,
                  s3_bucket: str,
                  s3_key: str,
-                 partition_col_names: list[str]):
+                 partition_col_names: list):
         super().__init__(database=database, conn=conn, output_bucket=output_bucket,
                          output_key=output_key)
         self.table = table
