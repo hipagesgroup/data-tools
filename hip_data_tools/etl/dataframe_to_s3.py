@@ -44,7 +44,7 @@ class DataFrameToS3:
 
     Args:
         settings (DataFrameToS3Settings): Settings to handle the upload
-        
+
     """
     def __init__(self, settings: DataFrameToS3Settings):
         self.__settings = settings
