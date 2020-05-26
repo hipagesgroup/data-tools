@@ -479,6 +479,12 @@ class AthenaTablePartitionHandlerUtil(AthenaUtil):
     Args:
         database (string): the athena database to run queries on
         conn (AwsConnection): AwsConnection object
+        output_bucket (string): the s3 bucket where the results of athena queries will be stored
+        output_key (string): the s3 key where the results of athena queries will be stored
+        table (string): Athena table name
+        s3_bucket (string): s3 bucket where the partitions are located at
+        s3_key (string): s3 key where the partitions are located at
+        partition_col_names (list): partition column names
     """
 
     def __init__(self,
