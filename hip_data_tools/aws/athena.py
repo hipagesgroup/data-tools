@@ -506,6 +506,13 @@ class AthenaTablePartitionsHandlerUtil(AthenaUtil):
         self.key_suffix = settings.key_suffix
 
     def add_partitions_as_chunks(self, number_of_partitions_per_chunk: int):
+        """
+        Add partitions as chunks
+        Args:
+            number_of_partitions_per_chunk (int): size of chunk
+        Returns: None
+
+        """
         s3u = S3Util(conn=self.conn, bucket=self.s3_bucket)
         key_list = s3u.get_keys(key_prefix=self.s3_key)
         dir_path_list = self._get_dir_path_list(key_list)
