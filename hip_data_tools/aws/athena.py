@@ -1,18 +1,17 @@
 """
 Utility to connect to, and perform DML and DDL operations on aws Athena
 """
-
 import csv
+import logging as log
 import sys
 import time
-from typing import List, Any, Tuple
+from typing import List, Any, Tuple, Optional
 
 from attr import dataclass
-
-from hip_data_tools.aws.s3 import S3Util
 from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsUtil, AwsConnectionManager
+from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.common import LOG
 
 _PYTHON_TO_ATHENA_DATA_TYPE_MAP = {
@@ -485,6 +484,7 @@ class AthenaTablePartitionsHandlerSettings:
     s3_bucket: str
     s3_key: str
     partition_col_names: list
+    key_suffix: Optional[str]
 
 
 class AthenaTablePartitionsHandlerUtil(AthenaUtil):
@@ -503,10 +503,18 @@ class AthenaTablePartitionsHandlerUtil(AthenaUtil):
         self.s3_bucket = settings.s3_bucket
         self.s3_key = settings.s3_key
         self.partition_col_names = settings.partition_col_names
+        self.key_suffix = settings.key_suffix
 
     def add_partitions_as_chunks(self, number_of_partitions_per_chunk: int):
         s3u = S3Util(conn=self.conn, bucket=self.s3_bucket)
         key_list = s3u.get_keys(key_prefix=self.s3_key)
+        dir_path_list = []
+        for key in key_list:
+            key_re_partitions = key.rpartition('/')
+            if self.key_suffix is not None and not key_re_partitions[2].endswith(self.key_suffix):
+                continue
+            else:
+                dir_path_list.append(key_re_partitions[0])
         dir_path_list = [key.rpartition('/')[0] for key in key_list]
         list_of_dict = [self._get_partition_dict(key) for key in list(set(dir_path_list))]
         chunked_list_of_dict = [list_of_dict[i:i + number_of_partitions_per_chunk] for i in
@@ -529,4 +537,7 @@ class AthenaTablePartitionsHandlerUtil(AthenaUtil):
     def _get_partition_dict(self, s3_key):
         key_splits = s3_key.split("/")
         filtered_key_splits = list(filter(lambda k: '=' in k, key_splits))
-        return dict(tuple([tuple(item.split('=')) for item in filtered_key_splits]))
+        partition_dict = dict(tuple([tuple(item.split('=')) for item in filtered_key_splits]))
+        if sorted(self.partition_col_names) != sorted(partition_dict.keys()):
+            log.warning("Undefined partition names detected in this s3 key: %s", s3_key)
+        return partition_dict
