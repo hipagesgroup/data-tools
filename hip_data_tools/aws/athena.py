@@ -536,10 +536,10 @@ class AthenaTablePartitionsHandlerUtil(AthenaUtil):
         query = f"{query[:-1]};"
         return query
 
-    def _get_partition_dict(self, s3_key):
-        key_splits = s3_key.split("/")
+    def _get_partition_dict(self, s3_prefix):
+        key_splits = s3_prefix.split("/")
         filtered_key_splits = list(filter(lambda k: '=' in k, key_splits))
         partition_dict = dict(tuple([tuple(item.split('=')) for item in filtered_key_splits]))
         if sorted(self.partition_col_names) != sorted(partition_dict.keys()):
-            log.warning("Undefined partition names detected in this s3 key: %s", s3_key)
+            log.warning("Undefined partition names detected in this s3 key: %s", s3_prefix)
         return partition_dict
