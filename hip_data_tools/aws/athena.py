@@ -508,20 +508,22 @@ class AthenaTablePartitionsHandlerUtil(AthenaUtil):
     def add_partitions_as_chunks(self, number_of_partitions_per_chunk: int):
         s3u = S3Util(conn=self.conn, bucket=self.s3_bucket)
         key_list = s3u.get_keys(key_prefix=self.s3_key)
-        dir_path_list = []
-        for key in key_list:
-            key_re_partitions = key.rpartition('/')
-            if self.key_suffix is not None and not key_re_partitions[2].endswith(self.key_suffix):
-                continue
-            else:
-                dir_path_list.append(key_re_partitions[0])
-        dir_path_list = [key.rpartition('/')[0] for key in key_list]
+        dir_path_list = self._get_dir_path_list(key_list)
         list_of_dict = [self._get_partition_dict(key) for key in list(set(dir_path_list))]
         chunked_list_of_dict = [list_of_dict[i:i + number_of_partitions_per_chunk] for i in
                                 range(0, len(list_of_dict), number_of_partitions_per_chunk)]
         for chunk in chunked_list_of_dict:
             add_partitions_query = self._get_add_partitions_query_for_chunk(chunk)
             self.run_query(query_string=add_partitions_query)
+
+    def _get_dir_path_list(self, key_list):
+        dir_path_list = []
+        for key in key_list:
+            key_re_partitions = key.rpartition('/')
+            if self.key_suffix is not None and not key_re_partitions[2].endswith(self.key_suffix):
+                continue
+            dir_path_list.append(key_re_partitions[0])
+        return dir_path_list
 
     def _get_add_partitions_query_for_chunk(self, chunk):
         query = f"ALTER TABLE {self.table} ADD IF NOT EXISTS "
