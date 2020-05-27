@@ -4,7 +4,7 @@ handle ETL of data from Athena to Cassandra
 from attr import dataclass
 
 from hip_data_tools.apache.cassandra import CassandraConnectionSettings
-from hip_data_tools.aws.athena import AthenaUtil
+from hip_data_tools.aws.athena import AthenaUtil, AthenaSettings
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.etl.s3_to_cassandra import S3ToCassandraSettings, S3ToCassandra
 
@@ -32,9 +32,11 @@ class AthenaToCassandra(S3ToCassandra):
 
     def __init__(self, settings: AthenaToCassandraSettings):
         self.__settings = settings
-        self._athena = AthenaUtil(
+        self._athena = AthenaUtil(settings=AthenaSettings(
             database=self.__settings.source_database,
-            conn=AwsConnectionManager(self.__settings.source_connection_settings))
+            conn=AwsConnectionManager(self.__settings.source_connection_settings),
+            output_bucket=None,
+            output_key=None))
         (bucket, key) = self._athena.get_table_data_location(self.__settings.source_table)
         super().__init__(S3ToCassandraSettings(
             source_bucket=bucket,

@@ -5,7 +5,7 @@ from typing import Optional, List
 
 from attr import dataclass
 
-from hip_data_tools.aws.athena import AthenaUtil
+from hip_data_tools.aws.athena import AthenaUtil, AthenaSettings
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 
 
@@ -44,7 +44,7 @@ class AthenaToAthena:
             col_list = ','.join([f"'{c}'" for c in self.__settings.target_partition_columns])
             partition_statement = f", partitioned_by = ARRAY[{col_list}] "
         external_location = f"'s3://{self.__settings.target_s3_bucket}/" \
-                            f"{self.__settings.target_s3_dir}/'"
+            f"{self.__settings.target_s3_dir}/'"
         return f"""
             CREATE TABLE {self.__settings.target_database}.{self.__settings.target_table}
             WITH (
@@ -58,12 +58,12 @@ class AthenaToAthena:
     def _get_athena_util(self) -> AthenaUtil:
         if self._athena is None:
             import uuid
-            self._athena = AthenaUtil(
+            self._athena = AthenaUtil(settings=AthenaSettings(
                 database=self.__settings.source_database,
                 conn=AwsConnectionManager(self.__settings.connection_settings),
                 output_key=f"athena_results/{uuid.uuid4().hex}",
                 output_bucket=self.__settings.target_s3_bucket,
-            )
+            ))
         return self._athena
 
     def execute(self) -> None:

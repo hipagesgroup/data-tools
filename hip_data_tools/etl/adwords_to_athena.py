@@ -7,8 +7,8 @@ from attr import dataclass
 from pandas import DataFrame
 
 from hip_data_tools.common import LOG
-from hip_data_tools.aws.athena import AthenaUtil, get_athena_columns_from_dataframe, \
-    extract_athena_type_from_value
+from hip_data_tools.aws.athena import AthenaUtil, AthenaSettings, \
+    get_athena_columns_from_dataframe, extract_athena_type_from_value
 from hip_data_tools.aws.common import AwsConnectionManager
 from hip_data_tools.etl.adwords_to_s3 import AdWordsToS3Settings, AdWordsToS3, \
     AdWordsReportToS3Settings, AdWordsReportsToS3
@@ -40,11 +40,11 @@ class AdWordsToAthena(AdWordsToS3):
         super().__init__(settings)
 
     def _get_athena_util(self):
-        return AthenaUtil(
+        return AthenaUtil(settings=AthenaSettings(
             database=self.__settings.target_database,
             conn=AwsConnectionManager(
                 settings=self.__settings.target_connection_settings),
-            output_bucket=self.__settings.target_bucket)
+            output_bucket=self.__settings.target_bucket))
 
     def create_athena_table(self) -> None:
         """
@@ -106,11 +106,11 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
         super().__init__(settings)
 
     def _get_athena_util(self):
-        return AthenaUtil(
+        return AthenaUtil(settings=AthenaSettings(
             database=self.__settings.target_database,
             conn=AwsConnectionManager(
                 settings=self.__settings.target_connection_settings),
-            output_bucket=self.__settings.target_bucket)
+            output_bucket=self.__settings.target_bucket))
 
     def add_partitions(self):
         """

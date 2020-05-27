@@ -5,15 +5,15 @@ from unittest.mock import Mock
 from pandas import DataFrame
 
 import hip_data_tools.aws.athena as athena
-from hip_data_tools.aws.athena import AthenaUtil
+from hip_data_tools.aws.athena import AthenaUtil, AthenaSettings
 
 
 class TestAthenaUtil(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.au = AthenaUtil(
-            settings=athena.AthenaSettings(database="test", conn=None, output_bucket=None,
-                                           output_key=None))
+            settings=AthenaSettings(database="test", conn=None, output_bucket=None,
+                                    output_key=None))
 
     def test__build_create_table_sql__works_for_ga_example(self):
         actual = self.au._build_create_table_sql(
