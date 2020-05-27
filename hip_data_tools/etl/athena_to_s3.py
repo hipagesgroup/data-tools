@@ -40,11 +40,13 @@ class AthenaToS3:
             self.__settings.temporary_table = f"temp__{current_epoch()}__{get_random_string(5)}"
 
     def _drop_temporary_table(self) -> None:
-        au = AthenaUtil(settings=AthenaSettings(
-            database=self.__settings.temporary_database,
-            conn=AwsConnectionManager(self.__settings.connection_settings),
-            output_bucket=None,
-            output_key=None)
+        au = AthenaUtil(
+            settings=AthenaSettings(
+                database=self.__settings.temporary_database,
+                conn=AwsConnectionManager(self.__settings.connection_settings),
+                output_bucket=None,
+                output_key=None
+            )
         )
         au.drop_table(self.__settings.temporary_table)
 
