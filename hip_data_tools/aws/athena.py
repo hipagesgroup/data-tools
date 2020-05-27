@@ -505,7 +505,7 @@ class AthenaTablePartitionsHandlerUtil(AthenaUtil):
         self.partition_col_names = settings.partition_col_names
         self.key_suffix = settings.key_suffix
 
-    def add_partitions_as_chunks(self, number_of_partitions_per_chunk: int):
+    def add_partitions_as_chunks(self, number_of_partitions_per_chunk: int)-> None:
         """
         Add partitions as chunks
         Args:
