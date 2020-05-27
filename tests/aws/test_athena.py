@@ -11,7 +11,9 @@ from hip_data_tools.aws.athena import AthenaUtil
 class TestAthenaUtil(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.au = AthenaUtil(database="test", conn=None)
+        cls.au = AthenaUtil(
+            settings=athena.AthenaSettings(database="test", conn=None, output_bucket=None,
+                                           output_key=None))
 
     def test__build_create_table_sql__works_for_ga_example(self):
         actual = self.au._build_create_table_sql(
