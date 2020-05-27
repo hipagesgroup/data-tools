@@ -2,7 +2,6 @@
 Utility to connect to, and perform DML and DDL operations on aws Athena
 """
 import csv
-import logging as log
 import sys
 import time
 from typing import List, Any, Tuple, Optional
@@ -473,6 +472,23 @@ def get_athena_columns_from_dataframe(data_frame: DataFrame) -> List[dict]:
         field_name, field_type in column_dtype.items()]
 
 
+def _get_dir_path_list(key_list: List, key_suffix: str = None) -> List[str]:
+    """
+    Return a list of directory paths by removing the filenames from the s3 keys
+    Args:
+        key_list (List): list of s3 keys
+        key_suffix (str): s3 key suffix (eg: '.csv', '.gz')
+    Returns: list of directory paths
+    """
+    dir_path_list = []
+    for key in key_list:
+        key_re_partitions = key.rpartition('/')
+        if key_suffix is not None and not key_re_partitions[2].endswith(key_suffix):
+            continue
+        dir_path_list.append(key_re_partitions[0])
+    return dir_path_list
+
+
 @dataclass
 class AthenaTablePartitionsHandlerSettings:
     """Athena table partitions handler settings"""
@@ -501,7 +517,7 @@ class AthenaTablePartitionsHandlerUtil(AthenaUtil):
                          output_key=settings.output_key)
         self.__settings = settings
 
-    def add_partitions_as_chunks(self, number_of_partitions_per_chunk: int)-> None:
+    def add_partitions_as_chunks(self, number_of_partitions_per_chunk: int) -> None:
         """
         Add partitions as chunks
         Args:
@@ -509,9 +525,9 @@ class AthenaTablePartitionsHandlerUtil(AthenaUtil):
         Returns: None
 
         """
-        s3u = S3Util(conn=self.conn, bucket=self.s3_bucket)
-        key_list = s3u.get_keys(key_prefix=self.s3_key)
-        dir_path_list = self._get_dir_path_list(key_list)
+        s3u = S3Util(conn=self.conn, bucket=self.__settings.s3_bucket)
+        key_list = s3u.get_keys(key_prefix=self.__settings.s3_key)
+        dir_path_list = _get_dir_path_list(key_list=key_list)
         list_of_dict = [self._get_partition_dict(key) for key in list(set(dir_path_list))]
         chunked_list_of_dict = [list_of_dict[i:i + number_of_partitions_per_chunk] for i in
                                 range(0, len(list_of_dict), number_of_partitions_per_chunk)]
@@ -519,20 +535,11 @@ class AthenaTablePartitionsHandlerUtil(AthenaUtil):
             add_partitions_query = self._get_add_partitions_query_for_chunk(chunk)
             self.run_query(query_string=add_partitions_query)
 
-    def _get_dir_path_list(self, key_list):
-        dir_path_list = []
-        for key in key_list:
-            key_re_partitions = key.rpartition('/')
-            if self.key_suffix is not None and not key_re_partitions[2].endswith(self.key_suffix):
-                continue
-            dir_path_list.append(key_re_partitions[0])
-        return dir_path_list
-
     def _get_add_partitions_query_for_chunk(self, chunk):
-        query = f"ALTER TABLE {self.table} ADD IF NOT EXISTS "
+        query = f"ALTER TABLE {self.__settings.table} ADD IF NOT EXISTS "
         for partition_dict in chunk:
             partition_str = "PARTITION ("
-            for partition_col in self.partition_col_names:
+            for partition_col in self.__settings.partition_col_names:
                 partition_str += f"{partition_col} = '{partition_dict[partition_col]}', "
             partition_str = f"{partition_str[:-2]}) "
             query += partition_str
@@ -543,6 +550,6 @@ class AthenaTablePartitionsHandlerUtil(AthenaUtil):
         key_splits = s3_prefix.split("/")
         filtered_key_splits = list(filter(lambda k: '=' in k, key_splits))
         partition_dict = dict(tuple([tuple(item.split('=')) for item in filtered_key_splits]))
-        if sorted(self.partition_col_names) != sorted(partition_dict.keys()):
-            log.warning("Undefined partition names detected in this s3 key: %s", s3_prefix)
+        if sorted(self.__settings.partition_col_names) != sorted(partition_dict.keys()):
+            LOG.warning("Undefined partition names detected in this s3 key: %s", s3_prefix)
         return partition_dict

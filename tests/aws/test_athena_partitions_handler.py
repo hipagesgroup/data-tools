@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from hip_data_tools.aws.athena import AthenaTablePartitionsHandlerUtil, \
-    AthenaTablePartitionsHandlerSettings
+    AthenaTablePartitionsHandlerSettings, _get_dir_path_list
 
 
 class TestAthenaTablePartitionsHandlerUtil(TestCase):
@@ -20,7 +20,7 @@ class TestAthenaTablePartitionsHandlerUtil(TestCase):
                 key_suffix=None))
 
     def test__get_dir_path_list__should__return_directory_paths__when__key_list_is_given(self):
-        actual = self.athena_partition_util._get_dir_path_list(key_list=[
+        actual = _get_dir_path_list(key_list=[
             'data/external/source=test_source/test_source_app_name=consumer/report=test_report/date_dim_key=20200505/file-b5354d0a-f239-4908-9bbc-1c8fd3e88f94.csv.gz',
             'data/external/source=test_source/test_source_app_name=consumer/report=test_report/date_dim_key=20200506/file-ae4101e4-f082-4e9e-ba31-bc77297cb14a.csv.gz',
             'data/external/source=test_source/test_source_app_name=consumer/report=test_report/date_dim_key=20200508/file-0d95e5f0-1512-46ee-9129-935c358ee698.csv.gz',
