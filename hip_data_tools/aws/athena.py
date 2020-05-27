@@ -499,11 +499,7 @@ class AthenaTablePartitionsHandlerUtil(AthenaUtil):
         super().__init__(database=settings.database, conn=settings.conn,
                          output_bucket=settings.output_bucket,
                          output_key=settings.output_key)
-        self.table = settings.table
-        self.s3_bucket = settings.s3_bucket
-        self.s3_key = settings.s3_key
-        self.partition_col_names = settings.partition_col_names
-        self.key_suffix = settings.key_suffix
+        self.__settings = settings
 
     def add_partitions_as_chunks(self, number_of_partitions_per_chunk: int)-> None:
         """
