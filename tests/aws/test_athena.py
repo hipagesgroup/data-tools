@@ -280,3 +280,14 @@ class TestAthenaUtil(TestCase):
                        [('policyTopicEntries', []), ('reviewState', 'REVIEWED')]),
                    "field_6": 2.3434}]))
         self.assertEqual(actual, expected)
+
+    def test__should_give_type_error__when__none_is_given_for_bucket_name_or_key(self):
+        with self.assertRaises(TypeError):
+            AthenaUtil(
+                settings=AthenaSettings(
+                    database="test",
+                    conn=AwsConnectionManager(settings=None),
+                    output_bucket=None,
+                    output_key=None
+                )
+            )

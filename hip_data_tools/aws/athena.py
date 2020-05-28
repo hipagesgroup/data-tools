@@ -265,6 +265,8 @@ class AthenaUtil(AwsUtil):
                 "inputformat": "org.apache.hadoop.mapred.TextInputFormat"
             }
         }
+        if settings.output_bucket is None or settings.output_key is None:
+            raise TypeError
 
     def run_query(self, query_string, return_result=False):
         """
