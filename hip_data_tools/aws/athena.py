@@ -247,10 +247,7 @@ class AthenaUtil(AwsUtil):
 
     def __init__(self, settings: AthenaSettings):
         super().__init__(settings.conn, "athena")
-        self.database = settings.database
-        self.conn = settings.conn
-        self.output_key = settings.output_key
-        self.output_bucket = settings.output_bucket
+        self.__settings = settings
         self.storage_format_lookup = {
             "parquet": {
                 "row_format_serde": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
