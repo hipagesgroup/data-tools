@@ -280,15 +280,15 @@ class AthenaUtil(AwsUtil):
         """
         athena = self.get_client()
         output_location = "s3://{bucket}/{key}".format(
-            bucket=self.output_bucket,
-            key=self.output_key)
+            bucket=self.__settings.output_bucket,
+            key=self.__settings.output_key)
         LOG.info("executing query \n%s \non database - %s with results location %s", query_string,
-                 self.database,
+                 self.__settings.database,
                  output_location)
         response = athena.start_query_execution(
             QueryString=query_string,
             QueryExecutionContext={
-                'Database': self.database
+                'Database': self.__settings.database
             },
             ResultConfiguration={
                 'OutputLocation': output_location
@@ -473,7 +473,7 @@ class AthenaUtil(AwsUtil):
             table (str): Athena table name
         Returns: A dict of table metadata
         """
-        return self.conn.client('glue').get_table(DatabaseName=self.database, Name=table)
+        return self.conn.client('glue').get_table(DatabaseName=self.__settings.database, Name=table)
 
     def drop_table(self, table_name):
         """
