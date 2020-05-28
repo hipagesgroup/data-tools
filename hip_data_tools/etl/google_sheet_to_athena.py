@@ -4,7 +4,7 @@ Module to deal with data transfer from Google sheets to Athena
 
 from attr import dataclass
 
-from hip_data_tools.aws.athena import AthenaUtil, get_table_settings_for_dataframe
+from hip_data_tools.aws.athena import AthenaUtil, AthenaSettings, get_table_settings_for_dataframe
 from hip_data_tools.aws.common import AwsConnectionManager
 from hip_data_tools.etl.google_sheet_to_s3 import GoogleSheetToS3, GoogleSheetsToS3Settings
 
@@ -55,10 +55,12 @@ class GoogleSheetToAthena(GoogleSheetToS3):
         self.keys_to_transfer = None
 
     def _get_athena_util(self):
-        return AthenaUtil(database=self.__settings.target_database,
-                          conn=AwsConnectionManager(
-                              settings=self.__settings.target_connection_settings),
-                          output_bucket=self.__settings.target_s3_bucket)
+        return AthenaUtil(settings=AthenaSettings(
+            database=self.__settings.target_database,
+            conn=AwsConnectionManager(
+                settings=self.__settings.target_connection_settings),
+            output_key=f"tmp/hip_data_tools/{self.__settings.target_s3_dir}",
+            output_bucket=self.__settings.target_s3_bucket))
 
     def load_sheet_to_athena(self):
         """

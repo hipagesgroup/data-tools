@@ -3,7 +3,7 @@ handle ETL of data from Athena to Cassandra
 """
 from attr import dataclass
 
-from hip_data_tools.aws.athena import AthenaUtil
+from hip_data_tools.aws.athena import AthenaUtil, AthenaSettings
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.etl.s3_to_dataframe import S3ToDataFrameSettings, S3ToDataFrame
 
@@ -36,7 +36,9 @@ class AthenaToDataFrame(S3ToDataFrame):
 
     def _get_athena_util(self):
         if self._athena is None:
-            self._athena = AthenaUtil(
+            self._athena = AthenaUtil(settings=AthenaSettings(
                 database=self.__settings.source_database,
-                conn=AwsConnectionManager(self.__settings.source_connection_settings))
+                conn=AwsConnectionManager(self.__settings.source_connection_settings),
+                output_bucket=self.s3_settings.source_bucket,
+                output_key=f"tmp/hip_data_tools/{self.s3_settings.source_key_prefix}"))
         return self._athena
