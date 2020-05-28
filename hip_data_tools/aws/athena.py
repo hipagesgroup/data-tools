@@ -510,7 +510,7 @@ class AthenaTablePartitionsHandlerUtil(AthenaUtil):
     """
 
     def __init__(self, settings: AthenaTablePartitionsHandlerSettings):
-        super().__init__(settings=settings.athena_settings)
+        super().__init__(settings=settings)
         self.__settings = settings
 
     def add_partitions_as_chunks(self, number_of_partitions_per_chunk: int) -> None:
