@@ -44,7 +44,8 @@ class AdWordsToAthena(AdWordsToS3):
             database=self.__settings.target_database,
             conn=AwsConnectionManager(
                 settings=self.__settings.target_connection_settings),
-            output_bucket=self.__settings.target_bucket))
+            output_bucket=self.__settings.target_bucket,
+            output_key=f"tmp/hip_data_tools/{self.__settings.target_key_prefix}"))
 
     def create_athena_table(self) -> None:
         """
@@ -110,7 +111,8 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
             database=self.__settings.target_database,
             conn=AwsConnectionManager(
                 settings=self.__settings.target_connection_settings),
-            output_bucket=self.__settings.target_bucket))
+            output_bucket=self.__settings.target_bucket,
+            output_key=f"tmp/hip_data_tools/{self._final_target_prefix}"))
 
     def add_partitions(self):
         """

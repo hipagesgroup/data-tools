@@ -59,7 +59,7 @@ class GoogleSheetToAthena(GoogleSheetToS3):
             database=self.__settings.target_database,
             conn=AwsConnectionManager(
                 settings=self.__settings.target_connection_settings),
-            output_key=f"tmp/{self.__settings.target_s3_dir}",
+            output_key=f"tmp/hip_data_tools/{self.__settings.target_s3_dir}",
             output_bucket=self.__settings.target_s3_bucket))
 
     def load_sheet_to_athena(self):

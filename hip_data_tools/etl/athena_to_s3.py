@@ -44,8 +44,8 @@ class AthenaToS3:
             settings=AthenaSettings(
                 database=self.__settings.temporary_database,
                 conn=AwsConnectionManager(self.__settings.connection_settings),
-                output_bucket=None,
-                output_key=None
+                output_bucket=self.__settings.target_s3_bucket,
+                output_key=f"tmp/hip_data_tools/{self.__settings.target_s3_dir}"
             )
         )
         au.drop_table(self.__settings.temporary_table)

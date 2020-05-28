@@ -14,6 +14,7 @@ class AthenaToCassandraSettings:
     """S3 to Cassandra ETL settings"""
     source_database: str
     source_table: str
+    source_s3_bucket: str
     source_connection_settings: AwsConnectionSettings
     destination_keyspace: str
     destination_table: str
@@ -35,8 +36,8 @@ class AthenaToCassandra(S3ToCassandra):
         self._athena = AthenaUtil(settings=AthenaSettings(
             database=self.__settings.source_database,
             conn=AwsConnectionManager(self.__settings.source_connection_settings),
-            output_bucket=None,
-            output_key=None))
+            output_bucket=self.__settings.source_s3_bucket,
+            output_key="tmp/hip_data_tools/"))
         (bucket, key) = self._athena.get_table_data_location(self.__settings.source_table)
         super().__init__(S3ToCassandraSettings(
             source_bucket=bucket,

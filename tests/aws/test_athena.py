@@ -2,6 +2,7 @@ from collections import OrderedDict
 from unittest import TestCase
 from unittest.mock import Mock
 
+from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings
 from pandas import DataFrame
 
 import hip_data_tools.aws.athena as athena
@@ -12,8 +13,13 @@ class TestAthenaUtil(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.au = AthenaUtil(
-            settings=AthenaSettings(database="test", conn=None, output_bucket=None,
-                                    output_key=None))
+            settings=AthenaSettings(
+                database="test",
+                conn=AwsConnectionManager(settings=None),
+                output_bucket="example",
+                output_key="tmp/scratch/"
+            )
+        )
 
     def test__build_create_table_sql__works_for_ga_example(self):
         actual = self.au._build_create_table_sql(
@@ -175,7 +181,7 @@ class TestAthenaUtil(TestCase):
     def test__get_table_data_location__should_return_an_s3_location(self):
         mock_au = Mock()
         expected = ("abc", "def/pqr/")
-        # 
+        #
         mock_au.get_glue_table_metadata.return_value = {
             'Table': {
                 'StorageDescriptor': {
