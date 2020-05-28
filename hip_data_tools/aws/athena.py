@@ -168,9 +168,9 @@ def _construct_table_partition_ddl(partitions):
     return partition_query
 
 
-def _construct_table_exists_ddl(enable_exists):
+def _get_if_not_exists_statement(is__if_not_exists__required):
     exists = ""
-    if enable_exists:
+    if is__if_not_exists__required:
         exists = "IF NOT EXISTS"
     return exists
 
@@ -374,7 +374,7 @@ class AthenaUtil(AwsUtil):
         self.run_query(query_string=partition_query)
 
     def _build_create_table_sql(self, table_settings):
-        exists = _construct_table_exists_ddl(table_settings["exists"])
+        exists = _get_if_not_exists_statement(table_settings["exists"])
         partitions = _construct_table_partition_ddl(table_settings["partitions"])
         table_properties = _construct_table_properties_ddl(
             table_settings.get("skip_headers", False),
