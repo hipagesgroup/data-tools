@@ -17,7 +17,8 @@ class TestAthenaUtil(TestCase):
                 database="test",
                 conn=AwsConnectionManager(settings=None),
                 output_bucket="example",
-                output_key="tmp/scratch/"
+                output_key="tmp/scratch/",
+                work_group="primary"
             )
         )
 
@@ -288,6 +289,7 @@ class TestAthenaUtil(TestCase):
                     database="test",
                     conn=AwsConnectionManager(settings=None),
                     output_bucket=None,
-                    output_key=None
+                    output_key=None,
+                    work_group="primary"
                 )
             )

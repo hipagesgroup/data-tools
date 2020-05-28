@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from hip_data_tools.aws.athena import AthenaTablePartitionsHandlerUtil, \
-    AthenaTablePartitionsHandlerSettings, _get_dir_path_list, AthenaSettings
+    AthenaTablePartitionsHandlerSettings, _get_dir_path_list
 
 
 class TestAthenaTablePartitionsHandlerUtil(TestCase):
@@ -13,6 +13,7 @@ class TestAthenaTablePartitionsHandlerUtil(TestCase):
                 conn=None,
                 output_bucket='test_output_bucket',
                 output_key='test/',
+                work_group="primary",
                 table='test_table',
                 s3_bucket='test_bucket',
                 s3_key='test/data/partition_1=value_1/partition_2=value_2/',

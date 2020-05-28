@@ -236,6 +236,7 @@ class AthenaSettings:
     conn: AwsConnectionManager
     output_bucket: str
     output_key: str
+    work_group: str
 
 
 class AthenaUtil(AwsUtil):
@@ -269,7 +270,7 @@ class AthenaUtil(AwsUtil):
         if settings.output_bucket is None or settings.output_key is None:
             raise TypeError
 
-    def run_query(self, query_string, return_result=False, work_groups=None):
+    def run_query(self, query_string, return_result=False):
         """
         General purpose query executor that submits an athena query, then uses the execution id
         to poll and monitor the
@@ -288,28 +289,16 @@ class AthenaUtil(AwsUtil):
         LOG.info("executing query \n%s \non database - %s with results location %s", query_string,
                  self.__settings.database,
                  output_location)
-        if work_groups is None:
-            response = athena.start_query_execution(
-                QueryString=query_string,
-                QueryExecutionContext={
-                    'Database': self.database
-                },
-                ResultConfiguration={
-                    'OutputLocation': output_location
-                }
-            )
-        else:
-            work_group = random.choice(work_groups)
-            response = athena.start_query_execution(
-                QueryString=query_string,
-                QueryExecutionContext={
-                    'Database': self.database
-                },
-                ResultConfiguration={
-                    'OutputLocation': output_location
-                },
-                WorkGroup=work_group
-            )
+        response = athena.start_query_execution(
+            QueryString=query_string,
+            QueryExecutionContext={
+                'Database': self.__settings.database
+            },
+            ResultConfiguration={
+                'OutputLocation': output_location
+            },
+            WorkGroup=self.__settings.work_group
+        )
         execution_id = response['QueryExecutionId']
         stats = self.watch_query(execution_id)
         LOG.info("athena response %s", response)

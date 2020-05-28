@@ -40,5 +40,6 @@ class AthenaToDataFrame(S3ToDataFrame):
                 database=self.__settings.source_database,
                 conn=AwsConnectionManager(self.__settings.source_connection_settings),
                 output_bucket=self.s3_settings.source_bucket,
-                output_key=f"tmp/hip_data_tools/{self.s3_settings.source_key_prefix}"))
+                output_key=f"tmp/hip_data_tools/{self.s3_settings.source_key_prefix}",
+                work_group="primary"))
         return self._athena

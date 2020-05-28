@@ -55,7 +55,7 @@ Using this connection to object you can use the aws utilities, for example aws A
 ```python
 from hip_data_tools.aws.athena import AthenaUtil, AthenaSettings
 
-au = AthenaUtil(settings=AthenaSettings(database="default", conn=conn, output_bucket="example", output_key="tmp/scratch/"))
+au = AthenaUtil(settings=AthenaSettings(database="default", conn=conn, output_bucket="example", output_key="tmp/scratch/", work_group="primary"))
 result = au.run_query("SELECT * FROM temp limit 10", return_result=True)
 print(result)
 ```

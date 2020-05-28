@@ -71,7 +71,7 @@ class TestAdwordsToS3(TestCase):
         etl.create_athena_table()
         conn = AwsConnectionManager(aws_setting)
         au = AthenaUtil(settings=AthenaSettings("dev", conn, output_bucket="example",
-                                                output_key="tmp/scratch/"))
+                                                output_key="tmp/scratch/", work_group="primary"))
         actual = au.get_glue_table_metadata(target_table)
         print(actual)
 
@@ -123,7 +123,8 @@ class TestAdwordsToS3(TestCase):
         au = AthenaUtil(
             settings=AthenaSettings(database="dev", conn=AwsConnectionManager(aws_setting),
                                     output_bucket=os.environ["S3_TEST_BUCKET"],
-                                    output_key="tmp/scratch/"))
+                                    output_key="tmp/scratch/",
+                                    work_group="primary"))
         actual = au.run_query(query_string="""
         select * from dev.test_adwords_negative_report limit 10
         """, return_result=True)

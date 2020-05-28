@@ -37,7 +37,8 @@ class AthenaToCassandra(S3ToCassandra):
             database=self.__settings.source_database,
             conn=AwsConnectionManager(self.__settings.source_connection_settings),
             output_bucket=self.__settings.source_s3_bucket,
-            output_key="tmp/hip_data_tools/"))
+            output_key="tmp/hip_data_tools/",
+            work_group="primary"))
         (bucket, key) = self._athena.get_table_data_location(self.__settings.source_table)
         super().__init__(S3ToCassandraSettings(
             source_bucket=bucket,

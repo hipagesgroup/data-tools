@@ -63,6 +63,7 @@ class AthenaToAthena:
                 conn=AwsConnectionManager(self.__settings.connection_settings),
                 output_key=f"athena_results/{uuid.uuid4().hex}",
                 output_bucket=self.__settings.target_s3_bucket,
+                work_group="primary"
             ))
         return self._athena
 
