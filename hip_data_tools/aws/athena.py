@@ -2,7 +2,6 @@
 Utility to connect to, and perform DML and DDL operations on aws Athena
 """
 import csv
-import random
 import sys
 import time
 from typing import List, Any, Tuple, Optional
