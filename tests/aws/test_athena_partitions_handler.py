@@ -9,10 +9,10 @@ class TestAthenaTablePartitionsHandlerUtil(TestCase):
     def setUpClass(cls):
         cls.athena_partition_util = AthenaTablePartitionsHandlerUtil(
             settings=AthenaTablePartitionsHandlerSettings(
-                athena_settings=AthenaSettings(database='test',
-                                               conn=None,
-                                               output_bucket='test_output_bucket',
-                                               output_key='test/'),
+                database='test',
+                conn=None,
+                output_bucket='test_output_bucket',
+                output_key='test/',
                 table='test_table',
                 s3_bucket='test_bucket',
                 s3_key='test/data/partition_1=value_1/partition_2=value_2/',
