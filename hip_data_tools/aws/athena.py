@@ -492,9 +492,8 @@ class AthenaUtil(AwsUtil):
 
 
 @dataclass
-class AthenaTablePartitionsHandlerSettings:
+class AthenaTablePartitionsHandlerSettings(AthenaSettings):
     """Athena table partitions handler settings"""
-    athena_settings: AthenaSettings
     table: str
     s3_bucket: str
     s3_key: str
