@@ -5,7 +5,7 @@ from typing import Optional, List
 
 from attr import dataclass
 
-from hip_data_tools.aws.athena import AthenaUtil, AthenaSettings
+from hip_data_tools.aws.athena import AthenaUtil
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.etl.athena_to_athena import AthenaToAthenaSettings, AthenaToAthena
 from hip_data_tools.etl.common import current_epoch, get_random_string
@@ -41,12 +41,8 @@ class AthenaToS3:
 
     def _drop_temporary_table(self) -> None:
         au = AthenaUtil(
-            settings=AthenaSettings(
-                database=self.__settings.temporary_database,
-                conn=AwsConnectionManager(self.__settings.connection_settings),
-                output_bucket=self.__settings.target_s3_bucket,
-                output_key=f"tmp/hip_data_tools/{self.__settings.target_s3_dir}"
-            )
+            database=self.__settings.temporary_database,
+            conn=AwsConnectionManager(self.__settings.connection_settings)
         )
         au.drop_table(self.__settings.temporary_table)
 

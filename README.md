@@ -53,9 +53,9 @@ conn = AwsConnectionManager(
 
 Using this connection to object you can use the aws utilities, for example aws Athena:
 ```python
-from hip_data_tools.aws.athena import AthenaUtil, AthenaSettings
+from hip_data_tools.aws.athena import AthenaUtil
 
-au = AthenaUtil(settings=AthenaSettings(database="default", conn=conn, output_bucket="example", output_key="tmp/scratch/"))
+au = AthenaUtil(database="default", conn=conn, output_bucket="example", output_key="tmp/scratch/")
 result = au.run_query("SELECT * FROM temp limit 10", return_result=True)
 print(result)
 ```

@@ -1,16 +1,15 @@
 """
 Utility to connect to, and perform DML and DDL operations on aws Athena
 """
+
 import csv
 import sys
 import time
-from typing import List, Any, Tuple, Optional
+from typing import List, Any, Tuple
 
-from attr import dataclass
 from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsUtil, AwsConnectionManager
-from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.common import LOG
 
 _PYTHON_TO_ATHENA_DATA_TYPE_MAP = {
@@ -79,175 +78,27 @@ def get_table_settings_for_dataframe(dataframe: DataFrame, partitions: dict, s3_
     return table_settings
 
 
-def generate_csv_ctas(select_query, destination_table, destination_bucket, destination_key,
-                      partition_fields=''):
-    """
-    Method to generate a CTAS query string for creating csv output
-
-    Args:
-        select_query (string): the query to be used for table generation
-        destination_table (string): name of the new table being created
-        destination_bucket (string): the s3 bucket where the data from select query will be stored
-        destination_key (string): the s3 directory where the data from select query will be stored
-        partition_fields (string): partition field names
-
-    Returns (string): CTAS Query in a string
-
-    """
-    return _get_ctas_statement(destination_bucket, destination_key, destination_table,
-                               partition_fields, select_query, file_format='TEXTFILE')
-
-
-def generate_parquet_ctas(select_query, destination_table, destination_bucket, destination_key,
-                          partition_fields=''):
-    """
-    Method to generate a CTAS query string for creating parquet output
-
-    Args:
-        select_query (string): the query to be used for table generation
-        destination_table (string): name of the new table being created
-        destination_bucket (string): the s3 bucket where the data from select query will be stored
-        destination_key (string): the s3 directory where the data from select query will be stored
-        partition_fields (string): partition field names
-
-    Returns (string): CTAS Query in a string
-
-    """
-    return _get_ctas_statement(destination_bucket, destination_key, destination_table,
-                               partition_fields, select_query, file_format='parquet')
-
-
-def _get_ctas_statement(destination_bucket, destination_key, destination_table, partition_fields,
-                        select_query, file_format):
-    delimiter = ''
-    if file_format == 'TEXTFILE':
-        delimiter = "field_delimiter=',',"
-    partitioned_by = ""
-    if partition_fields != '':
-        partitioned_by = """,
-        partitioned_by = ARRAY[{partition_keys}]
-        """.format(partition_keys=partition_fields)
-    final_query = """
-        CREATE TABLE {destination_table}
-        WITH (
-            {delimiter}
-            format='{file_format}',
-            external_location='s3://{bucket}/{key}'{partitioned_by}
-        ) AS
-        {athena_query}
-        """.format(destination_table=destination_table,
-                   bucket=destination_bucket,
-                   key=destination_key,
-                   athena_query=select_query,
-                   partitioned_by=partitioned_by,
-                   file_format=file_format,
-                   delimiter=delimiter)
-    return final_query
-
-
-def zip_columns(column_list):
-    """
-    Combine the column list into a zipped comma separated list of column name and data type
-    Args:
-        column_list (list): an array of dictionaries with keys column and type
-
-    Returns (string): a string containing comma separated list of column name and data type
-
-    """
-    return ", ".join(["{} {}".format(col['column'], col["type"]) for col in column_list])
-
-
-def _construct_table_partition_ddl(partitions):
-    partition_query = ""
-    if partitions:
-        partition_query = """
-        PARTITIONED BY ( 
-          {columns}
-          )
-          """.format(columns=zip_columns(partitions))
-    return partition_query
-
-
-def _get_if_not_exists_statement(is__if_not_exists__required):
-    exists = ""
-    if is__if_not_exists__required:
-        exists = "IF NOT EXISTS"
-    return exists
-
-
-def _construct_table_properties_ddl(skip_headers, storage_format_selector, encryption):
-    if storage_format_selector == "csv" and skip_headers:
-        no_of_skip_lines = 1
-        table_properties = """
-            TBLPROPERTIES ('has_encrypted_data'='{encryption}', 
-            'skip.header.line.count'='{no_of_lines}')
-            """.format(encryption=str(encryption).lower(),
-                       no_of_lines=no_of_skip_lines)
-    else:
-        table_properties = """
-            TBLPROPERTIES ('has_encrypted_data'='{encryption}')
-            """.format(encryption=str(encryption).lower())
-    return table_properties
-
-
-def _get_data_frame_column_types(data_frame):
-    data_frame_col_dict = {}
-    for col in data_frame:
-        data_frame_col_dict[col] = type(data_frame[col][0]).__name__
-    return data_frame_col_dict
-
-
-def get_athena_columns_from_dataframe(data_frame: DataFrame) -> List[dict]:
-    """
-    Extracts a dictionary of column names and their athena data types from the dataframe
-    Args:
-        data_frame (DataFrame): the dataframe which the columns need to be extracted
-    Returns: list of dict
-    """
-    column_dtype = _get_data_frame_column_types(data_frame)
-    return [
-        {"column": field_name, "type": _PYTHON_TO_ATHENA_DATA_TYPE_MAP.get(field_type, "STRING")}
-        for
-        field_name, field_type in column_dtype.items()]
-
-
-def _get_dir_path_list(key_list: List, key_suffix: str = None) -> List[str]:
-    """
-    Return a list of directory paths by removing the filenames from the s3 keys
-    Args:
-        key_list (List): list of s3 keys
-        key_suffix (str): s3 key suffix (eg: '.csv', '.gz')
-    Returns: list of directory paths
-    """
-    dir_path_list = []
-    for key in key_list:
-        key_re_partitions = key.rpartition('/')
-        if key_suffix is not None and not key_re_partitions[2].endswith(key_suffix):
-            continue
-        dir_path_list.append(key_re_partitions[0])
-    return dir_path_list
-
-
-@dataclass
-class AthenaSettings:
-    """Athena settings"""
-    database: str
-    conn: AwsConnectionManager
-    output_bucket: str
-    output_key: str
-
-
 class AthenaUtil(AwsUtil):
     """
     Utility class for connecting to athena and manipulate data in a pythonic way
 
     Args:
-        settings (AthenaSettings): athena settings
+        database (string): the athena database to run queries on
+        conn (AwsConnection): AwsConnection object
+        output_key (string): the s3 key where the results of athena queries will be stored
+        output_bucket (string): the s3 bucket where the results of athena queries will be stored
     """
 
-    def __init__(self, settings: AthenaSettings):
-        super().__init__(settings.conn, "athena")
-        self.__settings = settings
+    def __init__(self,
+                 database: str,
+                 conn: AwsConnectionManager,
+                 output_key: str = None,
+                 output_bucket: str = None):
+        super().__init__(conn, "athena")
+        self.database = database
+        self.conn = conn
+        self.output_key = output_key
+        self.output_bucket = output_bucket
         self.storage_format_lookup = {
             "parquet": {
                 "row_format_serde": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
@@ -265,8 +116,6 @@ class AthenaUtil(AwsUtil):
                 "inputformat": "org.apache.hadoop.mapred.TextInputFormat"
             }
         }
-        if settings.output_bucket is None or settings.output_key is None:
-            raise TypeError
 
     def run_query(self, query_string, return_result=False):
         """
@@ -282,15 +131,15 @@ class AthenaUtil(AwsUtil):
         """
         athena = self.get_client()
         output_location = "s3://{bucket}/{key}".format(
-            bucket=self.__settings.output_bucket,
-            key=self.__settings.output_key)
+            bucket=self.output_bucket,
+            key=self.output_key)
         LOG.info("executing query \n%s \non database - %s with results location %s", query_string,
-                 self.__settings.database,
+                 self.database,
                  output_location)
         response = athena.start_query_execution(
             QueryString=query_string,
             QueryExecutionContext={
-                'Database': self.__settings.database
+                'Database': self.database
             },
             ResultConfiguration={
                 'OutputLocation': output_location
@@ -376,7 +225,7 @@ class AthenaUtil(AwsUtil):
         self.run_query(query_string=partition_query)
 
     def _build_create_table_sql(self, table_settings):
-        exists = _get_if_not_exists_statement(table_settings["exists"])
+        exists = _construct_table_exists_ddl(table_settings["exists"])
         partitions = _construct_table_partition_ddl(table_settings["partitions"])
         table_properties = _construct_table_properties_ddl(
             table_settings.get("skip_headers", False),
@@ -475,7 +324,7 @@ class AthenaUtil(AwsUtil):
             table (str): Athena table name
         Returns: A dict of table metadata
         """
-        return self.conn.client('glue').get_table(DatabaseName=self.__settings.database, Name=table)
+        return self.conn.client('glue').get_table(DatabaseName=self.database, Name=table)
 
     def drop_table(self, table_name):
         """
@@ -490,61 +339,133 @@ class AthenaUtil(AwsUtil):
         self.run_query("""DROP TABLE IF EXISTS {}""".format(table_name))
 
 
-@dataclass
-class AthenaTablePartitionsHandlerSettings(AthenaSettings):
-    """Athena table partitions handler settings"""
-    table: str
-    s3_bucket: str
-    s3_key: str
-    partition_col_names: list
-    key_suffix: Optional[str]
-
-
-class AthenaTablePartitionsHandlerUtil(AthenaUtil):
+def generate_csv_ctas(select_query, destination_table, destination_bucket, destination_key,
+                      partition_fields=''):
     """
-    Utility class for to handle athena partitions
+    Method to generate a CTAS query string for creating csv output
 
     Args:
-        settings (AthenaTablePartitionsHandlerSettings): athena table partitions handler settings
+        select_query (string): the query to be used for table generation
+        destination_table (string): name of the new table being created
+        destination_bucket (string): the s3 bucket where the data from select query will be stored
+        destination_key (string): the s3 directory where the data from select query will be stored
+        partition_fields (string): partition field names
+
+    Returns (string): CTAS Query in a string
+
     """
+    return _get_ctas_statement(destination_bucket, destination_key, destination_table,
+                               partition_fields, select_query, file_format='TEXTFILE')
 
-    def __init__(self, settings: AthenaTablePartitionsHandlerSettings):
-        super().__init__(settings=settings)
-        self.__settings = settings
 
-    def add_partitions_as_chunks(self, number_of_partitions_per_chunk: int) -> None:
-        """
-        Add partitions as chunks
-        Args:
-            number_of_partitions_per_chunk (int): size of chunk
-        Returns: None
+def generate_parquet_ctas(select_query, destination_table, destination_bucket, destination_key,
+                          partition_fields=''):
+    """
+    Method to generate a CTAS query string for creating parquet output
 
-        """
-        s3u = S3Util(conn=self.conn, bucket=self.__settings.s3_bucket)
-        key_list = s3u.get_keys(key_prefix=self.__settings.s3_key)
-        dir_path_list = _get_dir_path_list(key_list=key_list)
-        list_of_dict = [self._get_partition_dict(key) for key in list(set(dir_path_list))]
-        chunked_list_of_dict = [list_of_dict[i:i + number_of_partitions_per_chunk] for i in
-                                range(0, len(list_of_dict), number_of_partitions_per_chunk)]
-        for chunk in chunked_list_of_dict:
-            add_partitions_query = self._get_add_partitions_query_for_chunk(chunk)
-            self.run_query(query_string=add_partitions_query)
+    Args:
+        select_query (string): the query to be used for table generation
+        destination_table (string): name of the new table being created
+        destination_bucket (string): the s3 bucket where the data from select query will be stored
+        destination_key (string): the s3 directory where the data from select query will be stored
+        partition_fields (string): partition field names
 
-    def _get_add_partitions_query_for_chunk(self, chunk):
-        query = f"ALTER TABLE {self.__settings.table} ADD IF NOT EXISTS "
-        for partition_dict in chunk:
-            partition_str = "PARTITION ("
-            for partition_col in self.__settings.partition_col_names:
-                partition_str += f"{partition_col} = '{partition_dict[partition_col]}', "
-            partition_str = f"{partition_str[:-2]}) "
-            query += partition_str
-        query = f"{query[:-1]};"
-        return query
+    Returns (string): CTAS Query in a string
 
-    def _get_partition_dict(self, s3_prefix):
-        key_splits = s3_prefix.split("/")
-        filtered_key_splits = list(filter(lambda k: '=' in k, key_splits))
-        partition_dict = dict(tuple([tuple(item.split('=')) for item in filtered_key_splits]))
-        if sorted(self.__settings.partition_col_names) != sorted(partition_dict.keys()):
-            LOG.warning("Undefined partition names detected in this s3 key: %s", s3_prefix)
-        return partition_dict
+    """
+    return _get_ctas_statement(destination_bucket, destination_key, destination_table,
+                               partition_fields, select_query, file_format='parquet')
+
+
+def _get_ctas_statement(destination_bucket, destination_key, destination_table, partition_fields,
+                        select_query, file_format):
+    delimiter = ''
+    if file_format == 'TEXTFILE':
+        delimiter = "field_delimiter=',',"
+    partitioned_by = ""
+    if partition_fields != '':
+        partitioned_by = """,
+        partitioned_by = ARRAY[{partition_keys}]
+        """.format(partition_keys=partition_fields)
+    final_query = """
+        CREATE TABLE {destination_table}
+        WITH (
+            {delimiter}
+            format='{file_format}',
+            external_location='s3://{bucket}/{key}'{partitioned_by}
+        ) AS
+        {athena_query}
+        """.format(destination_table=destination_table,
+                   bucket=destination_bucket,
+                   key=destination_key,
+                   athena_query=select_query,
+                   partitioned_by=partitioned_by,
+                   file_format=file_format,
+                   delimiter=delimiter)
+    return final_query
+
+
+def zip_columns(column_list):
+    """
+    Combine the column list into a zipped comma separated list of column name and data type
+    Args:
+        column_list (list): an array of dictionaries with keys column and type
+
+    Returns (string): a string containing comma separated list of column name and data type
+
+    """
+    return ", ".join(["{} {}".format(col['column'], col["type"]) for col in column_list])
+
+
+def _construct_table_partition_ddl(partitions):
+    partition_query = ""
+    if partitions:
+        partition_query = """
+        PARTITIONED BY ( 
+          {columns}
+          )
+          """.format(columns=zip_columns(partitions))
+    return partition_query
+
+
+def _construct_table_exists_ddl(enable_exists):
+    exists = ""
+    if enable_exists:
+        exists = "IF NOT EXISTS"
+    return exists
+
+
+def _construct_table_properties_ddl(skip_headers, storage_format_selector, encryption):
+    if storage_format_selector == "csv" and skip_headers:
+        no_of_skip_lines = 1
+        table_properties = """
+            TBLPROPERTIES ('has_encrypted_data'='{encryption}', 
+            'skip.header.line.count'='{no_of_lines}')
+            """.format(encryption=str(encryption).lower(),
+                       no_of_lines=no_of_skip_lines)
+    else:
+        table_properties = """
+            TBLPROPERTIES ('has_encrypted_data'='{encryption}')
+            """.format(encryption=str(encryption).lower())
+    return table_properties
+
+
+def _get_data_frame_column_types(data_frame):
+    data_frame_col_dict = {}
+    for col in data_frame:
+        data_frame_col_dict[col] = type(data_frame[col][0]).__name__
+    return data_frame_col_dict
+
+
+def get_athena_columns_from_dataframe(data_frame: DataFrame) -> List[dict]:
+    """
+    Extracts a dictionary of column names and their athena data types from the dataframe
+    Args:
+        data_frame (DataFrame): the dataframe which the columns need to be extracted
+    Returns: list of dict
+    """
+    column_dtype = _get_data_frame_column_types(data_frame)
+    return [
+        {"column": field_name, "type": _PYTHON_TO_ATHENA_DATA_TYPE_MAP.get(field_type, "STRING")}
+        for
+        field_name, field_type in column_dtype.items()]
