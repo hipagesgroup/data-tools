@@ -230,7 +230,15 @@ def _get_dir_path_list(key_list: List, key_suffix: str = None) -> List[str]:
 
 @dataclass
 class AthenaSettings:
-    """Athena settings"""
+    """
+    Athena settings
+    Args:
+        database (str): Athena database name
+        conn (AwsConnectionManager): AWS connection manager
+        output_bucket (str): Result output s3 bucket name
+        output_key (str): Result output s3 key
+        work_group (str): Athena workGroup name
+    """
     database: str
     conn: AwsConnectionManager
     output_bucket: str
@@ -244,6 +252,16 @@ class AthenaUtil(AwsUtil):
 
     Args:
         settings (AthenaSettings): athena settings
+    Eg:
+    >>> athena_util = AthenaUtil(
+    ...        AthenaSettings(
+    ...            database="test",
+    ...            conn=aws_connection,
+    ...            output_bucket="sample-bucket",
+    ...            output_key="tmp/scratch/",
+    ...            work_group="primary",
+    ...        )
+    ...    )
     """
 
     def __init__(self, settings: AthenaSettings):
