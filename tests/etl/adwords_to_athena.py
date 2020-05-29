@@ -4,7 +4,7 @@ from unittest import TestCase
 from googleads.adwords import ServiceQueryBuilder, ReportQueryBuilder
 from py._builtin import execfile
 
-from hip_data_tools.aws.athena import AthenaUtil, AthenaSettings
+from hip_data_tools.aws.athena import AthenaUtil
 from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 from hip_data_tools.etl.adwords_to_athena import AdWordsToAthenaSettings, AdWordsToAthena, \
     AdWordsReportsToAthena, AdWordsReportsToAthenaSettings
@@ -70,8 +70,7 @@ class TestAdwordsToS3(TestCase):
         self.assertListEqual(expected_payloads, actual_payloads)
         etl.create_athena_table()
         conn = AwsConnectionManager(aws_setting)
-        au = AthenaUtil(settings=AthenaSettings("dev", conn, output_bucket="example",
-                                                output_key="tmp/scratch/"))
+        au = AthenaUtil("dev", conn)
         actual = au.get_glue_table_metadata(target_table)
         print(actual)
 
@@ -120,10 +119,8 @@ class TestAdwordsToS3(TestCase):
         etl.create_athena_table()
         etl.add_partitions()
 
-        au = AthenaUtil(
-            settings=AthenaSettings(database="dev", conn=AwsConnectionManager(aws_setting),
-                                    output_bucket=os.environ["S3_TEST_BUCKET"],
-                                    output_key="tmp/scratch/"))
+        au = AthenaUtil(database="dev", conn=AwsConnectionManager(aws_setting),
+                        output_bucket=os.environ["S3_TEST_BUCKET"])
         actual = au.run_query(query_string="""
         select * from dev.test_adwords_negative_report limit 10
         """, return_result=True)
