@@ -6,32 +6,32 @@ from typing import Optional, List
 from attr import dataclass
 
 from hip_data_tools.aws.athena import AthenaUtil
-from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
+from hip_data_tools.aws.common import AwsConnectionManager
+from hip_data_tools.etl.common import AthenaQuerySource
 
 
 @dataclass
-class AthenaToAthenaSettings:
-    """Athena To Athena ETL settings"""
-    source_sql: str
-    source_database: str
-    target_database: str
-    target_table: str
-    target_data_format: str
-    target_s3_bucket: str
-    target_s3_dir: str
-    target_partition_columns: Optional[List[str]]
-    connection_settings: AwsConnectionSettings
+class AthenaCTASSink:
+    database: str
+    table: str
+    data_format: str
+    s3_data_location_bucket: str
+    s3_data_location_directory_key: str
+    partition_columns: Optional[List[str]]
 
 
 class AthenaToAthena:
     """
     ETL To transfer data from an Athena SQL into an Athena Table
+
     Args:
-        settings (AthenaToAthenaSettings): Settings for the ETL
+        source:
+        sink:
     """
 
-    def __init__(self, settings: AthenaToAthenaSettings):
-        self.__settings = settings
+    def __init__(self, source: AthenaQuerySource, sink: AthenaCTASSink):
+        self.__source = source
+        self.__sink = sink
         self._athena = None
 
     def generate_create_table_statement(self) -> str:
@@ -40,29 +40,26 @@ class AthenaToAthena:
         Returns: str
         """
         partition_statement = ""
-        if self.__settings.target_partition_columns:
-            col_list = ','.join([f"'{c}'" for c in self.__settings.target_partition_columns])
+        if self.__sink.partition_columns:
+            col_list = ','.join([f"'{c}'" for c in self.__sink.partition_columns])
             partition_statement = f", partitioned_by = ARRAY[{col_list}] "
-        external_location = f"'s3://{self.__settings.target_s3_bucket}/" \
-                            f"{self.__settings.target_s3_dir}/'"
+        external_location = f"'s3://{self.__sink.s3_data_location_bucket}/" \
+                            f"{self.__sink.s3_data_location_bucket}/'"
         return f"""
-            CREATE TABLE {self.__settings.target_database}.{self.__settings.target_table}
+            CREATE TABLE {self.__sink.database}.{self.__sink.table}
             WITH (
-                format = '{self.__settings.target_data_format}'
+                format = '{self.__sink.data_format}'
                 , external_location = {external_location}
                 {partition_statement}
             ) AS 
-            {self.__settings.source_sql}
+            {self.__source.sql}
             """
 
     def _get_athena_util(self) -> AthenaUtil:
         if self._athena is None:
-            import uuid
             self._athena = AthenaUtil(
-                database=self.__settings.source_database,
-                conn=AwsConnectionManager(self.__settings.connection_settings),
-                output_key=f"athena_results/{uuid.uuid4().hex}",
-                output_bucket=self.__settings.target_s3_bucket,
+                settings=self.__source,
+                conn=AwsConnectionManager(self.__source.connection_settings),
             )
         return self._athena
 

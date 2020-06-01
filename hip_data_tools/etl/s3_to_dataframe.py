@@ -1,35 +1,28 @@
 """
-Module to deal with data transfer from S3 to Cassandra
+Module to deal with data transfer from S3 to Dataframe
 """
 from typing import Iterator, List
 
 import pandas as pd
-from attr import dataclass
 from pandas import DataFrame
 
-from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
+from hip_data_tools.aws.common import AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.common import LOG
-
-
-@dataclass
-class S3ToDataFrameSettings:
-    """S3 to Cassandra ETL settings"""
-    source_bucket: str
-    source_key_prefix: str
-    source_connection_settings: AwsConnectionSettings
+from hip_data_tools.etl.common import S3DirectorySource
 
 
 class S3ToDataFrame:
     """
-    Class to transfer parquet data from s3 to Pandas DataFrame
+    Transfer parquet data from s3 to Pandas DataFrame
+
     Args:
-        settings (S3ToDataFrameSettings): the settings around the etl to be executed
+        source:
     """
 
-    def __init__(self, settings: S3ToDataFrameSettings):
+    def __init__(self, source: S3DirectorySource):
+        self.__source = source
         self._iterator = None
-        self.__settings = settings
         self.keys_to_transfer = None
         self._processed_counter = 0
 
@@ -48,8 +41,8 @@ class S3ToDataFrame:
 
     def _get_s3_util(self) -> S3Util:
         return S3Util(
-            bucket=self.__settings.source_bucket,
-            conn=AwsConnectionManager(self.__settings.source_connection_settings),
+            bucket=self.__source.bucket,
+            conn=AwsConnectionManager(self.__source.connection_settings),
         )
 
     def _get_iterator(self) -> Iterator:
@@ -80,7 +73,7 @@ class S3ToDataFrame:
         """
         if self.keys_to_transfer is None:
             self.keys_to_transfer = self._get_s3_util().get_keys(
-                self.__settings.source_key_prefix)
+                self.__source.directory_key)
             LOG.info("Listed and cached %s source files", len(self.keys_to_transfer))
         return self.keys_to_transfer
 

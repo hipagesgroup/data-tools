@@ -1,41 +1,36 @@
 """
 Module to deal with data transfer from Adwords to S3
 """
-from typing import List, Optional
+from typing import List
 
-from attr import dataclass
-from googleads.adwords import ServiceQueryBuilder, ReportQuery
 from pandas import DataFrame
 
-from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
+from hip_data_tools.aws.common import AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.common import dataframe_columns_to_snake_case
-from hip_data_tools.google.adwords import GoogleAdWordsConnectionSettings, AdWordsDataReader, \
+from hip_data_tools.etl.common import S3DirectorySink, AdWordsServiceSource, \
+    AdWordsReportSource
+from hip_data_tools.google.adwords import AdWordsDataReader, \
     GoogleAdWordsConnectionManager, AdWordsParallelDataReadEstimator, AdWordsReportReader
-
-
-@dataclass
-class AdWordsToS3Settings:
-    """S3 to Cassandra ETL settings"""
-    source_query_fragment: ServiceQueryBuilder
-    source_service: str
-    source_service_version: str
-    source_connection_settings: GoogleAdWordsConnectionSettings
-    target_bucket: str
-    target_key_prefix: str
-    target_file_prefix: Optional[str]
-    target_connection_settings: AwsConnectionSettings
 
 
 class AdWordsToS3:
     """
     ETL Class to handle the transfer of data from adwords based on AWQL to S3 as parquet files
+    Example Usage -
+
+    >>>
+    ...
+
     Args:
-        settings (AdWordsToS3Settings): the etl settings to be used
+        source:
+        sink:
     """
 
-    def __init__(self, settings: AdWordsToS3Settings):
-        self.__settings = settings
+    def __init__(self, source: AdWordsServiceSource, sink: S3DirectorySink):
+        self.__source = source
+        self.__sink = sink
+
         self._adwords_util = None
         self._s3_util = None
         self._source_keys = None
@@ -48,17 +43,17 @@ class AdWordsToS3:
     def _get_s3_util(self) -> S3Util:
         if self._s3_util is None:
             self._s3_util = S3Util(
-                bucket=self.__settings.target_bucket,
-                conn=AwsConnectionManager(self.__settings.target_connection_settings),
+                bucket=self.__sink.bucket,
+                conn=AwsConnectionManager(self.__sink.connection_settings),
             )
         return self._s3_util
 
     def _get_adwords_util(self) -> AdWordsDataReader:
         if self._adwords_util is None:
             self._adwords_util = AdWordsDataReader(
-                conn=GoogleAdWordsConnectionManager(self.__settings.source_connection_settings),
-                service=self.__settings.source_service,
-                version=self.__settings.source_service_version
+                conn=GoogleAdWordsConnectionManager(self.__source.connection_settings),
+                service=self.__source.service,
+                version=self.__source.service_version
             )
         return self._adwords_util
 
@@ -72,7 +67,7 @@ class AdWordsToS3:
             num_iterations (int): total number of pages required for transfer of entire data
         Returns: None
         """
-        query_fragment = self.__settings.source_query_fragment
+        query_fragment = self.__source.query_fragment
         self.start_index = start_index
         self.page_size = page_size
         self.query = query_fragment.Limit(start_index=self.start_index, page_size=page_size).Build()
@@ -100,17 +95,17 @@ class AdWordsToS3:
         s3u = self._get_s3_util()
         s3u.upload_dataframe_as_parquet(
             dataframe=data,
-            key=self.__settings.target_key_prefix,
+            key=self.__sink.directory_key,
             file_name=self.__get_file_name())
         self.current_iteration += 1
         return True
 
     def __get_file_name(self):
         file_prefix_str = ""
-        if self.__settings.target_file_prefix is not None:
-            file_prefix_str = self.__settings.target_file_prefix
+        if self.__sink.file_prefix is not None:
+            file_prefix_str = self.__sink.file_prefix
         return f"{file_prefix_str}index_{self._get_current_start_index()}__" \
-            f"{self._get_current_end_index()}"
+               f"{self._get_current_end_index()}"
 
     def _get_next_page(self) -> DataFrame:
         if not self.query:
@@ -150,49 +145,42 @@ class AdWordsToS3:
         """
 
         estimator = AdWordsParallelDataReadEstimator(
-            conn=GoogleAdWordsConnectionManager(self.__settings.source_connection_settings),
-            service=self.__settings.source_service,
-            version=self.__settings.source_service_version,
-            query=self.__settings.source_query_fragment.Limit(0, 1).Build())
+            conn=GoogleAdWordsConnectionManager(self.__source.connection_settings),
+            service=self.__source.service,
+            version=self.__source.service_version,
+            query=self.__source.query_fragment.Limit(0, 1).Build())
         return estimator.get_parallel_payloads(page_size, number_of_workers)
-
-
-@dataclass
-class AdWordsReportToS3Settings:
-    """S3 to Cassandra ETL settings"""
-    source_query: ReportQuery
-    source_include_zero_impressions: bool
-    source_connection_settings: GoogleAdWordsConnectionSettings
-    target_bucket: str
-    target_key_prefix: str
-    target_file_prefix: Optional[str]
-    target_connection_settings: AwsConnectionSettings
 
 
 class AdWordsReportsToS3:
     """
     ETL Class to handle the transfer of data from adwords reports based on AWQL to S3 as parquet
+
     Args:
-        settings (AdWordsToS3Settings): the etl settings to be used
+        source:
+        sink:
+
     """
 
-    def __init__(self, settings: AdWordsReportToS3Settings):
-        self.__settings = settings
+    def __init__(self, source: AdWordsReportSource, sink: S3DirectorySink):
+        self.__source = source
+        self.__sink = sink
+
         self._adwords_util = None
         self._s3_util = None
 
     def _get_s3_util(self) -> S3Util:
         if self._s3_util is None:
             self._s3_util = S3Util(
-                bucket=self.__settings.target_bucket,
-                conn=AwsConnectionManager(self.__settings.target_connection_settings),
+                bucket=self.__sink.bucket,
+                conn=AwsConnectionManager(self.__sink.connection_settings),
             )
         return self._s3_util
 
     def _get_adwords_util(self) -> AdWordsReportReader:
         if self._adwords_util is None:
             self._adwords_util = AdWordsReportReader(
-                conn=GoogleAdWordsConnectionManager(self.__settings.source_connection_settings))
+                conn=GoogleAdWordsConnectionManager(self.__source.connection_settings))
         return self._adwords_util
 
     def transfer(self, **kwargs):
@@ -203,18 +191,18 @@ class AdWordsReportsToS3:
         data = self._get_report_data(**kwargs)
         s3u = self._get_s3_util()
         file_name = "report_data"
-        if self.__settings.target_file_prefix:
-            file_name = f"{self.__settings.target_file_prefix}{file_name}"
+        if self.__sink.file_prefix:
+            file_name = f"{self.__sink.file_prefix}{file_name}"
         dataframe_columns_to_snake_case(data)
         s3u.upload_dataframe_as_parquet(
             dataframe=data,
-            key=self.__settings.target_key_prefix,
+            key=self.__sink.directory_key,
             file_name=file_name)
 
     def _get_report_data(self, **kwargs):
         au = self._get_adwords_util()
         data = au.awql_to_dataframe(
-            self.__settings.source_query,
-            self.__settings.source_include_zero_impressions,
+            self.__source.query,
+            self.__source.include_zero_impressions,
             **kwargs)
         return data

@@ -5,7 +5,8 @@ from attr import dataclass
 
 from hip_data_tools.aws.athena import AthenaUtil
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
-from hip_data_tools.etl.s3_to_dataframe import S3ToDataFrameSettings, S3ToDataFrame
+from hip_data_tools.etl.common import AthenaTableSource, S3DirectorySource
+from hip_data_tools.etl.s3_to_dataframe import S3ToDataFrame
 
 
 @dataclass
@@ -23,20 +24,20 @@ class AthenaToDataFrame(S3ToDataFrame):
         settings (AthenaToCassandraSettings): the settings around the etl to be executed
     """
 
-    def __init__(self, settings: AthenaToDataFrameSettings):
+    def __init__(self, source: AthenaTableSource):
+        self.__source = source
         self._athena = None
-        self.__settings = settings
-        (bucket, key) = self._get_athena_util().get_table_data_location(settings.source_table)
-        self.s3_settings = S3ToDataFrameSettings(
-            source_bucket=bucket,
-            source_key_prefix=key,
-            source_connection_settings=settings.source_connection_settings,
-        )
-        super().__init__(self.s3_settings)
+        (bucket, key) = self._get_athena_util().get_table_data_location(source.table)
+        super().__init__(source=S3DirectorySource(
+            connection_settings=self.__source.connection_settings,
+            bucket=bucket,
+            directory_key=key,
+        ))
 
     def _get_athena_util(self):
         if self._athena is None:
             self._athena = AthenaUtil(
-                database=self.__settings.source_database,
-                conn=AwsConnectionManager(self.__settings.source_connection_settings))
+                settings=self.__source,
+                conn=AwsConnectionManager(settings=self.__source.connection_settings),
+            )
         return self._athena

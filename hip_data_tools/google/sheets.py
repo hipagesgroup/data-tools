@@ -4,9 +4,9 @@ This module is responsible for all Google sheets operations
 import re
 from typing import List, Any
 
+import gspread
 import pandas as pd
 from pandas import DataFrame
-import gspread
 
 from hip_data_tools.common import LOG
 from hip_data_tools.google.common import GoogleApiConnectionManager, GoogleApiConnectionSettings

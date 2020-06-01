@@ -14,7 +14,7 @@ from hip_data_tools.apache.cassandra import CassandraConnectionSettings, Cassand
 from hip_data_tools.aws.common import AwsConnectionSettings
 from hip_data_tools.common import DictKeyValueSource
 from hip_data_tools.etl.athena_to_adwords import AthenaToAdWordsOfflineConversion, \
-    AthenaToAdWordsOfflineConversionSettings
+    AthenaToAdWordsOfflineConversionSource
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionSettings, \
     GoogleAdWordsSecretsManager
 
@@ -29,7 +29,7 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
 
         cassandra_conn_setting = Mock()
 
-        settings = AthenaToAdWordsOfflineConversionSettings(
+        settings = AthenaToAdWordsOfflineConversionSource(
             source_database=os.getenv("dummy_athena_database"),
             source_table=os.getenv("dummy_athena_table"),
             source_connection_settings=aws_conn,
@@ -105,7 +105,7 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
 
             verify_container_is_up(cassandra_conn_setting)
 
-            settings = AthenaToAdWordsOfflineConversionSettings(
+            settings = AthenaToAdWordsOfflineConversionSource(
                 source_database=os.getenv("dummy_athena_database"),
                 source_table=os.getenv("dummy_athena_table"),
                 source_connection_settings=aws_conn,
@@ -212,7 +212,7 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
             conn = verify_container_is_up(cassandra_conn_setting)
             # conn.get_session('system').execute(""" DROP TABLE test.etl_sink_record_state""")
 
-            settings = AthenaToAdWordsOfflineConversionSettings(
+            settings = AthenaToAdWordsOfflineConversionSource(
                 source_database=os.getenv("dummy_athena_database"),
                 source_table=os.getenv("dummy_athena_table"),
                 source_connection_settings=aws_conn,
@@ -339,7 +339,7 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
             conn = verify_container_is_up(cassandra_conn_setting)
             # conn.get_session('system').execute(""" DROP TABLE test.etl_sink_record_state""")
 
-            settings = AthenaToAdWordsOfflineConversionSettings(
+            settings = AthenaToAdWordsOfflineConversionSource(
                 source_database=os.getenv("dummy_athena_database"),
                 source_table=os.getenv("dummy_athena_table"),
                 source_connection_settings=aws_conn,

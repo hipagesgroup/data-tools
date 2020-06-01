@@ -1,27 +1,16 @@
 """
 Module to deal with data transfer from Adwords to Athena
 """
-from typing import List, Any, Optional, Tuple
 
-from attr import dataclass
 from pandas import DataFrame
 
 from hip_data_tools.aws.athena import AthenaUtil, get_athena_columns_from_dataframe, \
-    extract_athena_type_from_value, AthenaSettings
+    extract_athena_type_from_value
 from hip_data_tools.aws.common import AwsConnectionManager
 from hip_data_tools.common import LOG
-from hip_data_tools.etl.adwords_to_s3 import AdWordsToS3Settings, AdWordsToS3, \
-    AdWordsReportToS3Settings, AdWordsReportsToS3
-
-
-@dataclass
-class AdWordsToAthenaSettings(AdWordsToS3Settings):
-    """Settings container for Adwords to Athena ETL"""
-    target_settings: AthenaSettings
-    target_table: str
-    target_table_ddl_progress: bool
-    is_partitioned_table: bool
-    partition_values: Optional[List[Tuple[str, Any]]]
+from hip_data_tools.etl.adwords_to_s3 import AdWordsToS3, AdWordsReportsToS3
+from hip_data_tools.etl.common import AthenaTableDirectorySink, AdWordsServiceSource, \
+    S3DirectorySink, AdWordsReportSource
 
 
 class AdWordsToAthena(AdWordsToS3):
@@ -31,64 +20,57 @@ class AdWordsToAthena(AdWordsToS3):
         settings (AdWordsToS3Settings): the etl settings to be used
     """
 
-    def __init__(self, settings: AdWordsToAthenaSettings):
-        self.__settings = settings
-        self.base_dir = settings.target_key_prefix
-        if self.__settings.is_partitioned_table:
-            partition_dirs = "/".join([f"{k}={v}" for k, v in settings.partition_values])
-            settings.target_key_prefix = f"{settings.target_key_prefix}/{partition_dirs}"
-        super().__init__(settings)
+    def __init__(self, source: AdWordsServiceSource, sink: AthenaTableDirectorySink):
+        self.__source = source
+        self.__sink = sink
+
+        directory_key = sink.s3_data_location_directory_key
+        if self.__sink.is_partitioned_table:
+            partition_dirs = "/".join([f"{k}={v}" for k, v in sink.partition_value])
+            directory_key = f"{sink.s3_data_location_directory_key}/{partition_dirs}"
+        super().__init__(source=source, sink=S3DirectorySink(
+            bucket=self.__sink.s3_data_location_bucket,
+            connection_settings=self.__sink.connection_settings,
+            directory_key=directory_key,
+            file_prefix=self.__sink.file_prefix))
 
     def _get_athena_util(self):
         return AthenaUtil(
-            database=self.__settings.target_database,
-            conn=AwsConnectionManager(
-                settings=self.__settings.target_connection_settings),
-            output_bucket=self.__settings.target_bucket)
+            settings=self.__sink,
+            conn=AwsConnectionManager(settings=self.__sink.connection_settings),
+        )
 
+    def create_athena_table(self) -> None:
+        """
+        Creates an athena table on top of the transferred data
+        Returns: None
+        """
+        self.build_query(start_index=0, page_size=1, num_iterations=1)
+        data = self._get_next_page()
+        athena_util = self._get_athena_util()
+        if self.__sink.table_ddl_progress:
+            athena_util.drop_table(self.__sink.table)
+        athena_table_settings = self._construct_athena_table_settings(data)
+        athena_util.create_table(table_settings=athena_table_settings)
+        # Reset query state
+        self.query = None
 
-def create_athena_table(self) -> None:
-    """
-    Creates an athena table on top of the transferred data
-    Returns: None
-    """
-    self.build_query(start_index=0, page_size=1, num_iterations=1)
-    data = self._get_next_page()
-    athena_util = self._get_athena_util()
-    if self.__settings.target_table_ddl_progress:
-        athena_util.drop_table(self.__settings.target_table)
-    athena_table_settings = self._construct_athena_table_settings(data)
-    athena_util.create_table(table_settings=athena_table_settings)
-    # Reset query state
-    self.query = None
-
-
-def _construct_athena_table_settings(self, data: DataFrame) -> dict:
-    partition_settings = []
-    if self.__settings.is_partitioned_table:
-        partition_settings = [{"column": k, "type": extract_athena_type_from_value(v)}
-                              for k, v in self.__settings.partition_values]
-    athena_table_settings = {
-        "exists": True,
-        "partitions": partition_settings,
-        "storage_format_selector": "parquet",
-        "encryption": False,
-        "table": self.__settings.target_table,
-        "columns": get_athena_columns_from_dataframe(data),
-        "s3_bucket": self.__settings.target_bucket,
-        "s3_dir": self.base_dir,
-    }
-    return athena_table_settings
-
-
-@dataclass
-class AdWordsReportsToAthenaSettings(AdWordsReportToS3Settings):
-    """Settings container for Adwords to Athena ETL"""
-    target_settings: AthenaSettings
-    target_table: str
-    target_table_ddl_progress: bool
-    is_partitioned_table: bool
-    partition_values: Optional[List[Tuple[str, Any]]]
+    def _construct_athena_table_settings(self, data: DataFrame) -> dict:
+        partition_settings = []
+        if self.__sink.is_partitioned_table:
+            partition_settings = [{"column": k, "type": extract_athena_type_from_value(v)}
+                                  for k, v in self.__sink.partition_value]
+        athena_table_settings = {
+            "exists": True,
+            "partitions": partition_settings,
+            "storage_format_selector": "parquet",
+            "encryption": False,
+            "table": self.__sink.table,
+            "columns": get_athena_columns_from_dataframe(data),
+            "s3_bucket": self.__sink.bucket,
+            "s3_dir": self.__sink.s3_data_location_directory_key,
+        }
+        return athena_table_settings
 
 
 class AdWordsReportsToAthena(AdWordsReportsToS3):
@@ -98,33 +80,38 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
         settings (AdWordsToS3Settings): the etl settings to be used
     """
 
-    def __init__(self, settings: AdWordsReportsToAthenaSettings):
-        self.__settings = settings
-        self.base_dir = settings.target_key_prefix
-        if self.__settings.is_partitioned_table:
-            partition_dirs = "/".join([f"{k}={v}" for k, v in settings.partition_values])
-            settings.target_key_prefix = f"{settings.target_key_prefix}/{partition_dirs}"
-        self._final_target_prefix = settings.target_key_prefix
-        super().__init__(settings)
+    def __init__(self, source: AdWordsReportSource, sink: AthenaTableDirectorySink):
+        self.__source = source
+        self.__sink = sink
+
+        directory_key = sink.s3_data_location_directory_key
+        if self.__sink.is_partitioned_table:
+            partition_dirs = "/".join([f"{k}={v}" for k, v in sink.partition_value])
+            directory_key = f"{sink.s3_data_location_directory_key}/{partition_dirs}"
+        self._final_target_prefix = directory_key
+        super().__init__(source=source, sink=S3DirectorySink(
+            bucket=self.__sink.s3_data_location_bucket,
+            connection_settings=self.__sink.connection_settings,
+            directory_key=directory_key,
+            file_prefix=self.__sink.file_prefix))
 
     def _get_athena_util(self):
         return AthenaUtil(
-            database=self.__settings.target_database,
-            conn=AwsConnectionManager(
-                settings=self.__settings.target_connection_settings),
-            output_bucket=self.__settings.target_bucket)
+            settings=self.__sink,
+            conn=AwsConnectionManager(settings=self.__sink.connection_settings),
+        )
 
     def add_partitions(self):
         """
         Add the current Data Transfer's partition to Athena's Metadata
         Returns: None
         """
-        if self.__settings.is_partitioned_table:
+        if self.__sink.partition_value:
             athena_util = self._get_athena_util()
             athena_util.add_partitions(
-                table=self.__settings.target_table,
-                partition_keys=[key for (key, value) in self.__settings.partition_values],
-                partition_values=[value for (key, value) in self.__settings.partition_values]
+                table=self.__sink.table,
+                partition_keys=[key for (key, value) in self.__sink.partition_value],
+                partition_values=[value for (key, value) in self.__sink.partition_value]
             )
         else:
             LOG.warning("The table is not partitioned, this is a NOOP")
@@ -143,8 +130,8 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
             LOG.info(
                 "Downloaded parquet file from s3 to construct Athena create table statement: %s "
                 "\n made dataframe of shape %s", keys[0], data.shape)
-            if self.__settings.target_table_ddl_progress:
-                athena_util.drop_table(self.__settings.target_table)
+            if self.__sink.table_ddl_progress:
+                athena_util.drop_table(self.__sink.table)
             athena_table_settings = self._construct_athena_table_settings(data)
             athena_util.create_table(table_settings=athena_table_settings)
         else:
@@ -154,17 +141,17 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
 
     def _construct_athena_table_settings(self, data: DataFrame) -> dict:
         partition_settings = []
-        if self.__settings.is_partitioned_table:
+        if self.__sink.partition_value:
             partition_settings = [{"column": k, "type": extract_athena_type_from_value(v)}
-                                  for k, v in self.__settings.partition_values]
+                                  for k, v in self.__sink.partition_value]
         athena_table_settings = {
             "exists": True,
             "partitions": partition_settings,
             "storage_format_selector": "parquet",
             "encryption": False,
-            "table": self.__settings.target_table,
+            "table": self.__sink.table,
             "columns": get_athena_columns_from_dataframe(data),
-            "s3_bucket": self.__settings.target_bucket,
-            "s3_dir": self.base_dir,
+            "s3_bucket": self.__sink.s3_data_location_bucket,
+            "s3_dir": self.__sink.s3_data_location_directory_key,
         }
         return athena_table_settings

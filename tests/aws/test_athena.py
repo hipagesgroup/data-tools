@@ -11,7 +11,8 @@ from hip_data_tools.aws.athena import AthenaUtil
 class TestAthenaUtil(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.au = AthenaUtil(database="test", conn=None)
+        cls.au = AthenaUtil(
+            settings=athena.AthenaSettings(database="test", query_result_bucket="test"), conn=None)
 
     def test__build_create_table_sql__works_for_ga_example(self):
         actual = self.au._build_create_table_sql(
@@ -258,8 +259,7 @@ class TestAthenaUtil(TestCase):
         print(actual)
         self.assertEqual(actual, expected)
 
-    def test__get_athena_columns_from_dataframe__should__return_col_names_and_types__when__a_data_frame_is_given(
-            self):
+    def test__get_athena_columns_from_dataframe__should__return_col_names_and_types(self):
         expected = [{'column': 'field_1', 'type': 'STRING'},
                     {'column': 'field_2', 'type': 'BIGINT'},
                     {'column': 'field_3', 'type': 'STRING'},
@@ -272,3 +272,5 @@ class TestAthenaUtil(TestCase):
                        [('policyTopicEntries', []), ('reviewState', 'REVIEWED')]),
                    "field_6": 2.3434}]))
         self.assertEqual(actual, expected)
+
+

@@ -13,9 +13,13 @@ from cassandra.cqlengine import columns, ValidationError
 from cassandra.cqlengine.management import sync_table
 from cassandra.cqlengine.models import Model
 from cassandra.cqlengine.query import LWTException
+from googleads.adwords import ReportQuery, ServiceQueryBuilder
 
+from hip_data_tools.apache.cassandra import CassandraConnectionSettings
 from hip_data_tools.aws.athena import AthenaSettings
 from hip_data_tools.aws.common import AwsConnectionSettings
+from hip_data_tools.google.adwords import GoogleAdWordsConnectionSettings
+from hip_data_tools.google.common import GoogleApiConnectionSettings
 
 
 class EtlStates(Enum):
@@ -164,9 +168,122 @@ class AthenaQuerySource(AthenaSource):
 
 
 @dataclass
-class AthenaTableSink(AthenaSettings):
-    source_connection_settings: AwsConnectionSettings
-    target_table: str
-    target_table_ddl_progress: bool
-    is_partitioned_table: bool
-    partition_values: Optional[List[Tuple[str, Any]]]
+class AthenaSink(AthenaSettings):
+    connection_settings: AwsConnectionSettings
+
+
+@dataclass
+class AthenaTableSink(AthenaSink):
+    table: str
+
+
+@dataclass
+class AthenaTableDirectorySink(AthenaTableSink):
+    table_ddl_progress: bool
+    s3_data_location_bucket: str
+    s3_data_location_directory_key: str
+    partition_value: Optional[List[Tuple[str, Any]]] = None
+    file_prefix: Optional[str] = None
+
+
+@dataclass
+class AdWordsSource:
+    service: str
+    service_version: str
+    connection_settings: GoogleAdWordsConnectionSettings
+
+
+@dataclass
+class AdWordsReportSource(AdWordsSource):
+    query: ReportQuery
+    include_zero_impressions: bool
+
+
+@dataclass
+class AdWordsServiceSource(AdWordsSource):
+    query_fragment: ServiceQueryBuilder
+
+
+@dataclass
+class S3Sink:
+    bucket: str
+    connection_settings: AwsConnectionSettings
+
+
+@dataclass
+class S3DirectorySink(S3Sink):
+    directory_key: str
+    file_prefix: Optional[str]
+
+
+@dataclass
+class AthenaSource(AthenaSettings):
+    connection_settings: AwsConnectionSettings
+
+
+@dataclass
+class AthenaTableSource(AthenaSource):
+    table: str
+
+
+@dataclass
+class AthenaQuerySource(AthenaSource):
+    sql: str
+
+
+@dataclass
+class S3Source:
+    connection_settings: AwsConnectionSettings
+    bucket: str
+
+
+@dataclass
+class S3DirectorySource(S3Source):
+    directory_key: str
+
+
+@dataclass
+class S3DirectorySuffixSource(S3DirectorySource):
+    suffix: Optional[str]
+
+
+@dataclass
+class S3FileSource(S3Source):
+    key: str
+
+
+@dataclass
+class CassandraSink:
+    connection_settings: CassandraConnectionSettings
+
+
+@dataclass
+class CassandraKeySpaceSink(CassandraSink):
+    keyspace: str
+
+
+@dataclass
+class CassandraTableSink(CassandraKeySpaceSink):
+    table: str
+    table_primary_keys: list
+    destination_table_options_statement: str = ""
+    destination_batch_size: int = 1
+
+
+@dataclass
+class GoogleApiSource:
+    connection_settings: GoogleApiConnectionSettings
+
+
+@dataclass
+class GoogleSheetsSource(GoogleApiSource):
+    workbook_url: str
+    sheet: str
+
+
+@dataclass
+class GoogleSheetsTableSource(GoogleSheetsSource):
+    row_range: str
+    field_names_row_number: int
+    field_types_row_number: int
+    data_start_row_number: int

@@ -239,8 +239,8 @@ def _construct_table_exists_ddl(enable_exists):
 class AthenaSettings:
     """Athena settings"""
     database: str
-    output_bucket: str
-    output_key: str
+    query_result_bucket: str
+    query_result_key: str
 
 
 class AthenaUtil(AwsUtil):
@@ -248,22 +248,16 @@ class AthenaUtil(AwsUtil):
     Utility class for connecting to athena and manipulate data in a pythonic way
 
     Args:
-        database (string): the athena database to run queries on
+        settings (AthenaSettings): the athena settings to use to connect
         conn (AwsConnection): AwsConnection object
-        output_key (string): the s3 key where the results of athena queries will be stored
-        output_bucket (string): the s3 bucket where the results of athena queries will be stored
     """
 
     def __init__(self,
-                 database: str,
-                 conn: AwsConnectionManager,
-                 output_key: str = None,
-                 output_bucket: str = None):
+                 settings: AthenaSettings,
+                 conn: AwsConnectionManager):
         super().__init__(conn, "athena")
-        self.database = database
+        self.__settings = settings
         self.conn = conn
-        self.output_key = output_key
-        self.output_bucket = output_bucket
         self.storage_format_lookup = {
             "parquet": {
                 "row_format_serde": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
@@ -286,9 +280,9 @@ class AthenaUtil(AwsUtil):
         """
         General purpose query executor that submits an athena query, then uses the execution id
         to poll and monitor the
-        sucess of the query. and optionally return the result.
+        success of the query. and optionally return the result.
         Args:
-            query_string (string): The string contianing valid athena query
+            query_string (string): The string containing valid athena query
             return_result (boolean): Boolean flag to turn on results
 
         Returns (boolean): if return_result = True then returns result dictionary, else None
@@ -296,15 +290,15 @@ class AthenaUtil(AwsUtil):
         """
         athena = self.get_client()
         output_location = "s3://{bucket}/{key}".format(
-            bucket=self.output_bucket,
-            key=self.output_key)
+            bucket=self.__settings.query_result_bucket,
+            key=self.__settings.query_result_key)
         LOG.info("executing query \n%s \non database - %s with results location %s", query_string,
-                 self.database,
+                 self.__settings.database,
                  output_location)
         response = athena.start_query_execution(
             QueryString=query_string,
             QueryExecutionContext={
-                'Database': self.database
+                'Database': self.__settings.database
             },
             ResultConfiguration={
                 'OutputLocation': output_location
@@ -327,8 +321,8 @@ class AthenaUtil(AwsUtil):
         """
         Watch the query execution for a given execution id in Athena
         Args:
-            execution_id: the execution id of an Athena Auery
-            poll_frequency (int): Freq in seconds to poll for the query status using Athen API
+            execution_id: the execution id of an Athena Query
+            poll_frequency (int): Freq in seconds to poll for the query status using Athena API
 
         Returns: dictionary of status from Athena
 
@@ -441,7 +435,7 @@ class AthenaUtil(AwsUtil):
 
     def get_table_ddl(self, table):
         """
-        Retrive the table DDL in string
+        Retrieve the table DDL in string
         Args:
             table (string): name of the table for which ddl needs to be generated
 
@@ -468,19 +462,19 @@ class AthenaUtil(AwsUtil):
         location = table['Table']['StorageDescriptor']['Location']
         bucket = location.split("/")[2]
         key = "/".join(location.split("/")[3:])
-        return (bucket, key)
+        return bucket, key
 
     def get_table_columns(self, table: str) -> Tuple[List[dict], List[dict]]:
         """
         Retrieves the table's columns using glue meta store
         Args:
             table (str): name of the table
-        Returns: tuple of regular and partition column dictonaries
+        Returns: tuple of regular and partition column dictionaries
         """
         table = self.get_glue_table_metadata(table)
         regular_columns = table["Table"]["StorageDescriptor"]["Columns"]
         partition_columns = table["Table"]["PartitionKeys"]
-        return (regular_columns, partition_columns)
+        return regular_columns, partition_columns
 
     def get_glue_table_metadata(self, table: str) -> dict:
         """
@@ -489,7 +483,7 @@ class AthenaUtil(AwsUtil):
             table (str): Athena table name
         Returns: A dict of table metadata
         """
-        return self.conn.client('glue').get_table(DatabaseName=self.database, Name=table)
+        return self.conn.client('glue').get_table(DatabaseName=self.__settings.database, Name=table)
 
     def drop_table(self, table_name):
         """

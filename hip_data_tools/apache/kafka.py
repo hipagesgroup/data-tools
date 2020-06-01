@@ -5,13 +5,13 @@ producers and consumers
 
 import json
 import os
-import time
 import traceback
 import uuid
 from ast import literal_eval
 from datetime import datetime
 
 import pandas as pd
+import time
 from confluent_kafka import Producer, Consumer
 
 # TODO: For the kafka consumer implement the commit of the messages only after
@@ -697,7 +697,7 @@ class KafkaConduit:
         while True:
             LOG.debug("Polling Kafka for messages")
             self.create_events_snapshot()
-            log.debug("Upload complete, sleeping")
+            LOG.debug("Upload complete, sleeping")
             time.sleep(self._polling_interval)
 
     def create_events_snapshot(self):
@@ -709,7 +709,7 @@ class KafkaConduit:
         """
 
         msgs = self._kafka_poller.get_msgs()
-        log.debug("Json messages : %s", msgs)
+        LOG.debug("Json messages : %s", msgs)
 
         self._kafka_s3_exporter.parse_and_export_msgs(msgs,
                                                       self._polling_interval)

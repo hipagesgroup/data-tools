@@ -9,21 +9,25 @@ from pandas import DataFrame
 
 from hip_data_tools.apache.cassandra import CassandraConnectionManager, CassandraConnectionSettings
 from hip_data_tools.common import LOG
-from hip_data_tools.etl.athena_to_dataframe import AthenaToDataFrame, AthenaToDataFrameSettings
-from hip_data_tools.etl.common import EtlSinkRecordStateManager, sync_etl_state_table, EtlStates
+from hip_data_tools.etl.athena_to_dataframe import AthenaToDataFrame
+from hip_data_tools.etl.common import EtlSinkRecordStateManager, sync_etl_state_table, EtlStates, \
+    AthenaTableSource
 from hip_data_tools.google.adwords import AdWordsOfflineConversionUtil, \
     GoogleAdWordsConnectionManager, GoogleAdWordsConnectionSettings
 
 
 @dataclass
-class AthenaToAdWordsOfflineConversionSettings(AthenaToDataFrameSettings):
-    """S3 to Cassandra ETL settings"""
-    transformation_column_mapping: dict
+class StateManagerSink:
     etl_identifier: str
     etl_state_manager_keyspace: str
     etl_state_manager_connection: CassandraConnectionSettings
-    destination_batch_size: int
-    destination_connection_settings: GoogleAdWordsConnectionSettings
+
+
+@dataclass
+class AdwordsOfflineConversionSink:
+    transformation_column_mapping: dict
+    batch_size: int
+    connection_settings: GoogleAdWordsConnectionSettings
 
 
 def _get_record_signature(record: dict):
@@ -39,14 +43,22 @@ def _get_structured_issue(error, data):
 
 class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
     """
-    Class to transfer parquet data from s3 to Cassandra
+    Transfer parquet data from s3 to Cassandra
+
     Args:
-        settings (AthenaToCassandraSettings): the settings around the etl to be executed
+        source:
+        sink:
+        state_sink:
     """
 
-    def __init__(self, settings: AthenaToAdWordsOfflineConversionSettings):
-        self.__settings = settings
-        super().__init__(settings)
+    def __init__(self,
+                 source: AthenaTableSource,
+                 sink: AdwordsOfflineConversionSink,
+                 state_sink: StateManagerSink):
+        self.__source = source
+        self.__sink = sink
+        self.__state_sink = state_sink
+        super().__init__(source)
         self._adwords = None
 
     def upload_next(self) -> List[dict]:
@@ -85,7 +97,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
     def _get_adwords_util(self):
         if self._adwords is None:
             self._adwords = AdWordsOfflineConversionUtil(
-                GoogleAdWordsConnectionManager(self.__settings.destination_connection_settings)
+                GoogleAdWordsConnectionManager(self.__sink.connection_settings)
             )
         return self._adwords
 
@@ -93,18 +105,18 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         # Need to set up the cassandra connection
         return EtlSinkRecordStateManager(
             record_identifier=_get_record_signature(record),
-            etl_signature=self.__settings.etl_identifier
+            etl_signature=self.__state_sink.etl_identifier
         )
 
     def _data_frame_to_destination_dict(self, data_frame: DataFrame) -> List[dict]:
-        data_frame = data_frame.rename(columns=self.__settings.transformation_column_mapping)
+        data_frame = data_frame.rename(columns=self.__sink.transformation_column_mapping)
         approved_fields = self._get_adwords_util().valid_fields
         drop_fields = [col for col in list(data_frame.columns) if col not in approved_fields]
         data_frame = data_frame.drop(drop_fields, axis=1)
         return data_frame.to_dict('records')
 
     def _chunk_batches(self, lst: List[dict]) -> List[List[dict]]:
-        n = self.__settings.destination_batch_size
+        n = self.__sink.batch_size
         return [lst[i * n:(i + 1) * n] for i in range((len(lst) + n - 1) // n)]
 
     def _process_data_frame(self, data_frame) -> List[dict]:
@@ -123,8 +135,8 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         return self._get_adwords_util().upload_conversions(data_batch)
 
     def _state_manager_connect(self):
-        conn = CassandraConnectionManager(self.__settings.etl_state_manager_connection)
-        conn.setup_connection(self.__settings.etl_state_manager_keyspace)
+        conn = CassandraConnectionManager(self.__state_sink.etl_state_manager_connection)
+        conn.setup_connection(self.__state_sink.etl_state_manager_keyspace)
         sync_etl_state_table()
 
     def _mark_processing(self, data: List[dict]) -> (List[dict], List[dict]):

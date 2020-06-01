@@ -32,22 +32,23 @@ class S3ToCassandra(S3ToDataFrame):
         settings (S3ToCassandraSettings): the settings around the etl to be executed
     """
 
-    def __init__(self, settings: S3ToCassandraSettings):
-        self.__settings = settings
-        super().__init__(self.__settings)
+    def __init__(self, source, sink):
+        self.__source = source
+        self.__sink = sink
         self.keys_to_transfer = None
+        super().__init__(source)
 
     def _get_cassandra_util(self):
         return CassandraUtil(
-            keyspace=self.__settings.destination_keyspace,
+            keyspace=self.__sink.keyspace,
             conn=CassandraConnectionManager(
-                settings=self.__settings.destination_connection_settings),
+                settings=self.__sink.connection_settings),
         )
 
     def _get_s3_util(self):
         return S3Util(
-            bucket=self.__settings.source_bucket,
-            conn=AwsConnectionManager(self.__settings.source_connection_settings),
+            bucket=self.__source.bucket,
+            conn=AwsConnectionManager(self.__source.connection_settings),
         )
 
     def create_table(self):
@@ -60,9 +61,9 @@ class S3ToCassandra(S3ToDataFrame):
             key=files[0])
         self._get_cassandra_util().create_table_from_dataframe(
             data_frame=data_frame,
-            table_name=self.__settings.destination_table,
-            primary_key_column_list=self.__settings.destination_table_primary_keys,
-            table_options_statement=self.__settings.destination_table_options_statement,
+            table_name=self.__sink.table,
+            primary_key_column_list=self.__sink.table_primary_keys,
+            table_options_statement=self.__sink.table_options_statement,
         )
 
     def create_and_upsert_all(self) -> List[List[Result]]:
@@ -81,17 +82,17 @@ class S3ToCassandra(S3ToDataFrame):
         return [self._upsert_data_frame(df) for df in self._get_iterator()]
 
     def _upsert_data_frame(self, data_frame):
-        if self.__settings.destination_batch_size > 1:
-            LOG.info("Going to upsert batches of size %s", self.__settings.destination_batch_size)
+        if self.__sink.batch_size > 1:
+            LOG.info("Going to upsert batches of size %s", self.__sink.batch_size)
             result = self._get_cassandra_util().upsert_dataframe_in_batches(
                 dataframe=data_frame,
-                table=self.__settings.destination_table,
-                batch_size=self.__settings.destination_batch_size)
+                table=self.__sink.table,
+                batch_size=self.__sink.batch_size)
         else:
             LOG.info("Going to upsert one row at a time")
             result = self._get_cassandra_util().upsert_dataframe(
                 dataframe=data_frame,
-                table=self.__settings.destination_table)
+                table=self.__sink.table)
         return result
 
     def upsert_file(self, key: str) -> List[Result]:

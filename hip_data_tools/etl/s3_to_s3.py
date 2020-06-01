@@ -8,6 +8,7 @@ from attr import dataclass
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.common import LOG
+from hip_data_tools.etl.common import S3DirectorySuffixSource, S3DirectorySink
 
 
 @dataclass
@@ -39,22 +40,25 @@ class S3ToS3:
     ...    )
     """
 
-    def __init__(self, settings: S3ToS3Settings):
-        self.__settings = settings
+    def __init__(self, source: S3DirectorySuffixSource, sink: S3DirectorySink):
+        self.__source = source
+        self.__sink = sink
         self._s3_util = None
         self._source_keys = None
 
     def _get_s3_util(self) -> S3Util:
         if self._s3_util is None:
             self._s3_util = S3Util(
-                bucket=self.__settings.source_bucket,
-                conn=AwsConnectionManager(self.__settings.connection_settings),
+                bucket=self.__source.bucket,
+                conn=AwsConnectionManager(self.__source.connection_settings),
             )
         return self._s3_util
 
     def _get_target_key(self, source_key: str) -> str:
         file_name = source_key.split('/')[-1]
-        return f"{self.__settings.target_key_prefix}/{file_name}"
+        if self.__sink.file_prefix:
+            file_name = f"{self.__sink.file_prefix}_{file_name}"
+        return f"{self.__sink.directory_key}/{file_name}"
 
     def list_source_files(self) -> List[str]:
         """
@@ -62,11 +66,11 @@ class S3ToS3:
         Returns: List[str]
         """
         if self._source_keys is None:
-            keys = self._get_s3_util().get_keys(self.__settings.source_key_prefix)
-            if self.__settings.suffix:
-                keys = [key for key in keys if key.endswith(self.__settings.suffix)]
+            keys = self._get_s3_util().get_keys(self.__source.directory_key)
+            if self.__source.suffix:
+                keys = [key for key in keys if key.endswith(self.__source.suffix)]
             self._source_keys = keys
-            LOG.info("Listed and cached %s source files", len(self._source_keys))
+            LOG.info("Enumerated %s source files", len(self._source_keys))
         return self._source_keys
 
     def transfer_file(self, source_key: str) -> None:
@@ -78,16 +82,16 @@ class S3ToS3:
         """
         s3 = self._get_s3_util().get_client()
         copy_source = {
-            'Bucket': self.__settings.source_bucket,
+            'Bucket': self.__source.bucket,
             'Key': source_key
         }
         target_key = self._get_target_key(source_key)
         LOG.info("Transferring Key s3://%s/%s to s3://%s/%s",
-                 self.__settings.source_bucket,
+                 self.__source.bucket,
                  source_key,
-                 self.__settings.target_bucket,
+                 self.__sink.bucket,
                  target_key)
-        s3.copy(copy_source, self.__settings.target_bucket, target_key)
+        s3.copy(copy_source, self.__sink.bucket, target_key)
 
     def transfer_all_files(self) -> None:
         """
