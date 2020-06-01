@@ -87,18 +87,21 @@ class AthenaUtil(AwsUtil):
         conn (AwsConnection): AwsConnection object
         output_key (string): the s3 key where the results of athena queries will be stored
         output_bucket (string): the s3 bucket where the results of athena queries will be stored
+        work_group (string): Athena workGroup name
     """
 
     def __init__(self,
                  database: str,
                  conn: AwsConnectionManager,
                  output_key: str = None,
-                 output_bucket: str = None):
+                 output_bucket: str = None,
+                 work_group: str = "primary"):
         super().__init__(conn, "athena")
         self.database = database
         self.conn = conn
         self.output_key = output_key
         self.output_bucket = output_bucket
+        self.work_group = work_group
         self.storage_format_lookup = {
             "parquet": {
                 "row_format_serde": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
@@ -143,7 +146,8 @@ class AthenaUtil(AwsUtil):
             },
             ResultConfiguration={
                 'OutputLocation': output_location
-            }
+            },
+            WorkGroup=self.work_group
         )
         execution_id = response['QueryExecutionId']
         stats = self.watch_query(execution_id)
