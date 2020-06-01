@@ -4,7 +4,7 @@ handle ETL of data from Athena to Cassandra
 from attr import dataclass
 
 from hip_data_tools.apache.cassandra import CassandraConnectionSettings
-from hip_data_tools.aws.athena import AthenaUtil
+from hip_data_tools.aws.athena import AthenaUtil, AthenaSettings
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.etl.s3_to_cassandra import S3ToCassandraSettings, S3ToCassandra
 
@@ -12,7 +12,7 @@ from hip_data_tools.etl.s3_to_cassandra import S3ToCassandraSettings, S3ToCassan
 @dataclass
 class AthenaToCassandraSettings:
     """S3 to Cassandra ETL settings"""
-    source_database: str
+    source_settings: AthenaSettings
     source_table: str
     source_connection_settings: AwsConnectionSettings
     destination_keyspace: str
@@ -26,6 +26,22 @@ class AthenaToCassandraSettings:
 class AthenaToCassandra(S3ToCassandra):
     """
     Class to transfer parquet data from s3 to Cassandra
+    Example -
+
+    >>> from hip_data_tools.etl.athena_to_cassandra import AthenaToCassandraSettings, AthenaToCassandraSettings
+    >>> from hip_data_tools.aws.athena import AthenaSettings
+    >>> reader = AthenaToCassandra(
+    ...     settings=AthenaToCassandraSettings(
+    ...            source_settings=AthenaSettings(
+    ...                 database="some_database",
+    ...                 output_bucket="athena-results-bucket",
+    ...                 output_key="my/work/location/some/random/key"
+    ...             )
+    ...         )
+    ...     )
+    >>> reader.create_and_upsert_all()
+    >>> reader.create_table()
+
     Args:
         settings (AthenaToCassandraSettings): the settings around the etl to be executed
     """

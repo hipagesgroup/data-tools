@@ -6,10 +6,10 @@ from typing import List, Any, Optional, Tuple
 from attr import dataclass
 from pandas import DataFrame
 
-from hip_data_tools.common import LOG
 from hip_data_tools.aws.athena import AthenaUtil, get_athena_columns_from_dataframe, \
-    extract_athena_type_from_value
+    extract_athena_type_from_value, AthenaSettings
 from hip_data_tools.aws.common import AwsConnectionManager
+from hip_data_tools.common import LOG
 from hip_data_tools.etl.adwords_to_s3 import AdWordsToS3Settings, AdWordsToS3, \
     AdWordsReportToS3Settings, AdWordsReportsToS3
 
@@ -17,7 +17,7 @@ from hip_data_tools.etl.adwords_to_s3 import AdWordsToS3Settings, AdWordsToS3, \
 @dataclass
 class AdWordsToAthenaSettings(AdWordsToS3Settings):
     """Settings container for Adwords to Athena ETL"""
-    target_database: str
+    target_settings: AthenaSettings
     target_table: str
     target_table_ddl_progress: bool
     is_partitioned_table: bool
@@ -46,43 +46,45 @@ class AdWordsToAthena(AdWordsToS3):
                 settings=self.__settings.target_connection_settings),
             output_bucket=self.__settings.target_bucket)
 
-    def create_athena_table(self) -> None:
-        """
-        Creates an athena table on top of the transferred data
-        Returns: None
-        """
-        self.build_query(start_index=0, page_size=1, num_iterations=1)
-        data = self._get_next_page()
-        athena_util = self._get_athena_util()
-        if self.__settings.target_table_ddl_progress:
-            athena_util.drop_table(self.__settings.target_table)
-        athena_table_settings = self._construct_athena_table_settings(data)
-        athena_util.create_table(table_settings=athena_table_settings)
-        # Reset query state
-        self.query = None
 
-    def _construct_athena_table_settings(self, data: DataFrame) -> dict:
-        partition_settings = []
-        if self.__settings.is_partitioned_table:
-            partition_settings = [{"column": k, "type": extract_athena_type_from_value(v)}
-                                  for k, v in self.__settings.partition_values]
-        athena_table_settings = {
-            "exists": True,
-            "partitions": partition_settings,
-            "storage_format_selector": "parquet",
-            "encryption": False,
-            "table": self.__settings.target_table,
-            "columns": get_athena_columns_from_dataframe(data),
-            "s3_bucket": self.__settings.target_bucket,
-            "s3_dir": self.base_dir,
-        }
-        return athena_table_settings
+def create_athena_table(self) -> None:
+    """
+    Creates an athena table on top of the transferred data
+    Returns: None
+    """
+    self.build_query(start_index=0, page_size=1, num_iterations=1)
+    data = self._get_next_page()
+    athena_util = self._get_athena_util()
+    if self.__settings.target_table_ddl_progress:
+        athena_util.drop_table(self.__settings.target_table)
+    athena_table_settings = self._construct_athena_table_settings(data)
+    athena_util.create_table(table_settings=athena_table_settings)
+    # Reset query state
+    self.query = None
+
+
+def _construct_athena_table_settings(self, data: DataFrame) -> dict:
+    partition_settings = []
+    if self.__settings.is_partitioned_table:
+        partition_settings = [{"column": k, "type": extract_athena_type_from_value(v)}
+                              for k, v in self.__settings.partition_values]
+    athena_table_settings = {
+        "exists": True,
+        "partitions": partition_settings,
+        "storage_format_selector": "parquet",
+        "encryption": False,
+        "table": self.__settings.target_table,
+        "columns": get_athena_columns_from_dataframe(data),
+        "s3_bucket": self.__settings.target_bucket,
+        "s3_dir": self.base_dir,
+    }
+    return athena_table_settings
 
 
 @dataclass
 class AdWordsReportsToAthenaSettings(AdWordsReportToS3Settings):
     """Settings container for Adwords to Athena ETL"""
-    target_database: str
+    target_settings: AthenaSettings
     target_table: str
     target_table_ddl_progress: bool
     is_partitioned_table: bool

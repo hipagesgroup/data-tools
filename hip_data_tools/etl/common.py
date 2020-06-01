@@ -5,12 +5,17 @@ import string
 from datetime import datetime
 from enum import Enum
 from random import random
+from typing import Optional, List, Tuple, Any
 
 import time
+from attr import dataclass
 from cassandra.cqlengine import columns, ValidationError
 from cassandra.cqlengine.management import sync_table
 from cassandra.cqlengine.models import Model
 from cassandra.cqlengine.query import LWTException
+
+from hip_data_tools.aws.athena import AthenaSettings
+from hip_data_tools.aws.common import AwsConnectionSettings
 
 
 class EtlStates(Enum):
@@ -141,3 +146,27 @@ def get_random_string(length: int) -> str:
     """
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(length))
+
+
+@dataclass
+class AthenaSource(AthenaSettings):
+    connection_settings: AwsConnectionSettings
+
+
+@dataclass
+class AthenaTableSource(AthenaSource):
+    table_name: str
+
+
+@dataclass
+class AthenaQuerySource(AthenaSource):
+    sql: str
+
+
+@dataclass
+class AthenaTableSink(AthenaSettings):
+    source_connection_settings: AwsConnectionSettings
+    target_table: str
+    target_table_ddl_progress: bool
+    is_partitioned_table: bool
+    partition_values: Optional[List[Tuple[str, Any]]]

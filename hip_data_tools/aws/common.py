@@ -45,7 +45,7 @@ class AwsConnectionSettings:
 
 class AwsConnectionManager:
     """
-    utility class to connect to a database and perform some basic operations
+    utility class to connect to aws and perform some basic operations
     example -
     to connect using an aws cli profile
     >>> conn = AwsConnectionManager(
