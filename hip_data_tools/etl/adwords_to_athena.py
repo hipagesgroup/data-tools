@@ -25,7 +25,7 @@ class AdWordsToAthena(AdWordsToS3):
         self.__sink = sink
 
         directory_key = sink.s3_data_location_directory_key
-        if self.__sink.is_partitioned_table:
+        if self.__sink.partition_value:
             partition_dirs = "/".join([f"{k}={v}" for k, v in sink.partition_value])
             directory_key = f"{sink.s3_data_location_directory_key}/{partition_dirs}"
         super().__init__(source=source, sink=S3DirectorySink(
@@ -57,7 +57,7 @@ class AdWordsToAthena(AdWordsToS3):
 
     def _construct_athena_table_settings(self, data: DataFrame) -> dict:
         partition_settings = []
-        if self.__sink.is_partitioned_table:
+        if self.__sink.partition_value:
             partition_settings = [{"column": k, "type": extract_athena_type_from_value(v)}
                                   for k, v in self.__sink.partition_value]
         athena_table_settings = {
@@ -67,7 +67,7 @@ class AdWordsToAthena(AdWordsToS3):
             "encryption": False,
             "table": self.__sink.table,
             "columns": get_athena_columns_from_dataframe(data),
-            "s3_bucket": self.__sink.bucket,
+            "s3_bucket": self.__sink.s3_data_location_bucket,
             "s3_dir": self.__sink.s3_data_location_directory_key,
         }
         return athena_table_settings
@@ -85,7 +85,7 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
         self.__sink = sink
 
         directory_key = sink.s3_data_location_directory_key
-        if self.__sink.is_partitioned_table:
+        if self.__sink.partition_value:
             partition_dirs = "/".join([f"{k}={v}" for k, v in sink.partition_value])
             directory_key = f"{sink.s3_data_location_directory_key}/{partition_dirs}"
         self._final_target_prefix = directory_key

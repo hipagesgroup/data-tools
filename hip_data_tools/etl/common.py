@@ -188,8 +188,6 @@ class AthenaTableDirectorySink(AthenaTableSink):
 
 @dataclass
 class AdWordsSource:
-    service: str
-    service_version: str
     connection_settings: GoogleAdWordsConnectionSettings
 
 
@@ -201,6 +199,8 @@ class AdWordsReportSource(AdWordsSource):
 
 @dataclass
 class AdWordsServiceSource(AdWordsSource):
+    service: str
+    service_version: str
     query_fragment: ServiceQueryBuilder
 
 

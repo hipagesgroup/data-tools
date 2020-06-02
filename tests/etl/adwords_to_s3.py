@@ -6,7 +6,8 @@ from py._builtin import execfile
 
 from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 from hip_data_tools.aws.s3 import S3Util
-from hip_data_tools.etl.adwords_to_s3 import AdWordsToS3Settings, AdWordsToS3
+from hip_data_tools.etl.adwords_to_s3 import AdWordsToS3
+from hip_data_tools.etl.common import S3DirectorySink, AdWordsServiceSource
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionSettings, \
     GoogleAdWordsSecretsManager
 
@@ -29,18 +30,19 @@ class TestAdwordsToS3(TestCase):
             user_agent="Tester",
             client_customer_id=os.getenv("adwords_client_customer_id"),
             secrets_manager=GoogleAdWordsSecretsManager())
-
-        etl_settings = AdWordsToS3Settings(
-            source_query_fragment=ServiceQueryBuilder().Select('Id').OrderBy('Id'),
-            source_service="AdGroupAdService",
-            source_service_version="v201809",
-            source_connection_settings=adwords_settings,
-            target_bucket=target_bucket,
-            target_key_prefix=target_key_prefix,
-            target_file_prefix=None,
-            target_connection_settings=aws_setting
+        source = AdWordsServiceSource(
+            query_fragment=ServiceQueryBuilder().Select('Id').OrderBy('Id'),
+            service="AdGroupAdService",
+            service_version="v201809",
+            connection_settings=adwords_settings,
         )
-        etl = AdWordsToS3(etl_settings)
+        sink = S3DirectorySink(
+            connection_settings=aws_setting,
+            bucket=target_bucket,
+            directory_key=target_key_prefix,
+            file_prefix=None,
+        )
+        etl = AdWordsToS3(source=source, sink=sink)
 
         actual_payloads = etl.get_parallel_payloads(page_size=1000, number_of_workers=3)
         expected_payloads = [
@@ -68,17 +70,19 @@ class TestAdwordsToS3(TestCase):
             client_customer_id=os.getenv("adwords_client_customer_id"),
             secrets_manager=GoogleAdWordsSecretsManager())
 
-        etl_settings = AdWordsToS3Settings(
-            source_query_fragment=ServiceQueryBuilder().Select('Id').OrderBy('Id'),
-            source_service="AdGroupAdService",
-            source_service_version="v201809",
-            source_connection_settings=adwords_settings,
-            target_bucket=target_bucket,
-            target_key_prefix=target_key_prefix,
-            target_file_prefix=None,
-            target_connection_settings=aws_setting
+        source = AdWordsServiceSource(
+            query_fragment=ServiceQueryBuilder().Select('Id').OrderBy('Id'),
+            service="AdGroupAdService",
+            service_version="v201809",
+            connection_settings=adwords_settings,
         )
-        etl = AdWordsToS3(etl_settings)
+        sink = S3DirectorySink(
+            connection_settings=aws_setting,
+            bucket=target_bucket,
+            directory_key=target_key_prefix,
+            file_prefix=None,
+        )
+        etl = AdWordsToS3(source=source, sink=sink)
         etl.build_query(start_index=0, page_size=5, num_iterations=2)
 
         etl.transfer_all()
@@ -107,17 +111,19 @@ class TestAdwordsToS3(TestCase):
             client_customer_id=os.getenv("adwords_client_customer_id"),
             secrets_manager=GoogleAdWordsSecretsManager())
 
-        etl_settings = AdWordsToS3Settings(
-            source_query_fragment=ServiceQueryBuilder().Select('Id').OrderBy('Id'),
-            source_service="AdGroupAdService",
-            source_service_version="v201809",
-            source_connection_settings=adwords_settings,
-            target_bucket=target_bucket,
-            target_key_prefix=target_key_prefix,
-            target_file_prefix="12345678",
-            target_connection_settings=aws_setting
+        source = AdWordsServiceSource(
+            query_fragment=ServiceQueryBuilder().Select('Id').OrderBy('Id'),
+            service="AdGroupAdService",
+            service_version="v201809",
+            connection_settings=adwords_settings,
         )
-        etl = AdWordsToS3(etl_settings)
+        sink = S3DirectorySink(
+            connection_settings=aws_setting,
+            bucket=target_bucket,
+            directory_key=target_key_prefix,
+            file_prefix="12345678",
+        )
+        etl = AdWordsToS3(source=source, sink=sink)
         etl.build_query(start_index=786000, page_size=5, num_iterations=2)
 
         etl.transfer_all()
