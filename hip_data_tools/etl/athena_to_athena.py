@@ -44,7 +44,7 @@ class AthenaToAthena:
             col_list = ','.join([f"'{c}'" for c in self.__sink.partition_columns])
             partition_statement = f", partitioned_by = ARRAY[{col_list}] "
         external_location = f"'s3://{self.__sink.s3_data_location_bucket}/" \
-                            f"{self.__sink.s3_data_location_bucket}/'"
+                            f"{self.__sink.s3_data_location_directory_key}/'"
         return f"""
             CREATE TABLE {self.__sink.database}.{self.__sink.table}
             WITH (

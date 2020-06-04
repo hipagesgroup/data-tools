@@ -112,27 +112,33 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
 
             verify_container_is_up(cassandra_conn_setting)
 
-            settings = AthenaToAdWordsOfflineConversionSource(
-                source_database=os.getenv("dummy_athena_database"),
-                source_table=os.getenv("dummy_athena_table"),
-                source_connection_settings=aws_conn,
-                etl_identifier="xxxx",
-                destination_batch_size=100,
-                etl_state_manager_connection=cassandra_conn_setting,
-                etl_state_manager_keyspace="test",
+            source = AthenaTableSource(
+                database=os.getenv("dummy_athena_database"),
+                query_result_bucket="test_bucket",
+                query_result_key="test_key",
+                connection_settings=aws_conn,
+                table=os.getenv("dummy_athena_table"),
+            )
+            sink = AdwordsOfflineConversionSink(
                 transformation_column_mapping={'googleClickId': 'googleClickId',
                                                'conversionName': 'conversionName',
                                                'conversionTime': 'conversionTime',
                                                'conversionValue': 'conversionValue',
                                                'conversionCurrencyCode': 'conversionCurrencyCode'},
-                destination_connection_settings=GoogleAdWordsConnectionSettings(
+                batch_size=100,
+                connection_settings=GoogleAdWordsConnectionSettings(
                     client_id=os.getenv("adwords_client_id"),
                     user_agent="Tester",
                     client_customer_id=os.getenv("adwords_client_customer_id"),
                     secrets_manager=GoogleAdWordsSecretsManager()
                 ),
             )
-            etl = AthenaToAdWordsOfflineConversion(settings)
+            state_sink = StateManagerSink(
+                etl_identifier="xxxx",
+                etl_state_manager_keyspace="test",
+                etl_state_manager_connection=cassandra_conn_setting,
+            )
+            etl = AthenaToAdWordsOfflineConversion(source=source, sink=sink, state_sink=state_sink)
             test_df = DataFrame(
                 [
                     {

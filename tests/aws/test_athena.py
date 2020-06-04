@@ -12,7 +12,11 @@ class TestAthenaUtil(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.au = AthenaUtil(
-            settings=athena.AthenaSettings(database="test", query_result_bucket="test"), conn=None)
+            settings=athena.AthenaSettings(
+                database="test",
+                query_result_bucket="test",
+                query_result_key="test"),
+            conn=None)
 
     def test__build_create_table_sql__works_for_ga_example(self):
         actual = self.au._build_create_table_sql(
@@ -272,5 +276,3 @@ class TestAthenaUtil(TestCase):
                        [('policyTopicEntries', []), ('reviewState', 'REVIEWED')]),
                    "field_6": 2.3434}]))
         self.assertEqual(actual, expected)
-
-

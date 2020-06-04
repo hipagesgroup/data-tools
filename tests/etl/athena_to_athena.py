@@ -1,23 +1,28 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from hip_data_tools.etl.athena_to_athena import AthenaToAthena, AthenaToAthenaSettings
+from hip_data_tools.etl.athena_to_athena import AthenaToAthena, \
+    AthenaCTASSink
+from hip_data_tools.etl.common import AthenaQuerySource
 
 
 class TestAthenaToAthena(TestCase):
     def test_with_partitions(self):
-        mock_settings = AthenaToAthenaSettings(
-            source_sql="SELECT 'abc' as abc",
-            source_database="test",
-            target_database="test",
-            target_table="test_table",
-            target_data_format="PARQUET",
-            target_s3_bucket="test_bucket",
-            target_s3_dir="test_dir",
-            target_partition_columns=["abc"],
-            connection_settings=Mock()
+        source = AthenaQuerySource(
+            sql="SELECT 'abc' as abc",
+            database="test",
+            query_result_bucket="TEST",
+            query_result_key="TEST",
+            connection_settings=Mock())
+        sink = AthenaCTASSink(
+            database="test",
+            table="test_table",
+            data_format="PARQUET",
+            s3_data_location_bucket="test_bucket",
+            s3_data_location_directory_key="test_dir",
+            partition_columns=["abc"]
         )
-        etl = AthenaToAthena(mock_settings)
+        etl = AthenaToAthena(source=source, sink=sink)
         actual = etl.generate_create_table_statement()
         expected = """
             CREATE TABLE test.test_table
@@ -31,18 +36,21 @@ class TestAthenaToAthena(TestCase):
         self.assertEqual(expected, actual)
 
     def test_without_partitions(self):
-        mock_settings = AthenaToAthenaSettings(
-            source_sql="SELECT 'abc' as abc",
-            source_database="test",
-            target_database="test",
-            target_table="test_table",
-            target_data_format="PARQUET",
-            target_s3_bucket="test_bucket",
-            target_s3_dir="test_dir",
-            target_partition_columns=None,
-            connection_settings=Mock()
+        source = AthenaQuerySource(
+            sql="SELECT 'abc' as abc",
+            database="test",
+            query_result_bucket="TEST",
+            query_result_key="TEST",
+            connection_settings=Mock())
+        sink = AthenaCTASSink(
+            database="test",
+            table="test_table",
+            data_format="PARQUET",
+            s3_data_location_bucket="test_bucket",
+            s3_data_location_directory_key="test_dir",
+            partition_columns=None
         )
-        etl = AthenaToAthena(mock_settings)
+        etl = AthenaToAthena(source=source, sink=sink)
         actual = etl.generate_create_table_statement()
         expected = """
             CREATE TABLE test.test_table

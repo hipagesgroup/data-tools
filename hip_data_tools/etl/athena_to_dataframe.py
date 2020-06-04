@@ -20,8 +20,6 @@ class AthenaToDataFrameSettings:
 class AthenaToDataFrame(S3ToDataFrame):
     """
     Class to transfer parquet data from s3 to Cassandra
-    Args:
-        settings (AthenaToCassandraSettings): the settings around the etl to be executed
     """
 
     def __init__(self, source: AthenaTableSource):

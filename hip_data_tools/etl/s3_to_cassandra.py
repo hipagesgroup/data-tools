@@ -3,36 +3,22 @@ Module to deal with data transfer from S3 to Cassandra
 """
 from typing import List
 
-from attr import dataclass
 from cassandra.datastax.graph import Result
 
-from hip_data_tools.apache.cassandra import CassandraUtil, CassandraConnectionManager, \
-    CassandraConnectionSettings
+from hip_data_tools.apache.cassandra import CassandraUtil, CassandraConnectionManager
 from hip_data_tools.aws.common import AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.common import LOG
-from hip_data_tools.etl.s3_to_dataframe import S3ToDataFrame, S3ToDataFrameSettings
-
-
-@dataclass
-class S3ToCassandraSettings(S3ToDataFrameSettings):
-    """S3 to Cassandra ETL settings"""
-    destination_keyspace: str
-    destination_table: str
-    destination_table_primary_keys: list
-    destination_connection_settings: CassandraConnectionSettings
-    destination_table_options_statement: str = ""
-    destination_batch_size: int = 1
+from hip_data_tools.etl.common import CassandraTableSink, S3DirectorySource
+from hip_data_tools.etl.s3_to_dataframe import S3ToDataFrame
 
 
 class S3ToCassandra(S3ToDataFrame):
     """
     Class to transfer parquet data from s3 to Cassandra
-    Args:
-        settings (S3ToCassandraSettings): the settings around the etl to be executed
     """
 
-    def __init__(self, source, sink):
+    def __init__(self, source: S3DirectorySource, sink: CassandraTableSink):
         self.__source = source
         self.__sink = sink
         self.keys_to_transfer = None

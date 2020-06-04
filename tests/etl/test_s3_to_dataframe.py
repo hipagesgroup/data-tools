@@ -6,7 +6,8 @@ from pandas.util.testing import assert_frame_equal
 
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsSecretsManager, AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
-from hip_data_tools.etl.s3_to_dataframe import S3ToDataFrameSettings, S3ToDataFrame
+from hip_data_tools.etl.common import S3DirectorySource
+from hip_data_tools.etl.s3_to_dataframe import S3ToDataFrame
 
 
 class TestS3ToDataFrame(TestCase):
@@ -32,11 +33,10 @@ class TestS3ToDataFrame(TestCase):
         s3_util.upload_dataframe_as_parquet(df2, test_key, "df2")
         s3_util.upload_dataframe_as_parquet(df3, test_key, "df3")
 
-        settings = S3ToDataFrameSettings(
-            source_bucket=test_bucket,
-            source_key_prefix=test_key,
-            source_connection_settings=aws_conn
-
+        settings = S3DirectorySource(
+            bucket=test_bucket,
+            directory_key=test_key,
+            connection_settings=aws_conn,
         )
 
         etl = S3ToDataFrame(settings)
@@ -63,11 +63,10 @@ class TestS3ToDataFrame(TestCase):
         s3_util.upload_dataframe_as_parquet(df1, test_key, "df1")
         s3_util.upload_dataframe_as_parquet(df2, test_key, "df2")
 
-        settings = S3ToDataFrameSettings(
-            source_bucket=test_bucket,
-            source_key_prefix=test_key,
-            source_connection_settings=aws_conn
-
+        settings = S3DirectorySource(
+            bucket=test_bucket,
+            directory_key=test_key,
+            connection_settings=aws_conn,
         )
 
         etl = S3ToDataFrame(settings)
@@ -97,11 +96,10 @@ class TestS3ToDataFrame(TestCase):
         s3_util.upload_dataframe_as_parquet(df2, test_key, "df2")
         s3_util.upload_dataframe_as_parquet(df3, test_key, "df3")
 
-        settings = S3ToDataFrameSettings(
-            source_bucket=test_bucket,
-            source_key_prefix=test_key,
-            source_connection_settings=aws_conn
-
+        settings = S3DirectorySource(
+            bucket=test_bucket,
+            directory_key=test_key,
+            connection_settings=aws_conn,
         )
 
         etl = S3ToDataFrame(settings)
