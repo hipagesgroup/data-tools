@@ -1,7 +1,7 @@
 """
 Module contains variables and methods used for common / shared operations throughput the package
 """
-
+import json
 import logging
 import os
 import re
@@ -219,16 +219,18 @@ def nested_list_of_dict_to_dataframe(data: List[dict]) -> DataFrame:
             df[common_int_field].fillna(0, inplace=True)
             df[common_int_field] = df[common_int_field].astype(int)
     for col in list(df):
-        _convert_object_to_string(col, df)
+        _convert_object_val_to_json(col, df)
     return df
 
 
-def _convert_object_to_string(col, df):
+def _convert_object_val_to_json(col, df):
     if df[col].dtype == "object":
+        print(df[col])
         try:
-            df[col] = df[col].astype("string")
+            df[col] = df[col].to_json()
         except ValueError:
             df[col] = df[col].astype(str)
+        print(df[col])
 
 
 def dataframe_columns_to_snake_case(data: DataFrame) -> None:
