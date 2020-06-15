@@ -152,8 +152,18 @@ class TestCommon(TestCase):
         self.assertListEqual(expected, list(actual.columns.values))
 
     def test__should__convert_object_type_to_string_type__when__dataframe_is_given(self):
-        input_value = [OrderedDict(
-            [('adGroupId', 94823864785), ('labels', 'Hello'), ('complex_field', ("field", "val"))])]
+        input_value = [
+            OrderedDict(
+                [('adGroupId', 94823864785),
+                 ('labels', 'Hello_1'),
+                 ('complex_field', ("field_1", "val_1"))
+                 ]),
+            OrderedDict(
+                [('adGroupId', 34523864785),
+                 ('labels', 'Hello_2'),
+                 ('complex_field', ("field_2", "val_2"))
+                 ])
+        ]
         expected = ['int64', 'string', 'string']
         result_df = nested_list_of_dict_to_dataframe(input_value)
         actual = [str(result_df[col].dtype) for col in list(result_df)]
