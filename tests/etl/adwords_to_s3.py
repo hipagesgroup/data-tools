@@ -128,3 +128,58 @@ class TestAdwordsToS3(TestCase):
             'tmp/test/hip_data_tools/adwords_to_s3/test/12345678index_786005__786009.parquet']
 
         self.assertListEqual(expected, actual)
+
+    def test__should__create_s3_file_for_the_given_indices(self):
+        # Load secrets via env vars
+        execfile("../../secrets.py")
+
+        aws_setting = AwsConnectionSettings(
+            region="ap-southeast-2",
+            secrets_manager=AwsSecretsManager(),
+            profile=None)
+        target_bucket = os.getenv('S3_TEST_BUCKET')
+        target_key_prefix = "something/test"
+        conn = AwsConnectionManager(aws_setting)
+        s3u = S3Util(conn=conn, bucket=target_bucket)
+        s3u.delete_recursive(target_key_prefix)
+        adwords_settings = GoogleAdWordsConnectionSettings(
+            client_id=os.getenv("adwords_client_id"),
+            user_agent="Tester",
+            client_customer_id=os.getenv("adwords_client_customer_id"),
+            secrets_manager=GoogleAdWordsSecretsManager())
+
+        adword_to_s3_util = AdWordsToS3(
+            settings=AdWordsToS3Settings(
+                source_query_fragment=ServiceQueryBuilder().Select(
+                    # Attributes
+                    'BaseAdGroupId',
+                    'Id',
+                    'CampaignId',
+                    'CampaignName',
+                    'Name',
+                    'Status',
+                    'ContentBidCriterionTypeGroup',
+                    'BaseCampaignId',
+                    'TrackingUrlTemplate',
+                    'FinalUrlSuffix',
+                    'UrlCustomParameters',
+                    'AdGroupType').OrderBy('Id'),
+                source_service="AdGroupService",
+                source_service_version="v201809",
+                source_connection_settings=adwords_settings,
+                target_bucket=target_bucket,
+                target_key_prefix=target_key_prefix,
+                target_file_prefix=None,
+                target_connection_settings=aws_setting
+            )
+        )
+        adword_to_s3_util.build_query(
+            start_index=35000,
+            page_size=1000,
+            num_iterations=1
+        )
+        adword_to_s3_util.transfer_all()
+        actual = s3u.get_keys(target_key_prefix)
+        expected = ['tmp/test/hip_data_tools/adwords_to_s3/test/index_35000__35999.parquet']
+
+        self.assertListEqual(expected, actual)
