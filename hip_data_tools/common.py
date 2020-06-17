@@ -13,6 +13,8 @@ from typing import List
 import stringcase
 from pandas import DataFrame
 
+COMMON_INTEGER_FIELDS = ["id", "campaign_id", "base_ad_group_id"]
+
 LOG = logging.getLogger(__name__)
 """
 logger object to handle logging in the entire package
@@ -212,6 +214,10 @@ def to_snake_case(column_name: str) -> str:
 def nested_list_of_dict_to_dataframe(data: List[dict]) -> DataFrame:
     flattened_dicts = [flatten_nested_dict(d) for d in data]
     df = DataFrame(data=flattened_dicts)
+    for common_int_field in COMMON_INTEGER_FIELDS:
+        if common_int_field in df.columns:
+            df[common_int_field].fillna(0, inplace=True)
+            df[common_int_field] = df[common_int_field].astype(int)
     for col in list(df):
         _convert_object_to_string(col, df)
     return df
