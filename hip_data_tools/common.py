@@ -224,8 +224,8 @@ def nested_list_of_dict_to_dataframe(data: List[dict]) -> DataFrame:
 
 
 def _convert_complex_val_to_json(col, df):
-    field_type = type(next(iter(df[col].values), object))
-    if field_type is tuple:
+    col_type = type(next(iter(df[col].values), object))
+    if col_type is list:
         try:
             df[col] = df[col].apply(lambda x: json.dumps(x))
         except ValueError:
