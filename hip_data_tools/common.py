@@ -10,7 +10,6 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from typing import List
 
-import pandas as pd
 import stringcase
 from pandas import DataFrame
 
@@ -220,22 +219,17 @@ def nested_list_of_dict_to_dataframe(data: List[dict]) -> DataFrame:
             df[common_int_field].fillna(0, inplace=True)
             df[common_int_field] = df[common_int_field].astype(int)
     for col in list(df):
-        _convert_object_val_to_json(col, df)
-    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        print(df)
+        _convert_complex_val_to_json(col, df)
     return df
 
 
-def _convert_object_val_to_json(col, df):
-    if type(df[col].values[0]) is tuple:
-        print(df[col])
+def _convert_complex_val_to_json(col, df):
+    field_type = type(next(iter(df[col].values), object))
+    if field_type is tuple:
         try:
-            df[col] = df[col].astype("string")
-            # df[col] = df[col].to_json()
-            # json.dumps(df[col])
+            df[col] = df[col].apply(lambda x: json.dumps(x))
         except ValueError:
             df[col] = df[col].astype(str)
-        # print(df[col])
 
 
 def dataframe_columns_to_snake_case(data: DataFrame) -> None:

@@ -1,9 +1,5 @@
-import urllib
-from collections import OrderedDict
+import datetime
 from unittest import TestCase
-
-import pandas as pd
-import requests
 
 from hip_data_tools.common import flatten_nested_dict, \
     to_snake_case, nested_list_of_dict_to_dataframe
@@ -153,18 +149,24 @@ class TestCommon(TestCase):
 
     def test__should__convert_object_type_to_string_type__when__dataframe_is_given(self):
         input_value = [
-            OrderedDict(
-                [('adGroupId', 94823864785),
-                 ('labels', 'Hello_1'),
-                 ('complex_field', ("field_1", "val_1"))
-                 ]),
-            OrderedDict(
-                [('adGroupId', 34523864785),
-                 ('labels', 'Hello_2'),
-                 ('complex_field', ("field_2", "val_2"))
-                 ])
+            {
+                'adGroupId': 94823864785,
+                'labels': 'Hello_1',
+                'tuple_field': ("field_1", "val_1"),
+                'bool_field': True,
+                'array_field': [{"k": "v"}],
+                'time_field': datetime.datetime(2020, 6, 18)
+            },
+            {
+                'adGroupId': 34523864785,
+                'labels': 'Hello_2',
+                'tuple_field': ("field_2", "val_2"),
+                'bool_field': False,
+                'array_field': [{"k": "v"}],
+                'time_field': datetime.datetime(2020, 6, 18)
+            }
         ]
-        expected = ['int64', 'string', 'string']
+        expected = ['int64', 'object', 'object', 'bool', 'object', 'datetime64[ns]']
         result_df = nested_list_of_dict_to_dataframe(input_value)
         actual = [str(result_df[col].dtype) for col in list(result_df)]
         self.assertEqual(expected, actual)
