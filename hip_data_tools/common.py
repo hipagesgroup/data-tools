@@ -1,7 +1,7 @@
 """
 Module contains variables and methods used for common / shared operations throughput the package
 """
-
+import json
 import logging
 import os
 import re
@@ -219,14 +219,15 @@ def nested_list_of_dict_to_dataframe(data: List[dict]) -> DataFrame:
             df[common_int_field].fillna(0, inplace=True)
             df[common_int_field] = df[common_int_field].astype(int)
     for col in list(df):
-        _convert_object_to_string(col, df)
+        _convert_complex_val_to_json(col, df)
     return df
 
 
-def _convert_object_to_string(col, df):
-    if df[col].dtype == "object":
+def _convert_complex_val_to_json(col, df):
+    col_type = type(next(iter(df[col].values), object))
+    if col_type is list:
         try:
-            df[col] = df[col].astype("string")
+            df[col] = df[col].apply(lambda x: json.dumps(x))
         except ValueError:
             df[col] = df[col].astype(str)
 

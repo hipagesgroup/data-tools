@@ -1,9 +1,9 @@
-import urllib
-from collections import OrderedDict
+import datetime
+import json
 from unittest import TestCase
 
 import pandas as pd
-import requests
+from pandas._testing import assert_frame_equal
 
 from hip_data_tools.common import flatten_nested_dict, \
     to_snake_case, nested_list_of_dict_to_dataframe
@@ -151,10 +151,37 @@ class TestCommon(TestCase):
         actual = nested_list_of_dict_to_dataframe(input)
         self.assertListEqual(expected, list(actual.columns.values))
 
-    def test__should__convert_object_type_to_string_type__when__dataframe_is_given(self):
-        input_value = [OrderedDict([('adGroupId', 94823864785), ('labels', 'Hello'), OrderedDict(
-            [('policyTopicEntries', []), ('reviewState', 'REVIEWED')])])]
-        expected = ['int64', 'string', 'string']
-        result_df = nested_list_of_dict_to_dataframe(input_value)
-        actual = [str(result_df[col].dtype) for col in list(result_df)]
-        self.assertEqual(expected, actual)
+    def test__should__return_dataframe__when__a_list_of_dictionaries_with_complex_lists_is_given(
+            self):
+        input_value = [
+            {
+                'adGroupId': 94823864785,
+                'labels': 'Hello_1',
+                'tuple_field': ("field_1", "val_1"),
+                'bool_field': True,
+                'array_field': [["v1", "v2"]],
+                'num_array_filed': [1, 3, 4, 5],
+                'time_field': datetime.datetime(2020, 6, 18)
+            },
+            {
+                'adGroupId': 34523864785,
+                'labels': 'Hello_2',
+                'tuple_field': ("field_2", "val_2"),
+                'bool_field': False,
+                'array_field': [[["v1", "v2"], []]],
+                'num_array_filed': [1, 3, 4, 5],
+                'time_field': datetime.datetime(2020, 6, 18)
+            }
+        ]
+        actual = nested_list_of_dict_to_dataframe(input_value)
+        expected = pd.DataFrame(
+            data={"ad_group_id": [94823864785, 34523864785], "labels": ["Hello_1", "Hello_2"],
+                  "tuple_field": [("field_1", "val_1"), ("field_2", "val_2")],
+                  "bool_field": [True, False],
+                  "array_field": [[["v1", "v2"]], [[["v1", "v2"], []]]],
+                  "num_array_filed": [[1, 3, 4, 5], [1, 3, 4, 5]],
+                  "time_field": [datetime.datetime(2020, 6, 18), datetime.datetime(2020, 6, 18)]})
+        expected["array_field"] = expected["array_field"].apply(lambda x: json.dumps(x))
+        expected["num_array_filed"] = expected["num_array_filed"].apply(lambda x: json.dumps(x))
+
+        assert_frame_equal(expected, actual)
