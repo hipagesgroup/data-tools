@@ -10,10 +10,12 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from typing import List
 
+import pandas as pd
 import stringcase
 from pandas import DataFrame
 
-COMMON_INTEGER_FIELDS = ["id", "campaign_id", "base_ad_group_id"]
+COMMON_INTEGER_FIELDS = ["id", "campaign_id", "base_ad_group_id", "country__territory",
+                         "most_specific_location"]
 
 LOG = logging.getLogger(__name__)
 """
@@ -214,13 +216,18 @@ def to_snake_case(column_name: str) -> str:
 def nested_list_of_dict_to_dataframe(data: List[dict]) -> DataFrame:
     flattened_dicts = [flatten_nested_dict(d) for d in data]
     df = DataFrame(data=flattened_dicts)
-    for common_int_field in COMMON_INTEGER_FIELDS:
-        if common_int_field in df.columns:
-            df[common_int_field].fillna(0, inplace=True)
-            df[common_int_field] = df[common_int_field].astype(int)
+    validate_and_fix_common_integer_fields(df)
     for col in list(df):
         _convert_complex_val_to_json(col, df)
     return df
+
+
+def validate_and_fix_common_integer_fields(df: DataFrame):
+    for common_int_field in COMMON_INTEGER_FIELDS:
+        if common_int_field in df.columns:
+            df[common_int_field] = pd.to_numeric(df[common_int_field], errors='coerce')
+            df[common_int_field].fillna(0, inplace=True)
+            df[common_int_field] = df[common_int_field].astype(int)
 
 
 def _convert_complex_val_to_json(col, df):

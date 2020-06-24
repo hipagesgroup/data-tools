@@ -6,7 +6,7 @@ import pandas as pd
 from pandas._testing import assert_frame_equal
 
 from hip_data_tools.common import flatten_nested_dict, \
-    to_snake_case, nested_list_of_dict_to_dataframe
+    to_snake_case, nested_list_of_dict_to_dataframe, validate_and_fix_common_integer_fields
 
 
 class TestCommon(TestCase):
@@ -183,5 +183,16 @@ class TestCommon(TestCase):
                   "time_field": [datetime.datetime(2020, 6, 18), datetime.datetime(2020, 6, 18)]})
         expected["array_field"] = expected["array_field"].apply(lambda x: json.dumps(x))
         expected["num_array_filed"] = expected["num_array_filed"].apply(lambda x: json.dumps(x))
+
+        assert_frame_equal(expected, actual)
+
+    def test__should__validate_and_fix_common_integer_fields(self):
+        actual = pd.DataFrame(
+            data={"id": [None, "34523864785"],
+                  "country__territory": ["----", "3434"]})
+        validate_and_fix_common_integer_fields(actual)
+        expected = pd.DataFrame(
+            data={"id": [0, 34523864785],
+                  "country__territory": [0, 3434]})
 
         assert_frame_equal(expected, actual)
