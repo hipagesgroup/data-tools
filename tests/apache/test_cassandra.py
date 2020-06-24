@@ -153,6 +153,28 @@ class TestCassandraUtil(TestCase):
         ]
         self.assertEqual(actual, expected)
 
+    def test___extract_rows_from_dataframe__should_work_with_float_and_int(self):
+        data = [
+            {
+                "example_type": 100.0,
+                "example_id": 1234,
+                "created_at": datetime.datetime(2020, 1, 22, 1, 2),
+                "description": "this is from a dict"
+            },
+            {
+                "example_type": 200.0,
+                "example_id": 5678,
+                "created_at": datetime.datetime(2020, 1, 4),
+                "description": "this is from a dict"
+            }, ]
+        df = DataFrame(data)
+        actual = dataframe_to_cassandra_tuples(df)
+        for actual_tuple in actual:
+            self.assertTrue(isinstance(actual_tuple[0], float))
+            self.assertTrue(isinstance(actual_tuple[1], int))
+            self.assertTrue(isinstance(actual_tuple[2], datetime.datetime))
+            self.assertTrue(isinstance(actual_tuple[3], str))
+
     def test__cassandra_secrets_manager_should_raise_errors_when_keys_are_not_found(self):
         def func():
             CassandraSecretsManager(username_var="SOMEUNKNOWNVAR")
