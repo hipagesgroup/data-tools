@@ -76,8 +76,7 @@ def dataframe_to_cassandra_tuples(dataframe: DataFrame) -> list:
         dataframe (DataFrame): the dataframe to be converted to a list of tuples
     Returns: list[tuple]
     """
-    return [tuple([_standardize_datatype(val) for val in row]) for index, row in
-            dataframe.iterrows()]
+    return [tuple([_standardize_datatype(val) for val in row[1:]]) for row in dataframe.itertuples()]
 
 
 def dicts_to_cassandra_tuples(data: list) -> list:
