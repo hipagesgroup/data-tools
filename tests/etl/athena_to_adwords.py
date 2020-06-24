@@ -225,28 +225,34 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
             conn = verify_container_is_up(cassandra_conn_setting)
             # conn.get_session('system').execute(""" DROP TABLE test.etl_sink_record_state""")
 
-            settings = AthenaToAdWordsOfflineConversionSource(
-                source_database=os.getenv("dummy_athena_database"),
-                source_table=os.getenv("dummy_athena_table"),
-                source_connection_settings=aws_conn,
-                etl_identifier="test",
-                destination_batch_size=100,
-                etl_state_manager_connection=cassandra_conn_setting,
-                etl_state_manager_keyspace="test",
+            source = AthenaTableSource(
+                database=os.getenv("dummy_athena_database"),
+                query_result_bucket="test_bucket",
+                query_result_key="test_key",
+                connection_settings=aws_conn,
+                table=os.getenv("dummy_athena_table"),
+            )
+            sink = AdwordsOfflineConversionSink(
                 transformation_column_mapping={'google_click_id': 'googleClickId',
                                                'conversion_name': 'conversionName',
                                                'conversion_time': 'conversionTime',
                                                'conversion_value': 'conversionValue',
                                                'conversion_currency_code':
                                                    'conversionCurrencyCode'},
-                destination_connection_settings=GoogleAdWordsConnectionSettings(
+                batch_size=100,
+                connection_settings=GoogleAdWordsConnectionSettings(
                     client_id=os.getenv("adwords_client_id"),
                     user_agent="Tester",
                     client_customer_id=os.getenv("adwords_client_customer_id"),
                     secrets_manager=GoogleAdWordsSecretsManager()
                 ),
             )
-            etl = AthenaToAdWordsOfflineConversion(settings)
+            state_sink = StateManagerSink(
+                etl_identifier="xxxx",
+                etl_state_manager_keyspace="test",
+                etl_state_manager_connection=cassandra_conn_setting,
+            )
+            etl = AthenaToAdWordsOfflineConversion(source=source, sink=sink, state_sink=state_sink)
             source_data = [
                 {
                     'google_click_id': 'theFirst',
@@ -352,29 +358,34 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
             conn = verify_container_is_up(cassandra_conn_setting)
             # conn.get_session('system').execute(""" DROP TABLE test.etl_sink_record_state""")
 
-            settings = AthenaToAdWordsOfflineConversionSource(
-                source_database=os.getenv("dummy_athena_database"),
-                source_table=os.getenv("dummy_athena_table"),
-                source_connection_settings=aws_conn,
-                etl_identifier="test",
-                destination_batch_size=100,
-                etl_state_manager_connection=cassandra_conn_setting,
-                etl_state_manager_keyspace="test",
-                transformation_column_mapping={
-                    'google_click_id': 'googleClickId',
-                    'conversion_name': 'conversionName',
-                    'conversion_time': 'conversionTime',
-                    'conversion_value': 'conversionValue',
-                    'conversion_currency_code': 'conversionCurrencyCode'
-                },
-                destination_connection_settings=GoogleAdWordsConnectionSettings(
+            source = AthenaTableSource(
+                database=os.getenv("dummy_athena_database"),
+                query_result_bucket="test_bucket",
+                query_result_key="test_key",
+                connection_settings=aws_conn,
+                table=os.getenv("dummy_athena_table"),
+            )
+            sink = AdwordsOfflineConversionSink(
+                transformation_column_mapping={'google_click_id': 'googleClickId',
+                                               'conversion_name': 'conversionName',
+                                               'conversion_time': 'conversionTime',
+                                               'conversion_value': 'conversionValue',
+                                               'conversion_currency_code':
+                                                   'conversionCurrencyCode'},
+                batch_size=100,
+                connection_settings=GoogleAdWordsConnectionSettings(
                     client_id=os.getenv("adwords_client_id"),
                     user_agent="Tester",
                     client_customer_id=os.getenv("adwords_client_customer_id"),
                     secrets_manager=GoogleAdWordsSecretsManager()
                 ),
             )
-            etl = AthenaToAdWordsOfflineConversion(settings)
+            state_sink = StateManagerSink(
+                etl_identifier="xxxx",
+                etl_state_manager_keyspace="test",
+                etl_state_manager_connection=cassandra_conn_setting,
+            )
+            etl = AthenaToAdWordsOfflineConversion(source=source, sink=sink, state_sink=state_sink)
             files_actual = etl.list_source_files()
             #
             # self.assertListEqual(files_actual, [])

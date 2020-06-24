@@ -2,7 +2,7 @@
 Utility for connecting to and transforming data in Cassandra clusters
 """
 import os
-from typing import List
+from typing import List, Union, Dict, Any
 
 import pandas as pd
 from attr import dataclass
@@ -12,6 +12,9 @@ from cassandra.cluster import Cluster, Session
 from cassandra.cqlengine import connection
 from cassandra.cqlengine.management import sync_table
 from cassandra.datastax.graph import Result
+from cassandra.policies import (
+    DCAwareRoundRobinPolicy, RoundRobinPolicy, TokenAwarePolicy, WhiteListRoundRobinPolicy,
+)
 from cassandra.policies import LoadBalancingPolicy
 from cassandra.query import dict_factory, BatchStatement, PreparedStatement
 from pandas import DataFrame
@@ -20,6 +23,9 @@ from pandas._libs.tslibs.timestamps import Timestamp
 from retrying import retry
 
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager, LOG
+
+Policy = Union[
+    DCAwareRoundRobinPolicy, RoundRobinPolicy, TokenAwarePolicy, WhiteListRoundRobinPolicy]
 
 _RETRY_WAIT_MULTIPLIER_MS: int = int(os.getenv("CASSANDRA_RETRY_WAIT_MULTIPLIER_MS", "1000"))
 """Exponential backoff settings for connections to cassandra"""
@@ -97,6 +103,45 @@ def _standardize_datatype(val):
     if val is NaT:
         return None
     return val
+
+
+def get_lb_policy(policy_name: str, policy_args: Dict[str, Any]) -> Policy:
+    """
+    Creates load balancing policy from string
+
+    Args:
+        policy_name (str): Name of the policy to use.
+        policy_args (Dict[str, Any]): Parameters for the policy.
+
+    Returns:
+
+    """
+    if policy_name == 'DCAwareRoundRobinPolicy':
+        local_dc = policy_args.get('local_dc', '')
+        used_hosts_per_remote_dc = int(policy_args.get('used_hosts_per_remote_dc', 0))
+        return DCAwareRoundRobinPolicy(local_dc, used_hosts_per_remote_dc)
+
+    if policy_name == 'WhiteListRoundRobinPolicy':
+        hosts = policy_args.get('hosts')
+        if not hosts:
+            raise Exception('Hosts must be specified for WhiteListRoundRobinPolicy')
+        return WhiteListRoundRobinPolicy(hosts)
+
+    if policy_name == 'TokenAwarePolicy':
+        allowed_child_policies = ('RoundRobinPolicy',
+                                  'DCAwareRoundRobinPolicy',
+                                  'WhiteListRoundRobinPolicy',)
+        child_policy_name = policy_args.get('child_load_balancing_policy',
+                                            'RoundRobinPolicy')
+        child_policy_args = policy_args.get('child_load_balancing_policy_args', {})
+        if child_policy_name not in allowed_child_policies:
+            return TokenAwarePolicy(RoundRobinPolicy())
+        else:
+            child_policy = get_lb_policy(child_policy_name, child_policy_args)
+            return TokenAwarePolicy(child_policy)
+
+    # Fallback to default RoundRobinPolicy
+    return RoundRobinPolicy()
 
 
 class ValidationError(Exception):
