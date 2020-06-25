@@ -9,7 +9,8 @@ from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
-from hip_data_tools.common import dataframe_columns_to_snake_case
+from hip_data_tools.common import dataframe_columns_to_snake_case, \
+    validate_and_fix_common_integer_fields
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionSettings, AdWordsDataReader, \
     GoogleAdWordsConnectionManager, AdWordsParallelDataReadEstimator, AdWordsReportReader
 
@@ -206,6 +207,7 @@ class AdWordsReportsToS3:
         if self.__settings.target_file_prefix:
             file_name = f"{self.__settings.target_file_prefix}{file_name}"
         dataframe_columns_to_snake_case(data)
+        validate_and_fix_common_integer_fields(data)
         s3u.upload_dataframe_as_parquet(
             dataframe=data,
             key=self.__settings.target_key_prefix,
