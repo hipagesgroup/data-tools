@@ -234,7 +234,8 @@ def _convert_complex_val_to_json(col, df):
     col_type = type(next(iter(df[col].values), object))
     if col_type is list:
         try:
-            df[col] = df[col].apply(lambda x: json.dumps(x))
+            df[col] = df[col].apply(
+                lambda obj: json.dumps(obj, default=lambda x: getattr(x, '__dict__', str(x))))
         except ValueError:
             df[col] = df[col].astype(str)
 

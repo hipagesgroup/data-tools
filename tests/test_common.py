@@ -161,7 +161,8 @@ class TestCommon(TestCase):
                 'bool_field': True,
                 'array_field': [["v1", "v2"]],
                 'num_array_filed': [1, 3, 4, 5],
-                'time_field': datetime.datetime(2020, 6, 18)
+                'time_field': datetime.datetime(2020, 6, 18),
+                'complex_field': []
             },
             {
                 'adGroupId': 34523864785,
@@ -170,7 +171,8 @@ class TestCommon(TestCase):
                 'bool_field': False,
                 'array_field': [[["v1", "v2"], []]],
                 'num_array_filed': [1, 3, 4, 5],
-                'time_field': datetime.datetime(2020, 6, 18)
+                'time_field': datetime.datetime(2020, 6, 18),
+                'complex_field': [TestObject()]
             }
         ]
         actual = nested_list_of_dict_to_dataframe(input_value)
@@ -180,9 +182,12 @@ class TestCommon(TestCase):
                   "bool_field": [True, False],
                   "array_field": [[["v1", "v2"]], [[["v1", "v2"], []]]],
                   "num_array_filed": [[1, 3, 4, 5], [1, 3, 4, 5]],
-                  "time_field": [datetime.datetime(2020, 6, 18), datetime.datetime(2020, 6, 18)]})
+                  "time_field": [datetime.datetime(2020, 6, 18), datetime.datetime(2020, 6, 18)],
+                  "complex_field": [[], [TestObject()]]})
         expected["array_field"] = expected["array_field"].apply(lambda x: json.dumps(x))
         expected["num_array_filed"] = expected["num_array_filed"].apply(lambda x: json.dumps(x))
+        expected["complex_field"] = expected["complex_field"].apply(
+            lambda obj: json.dumps(obj, default=lambda x: x.__dict__))
 
         assert_frame_equal(expected, actual)
 
@@ -196,3 +201,9 @@ class TestCommon(TestCase):
                   "country__territory": [0, 3434]})
 
         assert_frame_equal(expected, actual)
+
+
+class TestObject:
+    def __init__(self):
+        self.x = 'hello'
+        self.y = 'world'
