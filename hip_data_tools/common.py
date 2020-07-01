@@ -215,11 +215,18 @@ def to_snake_case(column_name: str) -> str:
 
 def nested_list_of_dict_to_dataframe(data: List[dict]) -> DataFrame:
     flattened_dicts = [flatten_nested_dict(d) for d in data]
+    for dic in flattened_dicts:
+        _convert_object_value_to_string(dic)
     df = DataFrame(data=flattened_dicts)
     validate_and_fix_common_integer_fields(df)
-    for col in list(df):
-        _convert_complex_val_to_json(col, df)
     return df
+
+
+def _convert_object_value_to_string(dic):
+    for key, value in dic.items():
+        if isinstance(value, list) and any(isinstance(x, object) for x in value) and value:
+            dic[key] = [json.dumps(obj, default=lambda x: getattr(x, '__dict__', str(x))) for obj in
+                        value]
 
 
 def validate_and_fix_common_integer_fields(df: DataFrame):
@@ -228,16 +235,6 @@ def validate_and_fix_common_integer_fields(df: DataFrame):
             df[common_int_field] = pd.to_numeric(df[common_int_field], errors='coerce')
             df[common_int_field].fillna(0, inplace=True)
             df[common_int_field] = df[common_int_field].astype(int)
-
-
-def _convert_complex_val_to_json(col, df):
-    col_type = type(next(iter(df[col].values), object))
-    if col_type is list:
-        try:
-            df[col] = df[col].apply(
-                lambda obj: json.dumps(obj, default=lambda x: getattr(x, '__dict__', str(x))))
-        except ValueError:
-            df[col] = df[col].astype(str)
 
 
 def dataframe_columns_to_snake_case(data: DataFrame) -> None:

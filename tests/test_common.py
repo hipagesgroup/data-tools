@@ -1,8 +1,8 @@
 import datetime
-import json
 from unittest import TestCase
 
 import pandas as pd
+from pandas._libs.tslibs.timestamps import Timestamp
 from pandas._testing import assert_frame_equal
 
 from hip_data_tools.common import flatten_nested_dict, \
@@ -176,19 +176,16 @@ class TestCommon(TestCase):
             }
         ]
         actual = nested_list_of_dict_to_dataframe(input_value)
-        expected = pd.DataFrame(
-            data={"ad_group_id": [94823864785, 34523864785], "labels": ["Hello_1", "Hello_2"],
-                  "tuple_field": [("field_1", "val_1"), ("field_2", "val_2")],
-                  "bool_field": [True, False],
-                  "array_field": [[["v1", "v2"]], [[["v1", "v2"], []]]],
-                  "num_array_filed": [[1, 3, 4, 5], [1, 3, 4, 5]],
-                  "time_field": [datetime.datetime(2020, 6, 18), datetime.datetime(2020, 6, 18)],
-                  "complex_field": [[], [TestObject()]]})
-        expected["array_field"] = expected["array_field"].apply(lambda x: json.dumps(x))
-        expected["num_array_filed"] = expected["num_array_filed"].apply(lambda x: json.dumps(x))
-        expected["complex_field"] = expected["complex_field"].apply(
-            lambda obj: json.dumps(obj, default=lambda x: x.__dict__))
-
+        data = {'ad_group_id': {0: 94823864785, 1: 34523864785},
+                'labels': {0: 'Hello_1', 1: 'Hello_2'},
+                'tuple_field': {0: ('field_1', 'val_1'), 1: ('field_2', 'val_2')},
+                'bool_field': {0: True, 1: False},
+                'array_field': {0: ['["v1", "v2"]'], 1: ['[["v1", "v2"], []]']},
+                'num_array_filed': {0: ['1', '3', '4', '5'], 1: ['1', '3', '4', '5']},
+                'time_field': {0: Timestamp('2020-06-18 00:00:00'),
+                               1: Timestamp('2020-06-18 00:00:00')},
+                'complex_field': {0: [], 1: ['{"x": "hello", "y": "world"}']}}
+        expected = pd.DataFrame(data=data)
         assert_frame_equal(expected, actual)
 
     def test__should__validate_and_fix_common_integer_fields(self):
