@@ -40,6 +40,3 @@ def multiplier_endpoint(number_in : int):
     """
     return {'multiplied_result': number_in,
             'versions': versions.get_version_dict()}
-
-
-
