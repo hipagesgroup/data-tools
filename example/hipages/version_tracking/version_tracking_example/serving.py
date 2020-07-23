@@ -34,6 +34,7 @@ VERSIONS.add_string_to_version_tracking("multiplier_value", MULTIPLIER)
 Add in some tracking of configuration
 """
 
+
 @register_method_for_version_tracking
 @app.post("/")
 def multiplier_endpoint(number_in : int):
