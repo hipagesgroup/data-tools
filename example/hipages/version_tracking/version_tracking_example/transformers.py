@@ -1,3 +1,7 @@
+"""
+Example class we'll use to show our versioning tool
+"""
+
 from hip_data_tools.hipages.version_tracking \
     import register_class_for_version_tracking
 
