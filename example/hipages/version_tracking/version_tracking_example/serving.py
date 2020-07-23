@@ -1,3 +1,8 @@
+"""
+Example API endpoint used for our versioning example.
+
+"""
+
 from fastapi import FastAPI
 from hip_data_tools.hipages.version_tracking import VersionTracker
 from hip_data_tools.hipages.version_tracking \
@@ -13,18 +18,18 @@ app = FastAPI()
 Instantiated FastAPI app
 """
 
-versions = VersionTracker()
+VERSIONS = VersionTracker()
 """
 Instantiate our version tracker from hip-data-tools
 """
-# Import all of our static versions
-versions.add_versions_from_json_file("version_tracking.json")
+
+VERSIONS.add_versions_from_json_file("version_tracking.json")
 """
 Get the previously created version file
 """
 
 # Add some configuration tracking to our version control
-versions.add_string_to_version_tracking("multiplier_value", MULTIPLIER)
+VERSIONS.add_string_to_version_tracking("multiplier_value", MULTIPLIER)
 """
 Add in some tracking of configuration
 """
@@ -39,4 +44,4 @@ def multiplier_endpoint(number_in : int):
     relevant versioning information
     """
     return {'multiplied_result': number_in,
-            'versions': versions.get_version_dict()}
+            'versions': VERSIONS.get_version_dict()}
