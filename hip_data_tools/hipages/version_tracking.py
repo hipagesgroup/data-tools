@@ -11,7 +11,7 @@ Example:
   The application takes two arguments the name of the package you're interested
   in, and the output location for the json file
 
-  $ python version_tracking bruce ./version.json
+  $ python version-tracker -p transformers -o ./version.json
 
 It also provides transparent functions which can be used as decorators to
 classes, functions and methods to tag them as requiring tracking by the
