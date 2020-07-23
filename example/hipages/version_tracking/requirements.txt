@@ -1,2 +1,2 @@
-"fastapi"
-"hip-data-tool"
+fastapi
+hip-data-tools
