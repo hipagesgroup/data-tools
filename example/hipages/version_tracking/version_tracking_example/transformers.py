@@ -4,6 +4,11 @@ from hip_data_tools.hipages.version_tracking \
 
 @register_class_for_version_tracking
 class Multiplier:
+    """
+    Simple class to show how versioning works. This class takes a mulitpler
+    on instantiation and provides a method for multiplying incoming numbers
+    """
+
     def __init__(self, multiplier):
         """
         Example Class which multiplies a number
