@@ -604,7 +604,7 @@ class KafkaS3BatchExporter:
         if data_list:
 
             for msg_df, s3_path in \
-                self.partition_msgs_by_kafka_ts(data_list, interval):
+                    self.partition_msgs_by_kafka_ts(data_list, interval):
                 LOG.debug("data path : %s", s3_path)
 
                 self._s3_client.upload_dataframe_as_parquet(msg_df, s3_path)
@@ -697,7 +697,7 @@ class KafkaConduit:
         while True:
             LOG.debug("Polling Kafka for messages")
             self.create_events_snapshot()
-            log.debug("Upload complete, sleeping")
+            LOG.debug("Upload complete, sleeping")
             time.sleep(self._polling_interval)
 
     def create_events_snapshot(self):
@@ -709,7 +709,7 @@ class KafkaConduit:
         """
 
         msgs = self._kafka_poller.get_msgs()
-        log.debug("Json messages : %s", msgs)
+        LOG.debug("Json messages : %s", msgs)
 
         self._kafka_s3_exporter.parse_and_export_msgs(msgs,
                                                       self._polling_interval)
