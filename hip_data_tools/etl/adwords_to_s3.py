@@ -1,7 +1,7 @@
 """
 Module to deal with data transfer from Adwords to S3
 """
-from typing import List, Optional
+from typing import List, Optional, Dict, Type
 
 from attr import dataclass
 from googleads.adwords import ServiceQueryBuilder, ReportQuery
@@ -26,6 +26,7 @@ class AdWordsToS3Settings:
     target_key_prefix: str
     target_file_prefix: Optional[str]
     target_connection_settings: AwsConnectionSettings
+    transformation_field_type_mask: Optional[Dict[str, Type]]
 
 
 class AdWordsToS3:
