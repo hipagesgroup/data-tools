@@ -617,8 +617,8 @@ class KafkaS3BatchExporter:
         Args:
             list_of_dicts (list(dict)): list of dictionaries to upload to s3
             interval (int): Rounding interval for the temporal partitioning
-        Returns list((DataFrame, string)): Returns the dataframe for each
-        temporal partition, and the path to upload it to
+        Returns list((DataFrame, string, string)): Returns the dataframe for each
+        temporal partition, the path to upload it to and file name
 
         """
         df_msgs_and_meta_data = pd.DataFrame(list_of_dicts)
