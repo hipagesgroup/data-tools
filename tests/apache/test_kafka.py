@@ -474,5 +474,5 @@ def test__KafkaS3BatchExporter_should_partition_msgs_and_locations(mocker):
     assert len(list_of_dfs_and_locs) == 2
     assert list_of_dfs_and_locs[0][0].shape == (2, 3)
     assert list_of_dfs_and_locs[1][0].shape == (1, 3)
-    assert list_of_dfs_and_locs[0][1] == 'some_path/date_of_batch=20170322/time_of_batch=160650/'
+    assert list_of_dfs_and_locs[0][1] == 'some_path/date_of_batch=20170322/time_of_batch=160650'
     assert list_of_dfs_and_locs[0][2] == 'df_dt_of_upload_20170328_000000'
