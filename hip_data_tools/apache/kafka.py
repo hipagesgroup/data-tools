@@ -293,7 +293,7 @@ def generate_snapshot_file_name_with_timestamp():
     """
     current_datetime = datetime.today().strftime('%Y%m%d_%H%M%S')
 
-    return "df_dt_of_upload_{}.parquet" \
+    return "df_dt_of_upload_{}" \
         .format(current_datetime)
 
 
@@ -603,11 +603,12 @@ class KafkaS3BatchExporter:
         """
         if data_list:
 
-            for msg_df, s3_path in \
+            for msg_df, key, file_name in \
                     self.partition_msgs_by_kafka_ts(data_list, interval):
-                LOG.debug("data path : %s", s3_path)
+                LOG.debug("data path : %s/%s", key, file_name)
 
-                self._s3_client.upload_dataframe_as_parquet(msg_df, s3_path)
+                self._s3_client.upload_dataframe_as_parquet(dataframe=msg_df, key=key,
+                                                            file_name=file_name)
 
     def partition_msgs_by_kafka_ts(self, list_of_dicts, interval):
         """
@@ -616,8 +617,8 @@ class KafkaS3BatchExporter:
         Args:
             list_of_dicts (list(dict)): list of dictionaries to upload to s3
             interval (int): Rounding interval for the temporal partitioning
-        Returns list((DataFrame, string)): Returns the dataframe for each
-        temporal partition, and the path to upload it to
+        Returns list((DataFrame, string, string)): Returns the dataframe for each
+        temporal partition, the path to upload it to and file name
 
         """
         df_msgs_and_meta_data = pd.DataFrame(list_of_dicts)
@@ -637,12 +638,11 @@ class KafkaS3BatchExporter:
         Generates the batched dataframes to upload to s3
         Args:
             df_msgs_and_meta_data (dataframe): dataframe to be paritioned
-        Returns (List(dataframe, string)): list of dataframes and thier
-            folder paths on s3
+        Returns (List[DataFrame, str, str]): list of triples (df, s3_dir, file_name)
         """
         dataframes_and_fld_locs = []
         for cur_interval_np_datetime in \
-            pd.unique(df_msgs_and_meta_data[self.partition_key_nm]):
+                pd.unique(df_msgs_and_meta_data[self.partition_key_nm]):
             df_partition = \
                 df_msgs_and_meta_data[
                     df_msgs_and_meta_data[self.partition_key_nm] ==
@@ -658,11 +658,9 @@ class KafkaS3BatchExporter:
 
             file_nm = generate_snapshot_file_name_with_timestamp()
 
-            full_path_on_s3 = '{}/{}'.format(batch_file_path, file_nm)
+            LOG.debug("Data path : %s", batch_file_path)
 
-            LOG.debug("Data path : %s", full_path_on_s3)
-
-            dataframes_and_fld_locs.append((df_partition, full_path_on_s3))
+            dataframes_and_fld_locs.append((df_partition, batch_file_path, file_nm))
 
         return dataframes_and_fld_locs
 
