@@ -605,7 +605,7 @@ class KafkaS3BatchExporter:
 
             for msg_df, key, file_name in \
                     self.partition_msgs_by_kafka_ts(data_list, interval):
-                LOG.debug("data path : %s/%s", key,file_name)
+                LOG.debug("data path : %s/%s", key, file_name)
 
                 self._s3_client.upload_dataframe_as_parquet(dataframe=msg_df, key=key,
                                                             file_name=file_name)
@@ -642,7 +642,7 @@ class KafkaS3BatchExporter:
         """
         dataframes_and_fld_locs = []
         for cur_interval_np_datetime in \
-            pd.unique(df_msgs_and_meta_data[self.partition_key_nm]):
+                pd.unique(df_msgs_and_meta_data[self.partition_key_nm]):
             df_partition = \
                 df_msgs_and_meta_data[
                     df_msgs_and_meta_data[self.partition_key_nm] ==
