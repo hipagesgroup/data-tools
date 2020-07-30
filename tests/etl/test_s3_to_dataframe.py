@@ -77,7 +77,7 @@ class TestS3ToDataFrame(TestCase):
         assert_frame_equal(expected, etl.get_all_files_as_data_frame())
 
     @mock_s3
-    def test_the_etl_should_list_files_correctly(self):
+    def test_the_etl_should_give_the_next_file_correctly(self):
         test_bucket = "TEST_BUCKET_ITR"
         test_key = "some/key"
         aws_conn = AwsConnectionSettings(
