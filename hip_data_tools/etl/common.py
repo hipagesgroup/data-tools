@@ -2,11 +2,14 @@
 Common ETL specific utilities and methods
 """
 import string
+import time
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from random import random
+from typing import Any, List
 
-import time
 from cassandra.cqlengine import columns, ValidationError
 from cassandra.cqlengine.management import sync_table
 from cassandra.cqlengine.models import Model
@@ -141,3 +144,110 @@ def get_random_string(length: int) -> str:
     """
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(length))
+
+
+@dataclass
+class SourceSettings:
+    source_type: str
+
+
+@dataclass
+class ExtractorState:
+    time: datetime
+
+
+class CheckpointHandler:
+
+    @abstractmethod
+    def save_state(self, state: ExtractorState) -> None:
+        pass
+
+    @abstractmethod
+    def latest_state(self):
+        pass
+
+
+class Extractor(ABC):
+    def __init__(self, settings: SourceSettings):
+        self.settings = settings
+        pass
+
+    @abstractmethod
+    def extract_next(self):
+        pass
+
+    @abstractmethod
+    def has_next(self) -> bool:
+        pass
+
+
+class Transformer(ABC):
+    @abstractmethod
+    def transform(self, data) -> Any:
+        pass
+
+
+@dataclass
+class SinkSettings:
+    sink_type: str
+
+
+class Loader(ABC):
+    def __init__(self, settings: SinkSettings):
+        self.settings = settings
+        pass
+
+    @abstractmethod
+    def load(self, data: Any) -> None:
+        pass
+
+
+class ETL(ABC):
+    def __init__(self, extractor: Extractor, transformers: List[Transformer], loader: Loader):
+        self.extractor = extractor
+        self.transformers = transformers
+        self.loader = loader
+
+    def execute_next(self) -> None:
+        extracted_data = self.extractor.extract_next()
+        transformed_data = extracted_data
+        for transformer in self.transformers:
+            transformed_data = transformer.transform(transformed_data)
+        self.loader.load(transformed_data)
+
+    def execute_all(self) -> None:
+        while self.extractor.has_next():
+            self.execute_next()
+
+
+class InMemoryCheckpoint(CheckpointHandler):
+    """Stores the checkpoint state in form pf python dict"""
+
+    def __init__(self, state: ExtractorState):
+        self.data = {}
+        super().__init__(state)
+
+    def save_state(self, state: ExtractorState) -> None:
+        save_data = {
+            "state": state,
+            "save_time": datetime.now()
+        }
+        self.data = save_data
+
+    def latest_state(self):
+        return self.data.get("state", None)
+
+
+class CheckPointedExtractor(Extractor):
+
+    def __init__(self, settings: SourceSettings, checkpoint: CheckpointHandler):
+        self.checkpoint = checkpoint
+        super().__init__(settings)
+
+    @abstractmethod
+    def extract_next(self):
+        pass
+
+    @abstractmethod
+    def has_next(self) -> bool:
+        pass
