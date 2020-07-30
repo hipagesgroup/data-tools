@@ -140,11 +140,11 @@ def test__conduit_should_create_from_env():
 
 @freeze_time("2012-01-14 03:21:34")
 def test_fld_nm_getter_Should_GenerateTimeStampedFileNameUsingOSClock():
-    expected_folder_name = 'df_dt_of_upload_20120114_000000.parquet'
+    expected_file_name = 'df_dt_of_upload_20120114_000000'
 
-    fld_name = kafka.generate_snapshot_file_name_with_timestamp()
+    file_name = kafka.generate_snapshot_file_name_with_timestamp()
 
-    assert fld_name == expected_folder_name
+    assert file_name == expected_file_name
 
 
 def test_JsonConverter_Should_ParseGoodData_When_PassedCorrectJson():
