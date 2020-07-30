@@ -74,9 +74,9 @@ class TestS3ToDataFrame(TestCase):
 
         expected = pd.DataFrame(dict(A=range(20)),
                                 index=pd.date_range('20130101', periods=20, freq='d'))
-        print(expected)
-        print(etl.get_all_files_as_data_frame())
-        assert_frame_equal(expected, etl.get_all_files_as_data_frame())
+        print(expected.to_dict())
+        print(etl.get_all_files_as_data_frame().to_dict())
+        assert_frame_equal(expected, etl.get_all_files_as_data_frame(), check_like=True)
 
     @mock_s3
     def test_the_etl_should_give_the_next_file_correctly(self):
