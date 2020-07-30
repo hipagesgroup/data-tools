@@ -638,7 +638,7 @@ class KafkaS3BatchExporter:
         Generates the batched dataframes to upload to s3
         Args:
             df_msgs_and_meta_data (dataframe): dataframe to be paritioned
-        Returns (List(dataframe, string, string)): list of triples (df, s3_dir, file_name)
+        Returns (List[DataFrame, str, str]): list of triples (df, s3_dir, file_name)
         """
         dataframes_and_fld_locs = []
         for cur_interval_np_datetime in \
