@@ -97,6 +97,7 @@ setup(
         "pytest-stub",
         "freezegun==0.1.11",
         "testcontainers",
+        "ecdsa==0.14.1",
     ],
     cmdclass={'test': PyTest},
     python_requires='~=3.6',
