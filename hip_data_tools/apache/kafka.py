@@ -605,7 +605,7 @@ class KafkaS3BatchExporter:
 
             for msg_df, key, file_name in \
                     self.partition_msgs_by_kafka_ts(data_list, interval):
-                LOG.debug("data path : %s/%s", key, file_name)
+                LOG.debug("data path : %s", key)
 
                 self._s3_client.upload_dataframe_as_parquet(dataframe=msg_df, key=key,
                                                             file_name=file_name)
