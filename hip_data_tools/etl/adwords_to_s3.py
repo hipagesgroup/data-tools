@@ -1,8 +1,10 @@
 """
 Module to deal with data transfer from Adwords to S3
 """
+import datetime
 from typing import List, Optional, Dict, Type
 
+import pandas as pd
 from attr import dataclass
 from googleads.adwords import ServiceQueryBuilder, ReportQuery
 from pandas import DataFrame
@@ -26,7 +28,6 @@ class AdWordsToS3Settings:
     target_key_prefix: str
     target_file_prefix: Optional[str]
     target_connection_settings: AwsConnectionSettings
-    transformation_field_type_mask: Optional[Dict[str, Type]]
 
 
 class AdWordsToS3:
@@ -169,6 +170,7 @@ class AdWordsReportToS3Settings:
     target_key_prefix: str
     target_file_prefix: Optional[str]
     target_connection_settings: AwsConnectionSettings
+    transformation_field_type_mask: Optional[Dict[str, Type]]
 
 
 class AdWordsReportsToS3:
@@ -197,6 +199,22 @@ class AdWordsReportsToS3:
                 conn=GoogleAdWordsConnectionManager(self.__settings.source_connection_settings))
         return self._adwords_util
 
+    def _mask_field_types(self, df: DataFrame):
+        for field_name in df.columns:
+            field_type = self.__settings.transformation_field_type_mask[field_name]
+            if field_type is int:
+                df[field_name] = pd.to_numeric(df[field_name], errors='coerce')
+                df[field_name].fillna(0, inplace=True)
+                df[field_name] = df[field_name].astype('int64')
+            elif field_type is str:
+                df[field_name] = df[field_name].astype('str')
+            elif field_type is float:
+                df[field_name] = df[field_name].astype('float64')
+            elif field_type is datetime:
+                df[field_name] = df[field_name].astype('datetime64[ns]')
+            elif field_type is bool:
+                df[field_name] = df[field_name].astype('bool')
+
     def transfer(self, **kwargs):
         """
         Transfer the entire report to s3 in parquet format
@@ -208,7 +226,7 @@ class AdWordsReportsToS3:
         if self.__settings.target_file_prefix:
             file_name = f"{self.__settings.target_file_prefix}{file_name}"
         dataframe_columns_to_snake_case(data)
-        validate_and_fix_common_integer_fields(data)
+        self._mask_field_types(data)
         s3u.upload_dataframe_as_parquet(
             dataframe=data,
             key=self.__settings.target_key_prefix,
