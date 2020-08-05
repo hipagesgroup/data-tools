@@ -43,7 +43,7 @@ class TestS3ToDataFrame(TestCase):
 
         expected_s3_files = ['some/key/df1.parquet', 'some/key/df2.parquet',
                              'some/key/df3.parquet']
-        self.assertEqual(expected_s3_files, etl.list_source_files())
+        self.assertEqual(expected_s3_files, etl.list_source_files(), check_like=True)
 
     @mock_s3
     def test_the_etl_should_download_first_file_correctly(self):
@@ -74,7 +74,6 @@ class TestS3ToDataFrame(TestCase):
 
         expected = pd.DataFrame(dict(A=range(20)),
                                 index=pd.date_range('20130101', periods=20, freq='d'))
-
         assert_frame_equal(expected, etl.get_all_files_as_data_frame(), check_like=True)
 
     @mock_s3
