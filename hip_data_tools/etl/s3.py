@@ -32,14 +32,14 @@ class S3Extractor(Extractor):
             settings (S3SourceSettings):  settings to connect to the source s3 bucket
         """
         super().__init__(settings)
-        self.settings = settings
+        self._settings = settings
         self._s3_util = None
 
     def _get_s3_util(self) -> S3Util:
         if self._s3_util is None:
             self._s3_util = S3Util(
-                bucket=self.settings.bucket,
-                conn=AwsConnectionManager(self.settings.connection_settings),
+                bucket=self._settings.bucket,
+                conn=AwsConnectionManager(self._settings.connection_settings),
             )
         return self._s3_util
 
@@ -73,9 +73,9 @@ class S3FilesExtractor(S3Extractor):
 
         """
         if self._source_keys is None:
-            keys = self._get_s3_util().get_keys(self.settings.key_prefix)
-            if self.settings.suffix:
-                keys = [key for key in keys if key.endswith(self.settings.suffix)]
+            keys = self._get_s3_util().get_keys(self._settings.key_prefix)
+            if self._settings.suffix:
+                keys = [key for key in keys if key.endswith(self._settings.suffix)]
             self._source_keys = keys
             LOG.info("Listed and cached %s source files", len(self._source_keys))
             self.file_counter = len(self._source_keys)
@@ -114,7 +114,7 @@ class S3FileLocationExtractor(S3FilesExtractor):
         next eligible source coordinates
         Returns: Tuple[str,str]
         """
-        return self.settings.bucket, self._next_file_path()
+        return self._settings.bucket, self._next_file_path()
 
 
 class S3ParquetFileDataExtractor(S3FilesExtractor):

@@ -155,7 +155,7 @@ class SourceSettings:
 
 class Extractor(ABC):
     def __init__(self, settings: SourceSettings):
-        self.settings = settings
+        self._settings = settings
         pass
 
     @abstractmethod
