@@ -1,6 +1,6 @@
-import datetime
 from unittest import TestCase
 
+import numpy as np
 import pandas as pd
 from pandas._libs.tslibs.timestamps import Timestamp
 
@@ -19,14 +19,14 @@ class TestAdwordsReportsToS3(TestCase):
                 target_key_prefix="",
                 target_file_prefix="",
                 target_connection_settings=None,
-                transformation_field_type_mask={"ad_group_id": int,
-                                                "labels": str,
-                                                "tuple_field": object,
-                                                "bool_field": bool,
-                                                "array_field": object,
-                                                "num_array_filed": object,
-                                                "time_field": datetime,
-                                                "complex_field": object}))
+                transformation_field_type_mask={"ad_group_id": np.dtype(int),
+                                                "labels": np.dtype(str),
+                                                "tuple_field": np.dtype(object),
+                                                "bool_field": np.dtype(bool),
+                                                "array_field": np.dtype(object),
+                                                "num_array_filed": np.dtype(object),
+                                                "time_field": np.dtype(object),
+                                                "complex_field": np.dtype(object)}))
 
         input_value_dict = {'ad_group_id': {0: 94823864785, 1: 34523864785},
                             'labels': {0: 'Hello_1', 1: 'Hello_2'},
@@ -42,12 +42,12 @@ class TestAdwordsReportsToS3(TestCase):
         adwords_reports_to_s3_util._mask_field_types(input_value)
 
         actual = input_value.dtypes.to_string()
-        expected = """ad_group_id                 int64
-labels                     object
-tuple_field                object
-bool_field                   bool
-array_field                object
-num_array_filed            object
-time_field         datetime64[ns]
-complex_field              object"""
+        expected = """ad_group_id         int64
+labels             object
+tuple_field        object
+bool_field           bool
+array_field        object
+num_array_filed    object
+time_field         object
+complex_field      object"""
         self.assertEqual(expected, actual)

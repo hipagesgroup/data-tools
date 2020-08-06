@@ -86,7 +86,7 @@ setup(
         "oauth2client",
         "gspread",
         "googleads",
-        "multipledispatch",
+        "numpy",
     ],
     test_suite="tests",
     tests_require=[
@@ -99,6 +99,7 @@ setup(
         "freezegun==0.1.11",
         "testcontainers",
         "ecdsa==0.14.1",
+        "numpy",
     ],
     cmdclass={'test': PyTest},
     python_requires='~=3.6',

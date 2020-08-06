@@ -1,11 +1,10 @@
 """
 Module to deal with data transfer from Adwords to S3
 """
-import datetime
-from typing import List, Optional, Dict, Type
+from typing import List, Optional, Dict
 
+import numpy as np
 import pandas as pd
-from multipledispatch import dispatch
 from attr import dataclass
 from googleads.adwords import ServiceQueryBuilder, ReportQuery
 from pandas import DataFrame
@@ -170,7 +169,7 @@ class AdWordsReportToS3Settings:
     target_key_prefix: str
     target_file_prefix: Optional[str]
     target_connection_settings: AwsConnectionSettings
-    transformation_field_type_mask: Optional[Dict[str, Type]]
+    transformation_field_type_mask: Optional[Dict[str, np.dtype]]
 
 
 class AdWordsReportsToS3:
@@ -200,13 +199,13 @@ class AdWordsReportsToS3:
         return self._adwords_util
 
     def _mask_field_types(self, df: DataFrame):
-        field_type_transformer = FieldTypeTransformer(df=df)
-        for field_name in df.columns:
-            field_type = self.__settings.transformation_field_type_mask[field_name]
-            if field_type is datetime:
-                df[field_name] = df[field_name].astype('datetime64[ns]')
+        for field_name, field_type in self.__settings.transformation_field_type_mask.items():
+            if field_type is np.dtype(int):
+                df[field_name] = pd.to_numeric(df[field_name], errors='coerce')
+                df[field_name].fillna(0, inplace=True)
+                df[field_name] = df[field_name].astype(field_type)
             else:
-                field_type_transformer.transform(field_name, field_type)
+                df[field_name] = df[field_name].astype(field_type)
 
     def transfer(self, **kwargs):
         """
@@ -232,64 +231,3 @@ class AdWordsReportsToS3:
             self.__settings.source_include_zero_impressions,
             **kwargs)
         return data
-
-
-class FieldTypeTransformer:
-    """
-    Transform field types
-    """
-
-    def __init__(self, df: DataFrame):
-        self.__df = df
-
-    @dispatch(str, int)
-    def transform(self, field_name: str, field_type: int):
-        """
-        Transform to int type
-        :param field_name:
-        :param field_type:
-        :return:
-        """
-        self.__df[field_name] = pd.to_numeric(self.__df[field_name], errors='coerce')
-        self.__df[field_name].fillna(0, inplace=True)
-        self.__df[field_name] = self.__df[field_name].astype(field_type)
-
-    @dispatch(str, str)
-    def transform(self, field_name: str, field_type: str):
-        """
-        Transform to str type
-        :param field_name:
-        :param field_type:
-        :return:
-        """
-        self.__df[field_name] = self.__df[field_name].astype(field_type)
-
-    @dispatch(str, float)
-    def transform(self, field_name: str, field_type: float):
-        """
-        Transform to float type
-        :param field_name:
-        :param field_type:
-        :return:
-        """
-        self.__df[field_name] = self.__df[field_name].astype(field_type)
-
-    @dispatch(str, bool)
-    def transform(self, field_name: str, field_type: bool):
-        """
-        Transform to bool type
-        :param field_name:
-        :param field_type:
-        :return:
-        """
-        self.__df[field_name] = self.__df[field_name].astype(field_type)
-
-    @dispatch(str, object)
-    def transform(self, field_name: str, field_type: object):
-        """
-        Transform to object type
-        :param field_name:
-        :param field_type:
-        :return:
-        """
-        self.__df[field_name] = self.__df[field_name].astype(field_type)
