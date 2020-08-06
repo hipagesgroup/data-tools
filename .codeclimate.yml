@@ -13,3 +13,7 @@ engines:
         enabled: false
       import-error:
         enabled: false
+## other configuration excluded from example...
+exclude_patterns:
+  - "example/"
+
