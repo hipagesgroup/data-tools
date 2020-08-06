@@ -154,20 +154,45 @@ class SourceSettings:
 
 
 class Extractor(ABC):
+    """
+    Abstract base class to define the functionalities of an Extractor
+
+    Args:
+        settings (SourceSettings): settings used to connect to a source
+    """
+
     def __init__(self, settings: SourceSettings):
         self._settings = settings
         pass
 
     @abstractmethod
-    def extract_next(self):
+    def extract_next(self) -> Any:
+        """
+        Extracts a single datapoint
+
+        Returns: Any
+
+        """
         pass
 
     @abstractmethod
     def has_next(self) -> bool:
+        """
+        Checks if the extractor has any more data points
+
+        Returns: bool
+
+        """
         pass
 
     @abstractmethod
     def reset(self) -> None:
+        """
+        Reset the state of the Extractor, usually reverting the state to its initial position
+
+        Returns: None
+
+        """
         pass
 
 
@@ -245,6 +270,15 @@ class Loader(ABC):
 
     @abstractmethod
     def load(self, data: Any) -> None:
+        """
+        Load a given data point onto the sink
+
+        Args:
+            data (Any): Any single data point
+
+        Returns: None
+
+        """
         pass
 
 
