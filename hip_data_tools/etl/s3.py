@@ -35,6 +35,7 @@ class S3Extractor(Extractor):
     Args:
         settings (S3SourceSettings):  settings to connect to the source s3 bucket
     """
+
     def __init__(self, settings: S3SourceSettings):
         super().__init__(settings)
         self._settings = settings
@@ -65,6 +66,7 @@ class S3FilesExtractor(S3Extractor):
     Args:
         settings (S3SourceSettings):  settings to connect to the source s3 bucket
     """
+
     def __init__(self, settings: S3SourceSettings):
         super().__init__(settings)
         self._source_keys = None
@@ -129,6 +131,7 @@ class S3ParquetFileDataExtractor(S3FilesExtractor):
     Args:
         settings (S3SourceSettings): settings to connect to the source s3 bucket
     """
+
     def __init__(self, settings: S3SourceSettings):
         super().__init__(settings)
 
@@ -234,6 +237,9 @@ class S3DataFrameAsParquetFileLoader(S3Loader):
 class S3FileNameTransformer(Transformer[Tuple[S3Bucket, S3Key], Tuple[S3Bucket, S3Key]]):
     """ Abstract base class to handle Tuple[S3Bucket, S3Key] transformation """
 
+    def __init__(self):
+        pass
+
     @abstractmethod
     def transform(self, data: Tuple[S3Bucket, S3Key]) -> Tuple[S3Bucket, S3Key]:
         """
@@ -258,6 +264,7 @@ class AddTargetS3KeyTransformer(S3FileNameTransformer):
     """
 
     def __init__(self, target_key_prefix: S3Key):
+        super().__init__()
         self.target_key_prefix = target_key_prefix
 
     def transform(self, data: Tuple[S3Bucket, S3Key]) -> Tuple[S3Bucket, S3Key, S3Key]:
