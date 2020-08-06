@@ -149,14 +149,14 @@ class S3Loader(Loader):
 
     def __init__(self, settings: S3SinkSettings):
         super().__init__(settings)
-        self.settings = settings
+        self._settings = settings
         self._s3_util = None
 
     def _get_s3_util(self) -> S3Util:
         if self._s3_util is None:
             self._s3_util = S3Util(
-                bucket=self.settings.bucket,
-                conn=AwsConnectionManager(self.settings.connection_settings),
+                bucket=self._settings.bucket,
+                conn=AwsConnectionManager(self._settings.connection_settings),
             )
         return self._s3_util
 
@@ -194,9 +194,9 @@ class S3FileCopyLoader(S3Loader):
         LOG.info("Transferring Key s3://%s/%s to s3://%s/%s",
                  source_bucket,
                  source_key,
-                 self.settings.bucket,
+                 self._settings.bucket,
                  target_key)
-        s3.copy(copy_source, self.settings.bucket, target_key)
+        s3.copy(copy_source, self._settings.bucket, target_key)
 
 
 class S3DataFrameAsParquetFileLoader(S3Loader):

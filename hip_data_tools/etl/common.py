@@ -240,7 +240,7 @@ class Loader(ABC):
         Args:
             settings (SinkSettings): setting to connect to the sink
         """
-        self.settings = settings
+        self._settings = settings
         pass
 
     @abstractmethod
