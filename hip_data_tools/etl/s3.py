@@ -29,13 +29,13 @@ class S3SourceSettings(SourceSettings):
 
 
 class S3Extractor(Extractor):
-    def __init__(self, settings: S3SourceSettings):
-        """
-        Base class for all types of S3 Extractors which handles connection to s3
+    """
+    Base class for all types of S3 Extractors which handles connection to s3
 
-        Args:
-            settings (S3SourceSettings):  settings to connect to the source s3 bucket
-        """
+    Args:
+        settings (S3SourceSettings):  settings to connect to the source s3 bucket
+    """
+    def __init__(self, settings: S3SourceSettings):
         super().__init__(settings)
         self._settings = settings
         self._s3_util = None
@@ -58,14 +58,14 @@ class S3Extractor(Extractor):
 
 
 class S3FilesExtractor(S3Extractor):
-    def __init__(self, settings: S3SourceSettings):
-        """
-        Base class that lists all source files and can be used downstream to extract various
-        types of data from these files
+    """
+    Base class that lists all source files and can be used downstream to extract various
+    types of data from these files
 
-        Args:
-            settings (S3SourceSettings):  settings to connect to the source s3 bucket
-        """
+    Args:
+        settings (S3SourceSettings):  settings to connect to the source s3 bucket
+    """
+    def __init__(self, settings: S3SourceSettings):
         super().__init__(settings)
         self._source_keys = None
         self.file_counter = 0
@@ -104,14 +104,14 @@ class S3FilesExtractor(S3Extractor):
 
 
 class S3FileLocationExtractor(S3FilesExtractor):
+    """
+    Base class for S3 file name extractors
+
+    Args:
+        settings (S3SourceSettings): settings to connect to the source s3 bucket
+    """
 
     def __init__(self, settings: S3SourceSettings):
-        """
-        Base class for S3 file name extractors
-
-        Args:
-            settings (S3SourceSettings): settings to connect to the source s3 bucket
-        """
         super().__init__(settings)
 
     def extract_next(self) -> Tuple[str, str]:
@@ -123,13 +123,13 @@ class S3FileLocationExtractor(S3FilesExtractor):
 
 
 class S3ParquetFileDataExtractor(S3FilesExtractor):
-    def __init__(self, settings: S3SourceSettings):
-        """
-        Extractor class to read parquet files stored in s3 in form of Pandas Dataframe
+    """
+    Extractor class to read parquet files stored in s3 in form of Pandas Dataframe
 
-        Args:
-            settings (S3SourceSettings): settings to connect to the source s3 bucket
-        """
+    Args:
+        settings (S3SourceSettings): settings to connect to the source s3 bucket
+    """
+    def __init__(self, settings: S3SourceSettings):
         super().__init__(settings)
 
     def extract_next(self) -> DataFrame:

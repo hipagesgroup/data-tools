@@ -258,13 +258,13 @@ class SinkSettings:
 
 
 class Loader(ABC):
-    def __init__(self, settings: SinkSettings):
-        """
-        Abstract Base class for defining Loaders that write data to sinks
+    """
+    Abstract Base class for defining Loaders that write data to sinks
 
-        Args:
-            settings (SinkSettings): setting to connect to the sink
-        """
+    Args:
+        settings (SinkSettings): setting to connect to the sink
+    """
+    def __init__(self, settings: SinkSettings):
         self._settings = settings
         pass
 
