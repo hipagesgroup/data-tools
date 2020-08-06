@@ -9,6 +9,12 @@ from hip_data_tools.etl.s3_to_s3 import S3ToS3FileCopy
 
 
 def transfer_files():
+    """
+    transfers files from one bucket to another
+
+    Returns: None
+
+    """
     # These Aws setting assume that you have your Aws Access keys in the Standard env vars
     aws_setting = AwsConnectionSettings(
         region="ap-southeast-2",
@@ -37,6 +43,8 @@ def transfer_files():
     )
     # Check the files that will be transferred
     files = etl.list_source_files()
+    print(files)
+
     # If you want to transfer files in a loop
     while etl.has_next():
         etl.execute_next()
