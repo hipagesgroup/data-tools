@@ -4,7 +4,7 @@ Example Script to transfer S3 files from one bucket to the other
 
 """
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsSecretsManager
-from hip_data_tools.etl.s3 import AddTargetS3KeyTransformer
+from hip_data_tools.etl.s3 import AddTargetS3KeyTransformer, S3SinkSettings, S3SourceSettings
 from hip_data_tools.etl.s3_to_s3 import S3ToS3FileCopy
 
 
@@ -23,13 +23,13 @@ def transfer_files():
 
     # Define the ETL instance
     etl = S3ToS3FileCopy(
-        source=s3.S3SourceSettings(
+        source=S3SourceSettings(
             bucket="my_source_bucket",
             key_prefix="source/prefix",
             suffix=None,
             connection_settings=aws_setting,
         ),
-        sink=s3.S3SinkSettings(
+        sink=S3SinkSettings(
             bucket="my_target_bucket",
             connection_settings=aws_setting,
         ),

@@ -138,6 +138,7 @@ class S3ParquetFileDataExtractor(S3FilesExtractor):
 
 @dataclass
 class S3SinkSettings(SinkSettings):
+    """ Target sink settings for S3 """
     bucket: S3Bucket
     connection_settings: AwsConnectionSettings
 
