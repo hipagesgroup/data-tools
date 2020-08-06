@@ -4,6 +4,7 @@ Example Script to transfer S3 files from one bucket to the other
 
 """
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsSecretsManager
+from hip_data_tools.etl.s3 import AddTargetS3KeyTransformer
 from hip_data_tools.etl.s3_to_s3 import S3ToS3FileCopy
 
 # These Aws setting assume that you have your Aws Access keys in the Standard env vars
@@ -28,9 +29,9 @@ etl = S3ToS3FileCopy(
     ),
     sink=s3.S3SinkSettings(
         bucket="my_target_bucket",
-        key_prefix="target/prefix",
         connection_settings=aws_setting,
-    )
+    ),
+    transformers=[AddTargetS3KeyTransformer(target_key_prefix="target/prefix")],
 )
 # Check the files that will be transferred
 files = etl.list_source_files()
