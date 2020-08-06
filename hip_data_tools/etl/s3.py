@@ -70,7 +70,7 @@ class S3FilesExtractor(S3Extractor):
     def __init__(self, settings: S3SourceSettings):
         super().__init__(settings)
         self._source_keys = None
-        self.file_counter = 0
+        self._file_counter = 0
 
     def list_source_files(self) -> List[S3Key]:
         """
@@ -85,12 +85,12 @@ class S3FilesExtractor(S3Extractor):
                 keys = [key for key in keys if key.endswith(self._settings.suffix)]
             self._source_keys = keys
             LOG.info("Listed and cached %s source files", len(self._source_keys))
-            self.file_counter = len(self._source_keys)
+            self._file_counter = len(self._source_keys)
         return self._source_keys
 
     def _next_file_path(self) -> str:
-        file = self.list_source_files()[self.file_counter - 1]
-        self.file_counter -= 1
+        file = self.list_source_files()[self._file_counter - 1]
+        self._file_counter -= 1
         return file
 
     @abstractmethod
@@ -99,7 +99,7 @@ class S3FilesExtractor(S3Extractor):
 
     def has_next(self) -> bool:
         self.list_source_files()
-        return self.file_counter > 0
+        return self._file_counter > 0
 
     def reset(self) -> None:
         self._source_keys = None
