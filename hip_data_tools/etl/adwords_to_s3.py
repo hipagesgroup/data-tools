@@ -5,14 +5,14 @@ import datetime
 from typing import List, Optional, Dict, Type
 
 import pandas as pd
+from multipledispatch import dispatch
 from attr import dataclass
 from googleads.adwords import ServiceQueryBuilder, ReportQuery
 from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager
 from hip_data_tools.aws.s3 import S3Util
-from hip_data_tools.common import dataframe_columns_to_snake_case, \
-    validate_and_fix_common_integer_fields
+from hip_data_tools.common import dataframe_columns_to_snake_case
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionSettings, AdWordsDataReader, \
     GoogleAdWordsConnectionManager, AdWordsParallelDataReadEstimator, AdWordsReportReader
 
@@ -200,20 +200,13 @@ class AdWordsReportsToS3:
         return self._adwords_util
 
     def _mask_field_types(self, df: DataFrame):
+        field_type_transformer = FieldTypeTransformer(df=df)
         for field_name in df.columns:
             field_type = self.__settings.transformation_field_type_mask[field_name]
-            if field_type is int:
-                df[field_name] = pd.to_numeric(df[field_name], errors='coerce')
-                df[field_name].fillna(0, inplace=True)
-                df[field_name] = df[field_name].astype('int64')
-            elif field_type is str:
-                df[field_name] = df[field_name].astype('str')
-            elif field_type is float:
-                df[field_name] = df[field_name].astype('float64')
-            elif field_type is datetime:
+            if field_type is datetime:
                 df[field_name] = df[field_name].astype('datetime64[ns]')
-            elif field_type is bool:
-                df[field_name] = df[field_name].astype('bool')
+            else:
+                field_type_transformer.transform(field_name, field_type)
 
     def transfer(self, **kwargs):
         """
@@ -239,3 +232,34 @@ class AdWordsReportsToS3:
             self.__settings.source_include_zero_impressions,
             **kwargs)
         return data
+
+
+class FieldTypeTransformer(object):
+    """
+    Transform field types
+    """
+
+    def __init__(self, df: DataFrame):
+        self.__df = df
+
+    @dispatch(str, int)
+    def transform(self, field_name, field_type):
+        self.__df[field_name] = pd.to_numeric(self.__df[field_name], errors='coerce')
+        self.__df[field_name].fillna(0, inplace=True)
+        self.__df[field_name] = self.__df[field_name].astype(field_type)
+
+    @dispatch(str, str)
+    def transform(self, field_name, field_type):
+        self.__df[field_name] = self.__df[field_name].astype(field_type)
+
+    @dispatch(str, float)
+    def transform(self, field_name, field_type):
+        self.__df[field_name] = self.__df[field_name].astype(field_type)
+
+    @dispatch(str, bool)
+    def transform(self, field_name, field_type):
+        self.__df[field_name] = self.__df[field_name].astype(field_type)
+
+    @dispatch(str, object)
+    def transform(self, field_name, field_type):
+        self.__df[field_name] = self.__df[field_name].astype(field_type)

@@ -3,24 +3,13 @@ from unittest import TestCase
 
 import pandas as pd
 from pandas._libs.tslibs.timestamps import Timestamp
-from pandas._testing import assert_frame_equal
-from py._builtin import execfile
 
-from hip_data_tools.aws.common import AwsConnectionSettings, AwsSecretsManager
 from hip_data_tools.etl.adwords_to_s3 import AdWordsReportsToS3, AdWordsReportToS3Settings
 
 
 class TestAdwordsReportsToS3(TestCase):
 
     def test__should__return_dataframe_with_correct_types__when__a_dataframe_is_given(self):
-        # Load secrets via env vars
-        execfile("../../secrets.py")
-
-        aws_setting = AwsConnectionSettings(
-            region="ap-southeast-2",
-            secrets_manager=AwsSecretsManager(),
-            profile=None)
-
         adwords_reports_to_s3_util = AdWordsReportsToS3(
             AdWordsReportToS3Settings(
                 source_query="",
@@ -50,7 +39,15 @@ class TestAdwordsReportsToS3(TestCase):
                             'complex_field': {0: [], 1: ['{"x": "hello", "y": "world"}']}}
         input_value = pd.DataFrame(data=input_value_dict)
 
-        actual = adwords_reports_to_s3_util._mask_field_types(input_value)
+        adwords_reports_to_s3_util._mask_field_types(input_value)
 
-        expected = pd.DataFrame(data={})
-        assert_frame_equal(expected, actual)
+        actual = input_value.dtypes.to_string()
+        expected = """ad_group_id                 int64
+labels                     object
+tuple_field                object
+bool_field                   bool
+array_field                object
+num_array_filed            object
+time_field         datetime64[ns]
+complex_field              object"""
+        self.assertEqual(expected, actual)

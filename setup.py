@@ -86,6 +86,7 @@ setup(
         "oauth2client",
         "gspread",
         "googleads",
+        "multipledispatch",
     ],
     test_suite="tests",
     tests_require=[
