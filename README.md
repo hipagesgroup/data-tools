@@ -3,6 +3,8 @@
 
 [![PyPI version](https://badge.fury.io/py/hip-data-tools.svg)](https://pypi.org/project/hip-data-tools/#history) 
 [![CircleCI](https://circleci.com/gh/hipagesgroup/data-tools/tree/master.svg?style=svg)](https://circleci.com/gh/hipagesgroup/data-tools/tree/master)
+[![Maintainability](https://api.codeclimate.com/v1/badges/bb4c3f9ce84ccec71c76/maintainability)](https://codeclimate.com/repos/5d53b4c199b9430177008586/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/bb4c3f9ce84ccec71c76/test_coverage)](https://codeclimate.com/repos/5d53b4c199b9430177008586/test_coverage)
 
 Common Python tools and utilities for data engineering, ETL, Exploration, etc. 
 The package is uploaded to PyPi for easy drop and use in various environmnets, such as (but not limited to):
