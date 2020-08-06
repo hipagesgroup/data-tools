@@ -1,3 +1,8 @@
+"""
+S3 related ETL components Extractors, Loaders, Transformers, etc.
+
+"""
+
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Optional, List, Tuple, Any, NewType
