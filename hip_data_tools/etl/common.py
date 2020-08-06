@@ -2,15 +2,19 @@
 Common ETL specific utilities and methods
 """
 import string
+import time
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from random import random
+from typing import Any, List, TypeVar, Generic, Optional, Dict
 
-import time
 from cassandra.cqlengine import columns, ValidationError
 from cassandra.cqlengine.management import sync_table
 from cassandra.cqlengine.models import Model
 from cassandra.cqlengine.query import LWTException
+from pandas import DataFrame
 
 
 class EtlStates(Enum):
@@ -141,3 +145,198 @@ def get_random_string(length: int) -> str:
     """
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(length))
+
+
+@dataclass
+class SourceSettings:
+    """ Abstract base dataclass for source settings """
+    pass
+
+
+class Extractor(ABC):
+    """
+    Abstract base class to define the functionalities of an Extractor
+
+    Args:
+        settings (SourceSettings): settings used to connect to a source
+    """
+
+    def __init__(self, settings: SourceSettings):
+        self._settings = settings
+        pass
+
+    @abstractmethod
+    def extract_next(self) -> Any:
+        """
+        Extracts a single datapoint
+
+        Returns: Any
+
+        """
+        pass
+
+    @abstractmethod
+    def has_next(self) -> bool:
+        """
+        Checks if the extractor has any more data points
+
+        Returns: bool
+
+        """
+        pass
+
+    @abstractmethod
+    def reset(self) -> None:
+        """
+        Reset the state of the Extractor, usually reverting the state to its initial position
+
+        Returns: None
+
+        """
+        pass
+
+
+FromDataElementType = TypeVar('FromDataElementType')
+ToDataElementType = TypeVar('ToDataElementType')
+
+
+class Transformer(ABC, Generic[FromDataElementType, ToDataElementType]):
+    """Abstract Base class for handling data transformations"""
+
+    @abstractmethod
+    def transform(self, data: FromDataElementType) -> ToDataElementType:
+        """
+        Transform the data element provided
+
+        Args:
+            data (Any): A data Element
+
+        Returns: Any
+
+        """
+        pass
+
+
+class DictTransformer(Transformer[Dict, Dict]):
+    """ Abstract base class to handle dict to dict transformation """
+
+    @abstractmethod
+    def transform(self, data: Dict) -> Dict:
+        """
+        Transform the data element provided
+
+        Args:
+            data (Any): A data Element
+
+        Returns: Any
+
+        """
+        pass
+
+
+class DataFrameTransformer(Transformer[DataFrame, DataFrame]):
+    """ Abstract base class to handle DataFrame to DataFrame transformation """
+
+    @abstractmethod
+    def transform(self, data: DataFrame) -> DataFrame:
+        """
+        Transform the data element provided
+
+        Args:
+            data (Any): A data Element
+
+        Returns: Any
+
+        """
+        pass
+
+
+@dataclass
+class SinkSettings:
+    """Dataclass to encapsulate settings to connect to and write to a data sink"""
+    pass
+
+
+class Loader(ABC):
+    """
+    Abstract Base class for defining Loaders that write data to sinks
+
+    Args:
+        settings (SinkSettings): setting to connect to the sink
+    """
+    def __init__(self, settings: SinkSettings):
+        self._settings = settings
+        pass
+
+    @abstractmethod
+    def load(self, data: Any) -> None:
+        """
+        Load a given data point onto the sink
+
+        Args:
+            data (Any): Any single data point
+
+        Returns: None
+
+        """
+        pass
+
+
+class ETL(ABC):
+    """
+    Base ETL class that defines the interaction of the three components of an ETL
+    Args:
+        extractor (Extractor): source data extractor
+        transformers (List[Transformer]): series of transformation
+        loader (Loader): loader to write data into a sink
+    """
+
+    def __init__(self, extractor: Extractor, loader: Loader,
+                 transformers: Optional[List[Transformer]] = None):
+        self.extractor = extractor
+        if not transformers:
+            transformers = []
+        self.transformers = transformers
+        self.loader = loader
+
+    def has_next(self) -> bool:
+        """
+        Does the Source have any more data elements
+
+        Returns (bool): True if data exists
+
+        """
+        return self.extractor.has_next()
+
+    def execute_next(self) -> None:
+        """
+        Execute the Extraction, transformation and loading of the next data element from the source
+
+        Returns: None
+
+        """
+        extracted_data = self.extractor.extract_next()
+        transformed_data = extracted_data
+        for transformer in self.transformers:
+            transformed_data = transformer.transform(transformed_data)
+        self.loader.load(transformed_data)
+
+    def execute_all(self) -> None:
+        """
+        Execute the Extraction, transformation and loading of all data element from the source
+
+        Returns: None
+
+        """
+        while self.has_next():
+            self.execute_next()
+
+    def reset_source(self) -> None:
+        """
+        Reset state of the source Loader, this will cause the loader to forget the items that have
+        been loaded already and start afresh
+
+        Returns:
+
+        """
+        self.extractor.reset()

@@ -2,3 +2,18 @@ engines:
   pylint:
     enabled: true
     channel: "beta"
+    checks:
+      unnecessary-pass:
+        enabled: false
+      invalid-name:
+        enabled: false
+      useless-super-delegation:
+        enabled: false
+      too-few-public-methods:
+        enabled: false
+      import-error:
+        enabled: false
+## other configuration excluded from example...
+include_patterns:
+  - "hip_data_tools/"
+
