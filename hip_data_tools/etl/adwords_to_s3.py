@@ -234,7 +234,7 @@ class AdWordsReportsToS3:
         return data
 
 
-class FieldTypeTransformer(object):
+class FieldTypeTransformer:
     """
     Transform field types
     """
@@ -244,22 +244,52 @@ class FieldTypeTransformer(object):
 
     @dispatch(str, int)
     def transform(self, field_name, field_type):
+        """
+        Transform to int type
+        :param field_name:
+        :param field_type:
+        :return:
+        """
         self.__df[field_name] = pd.to_numeric(self.__df[field_name], errors='coerce')
         self.__df[field_name].fillna(0, inplace=True)
         self.__df[field_name] = self.__df[field_name].astype(field_type)
 
     @dispatch(str, str)
     def transform(self, field_name, field_type):
+        """
+        Transform to str type
+        :param field_name:
+        :param field_type:
+        :return:
+        """
         self.__df[field_name] = self.__df[field_name].astype(field_type)
 
     @dispatch(str, float)
     def transform(self, field_name, field_type):
+        """
+        Transform to float type
+        :param field_name:
+        :param field_type:
+        :return:
+        """
         self.__df[field_name] = self.__df[field_name].astype(field_type)
 
     @dispatch(str, bool)
     def transform(self, field_name, field_type):
+        """
+        Transform to bool type
+        :param field_name:
+        :param field_type:
+        :return:
+        """
         self.__df[field_name] = self.__df[field_name].astype(field_type)
 
     @dispatch(str, object)
     def transform(self, field_name, field_type):
+        """
+        Transform to object type
+        :param field_name:
+        :param field_type:
+        :return:
+        """
         self.__df[field_name] = self.__df[field_name].astype(field_type)
