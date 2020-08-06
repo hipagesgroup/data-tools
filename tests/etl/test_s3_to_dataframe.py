@@ -74,10 +74,11 @@ class TestS3ToDataFrame(TestCase):
 
         expected = pd.DataFrame(dict(A=range(20)),
                                 index=pd.date_range('20130101', periods=20, freq='d'))
-        self.assertEqual(expected.shape, etl.get_all_files_as_data_frame().shape)
+
+        assert_frame_equal(expected, etl.get_all_files_as_data_frame(), check_like=True)
 
     @mock_s3
-    def test_the_etl_should_list_files_correctly(self):
+    def test_the_etl_should_give_the_next_file_correctly(self):
         test_bucket = "TEST_BUCKET_ITR"
         test_key = "some/key"
         aws_conn = AwsConnectionSettings(
@@ -106,6 +107,6 @@ class TestS3ToDataFrame(TestCase):
 
         etl = S3ToDataFrame(settings)
 
-        self.assertEqual(df1.shape, etl.next().shape)
-        self.assertEqual(df2.shape, etl.next().shape)
-        self.assertEqual(df3.shape, etl.next().shape)
+        assert_frame_equal(df1, etl.next(), check_like=True)
+        assert_frame_equal(df2, etl.next(), check_like=True)
+        assert_frame_equal(df3, etl.next(), check_like=True)
