@@ -14,6 +14,6 @@ engines:
       import-error:
         enabled: false
 ## other configuration excluded from example...
-exclude_patterns:
-  - "example/"
+include_patterns:
+  - "hip_data_tools/"
 
