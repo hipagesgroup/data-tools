@@ -243,7 +243,7 @@ class FieldTypeTransformer:
         self.__df = df
 
     @dispatch(str, int)
-    def transform(self, field_name, field_type):
+    def transform(self, field_name: str, field_type: int):
         """
         Transform to int type
         :param field_name:
@@ -255,7 +255,7 @@ class FieldTypeTransformer:
         self.__df[field_name] = self.__df[field_name].astype(field_type)
 
     @dispatch(str, str)
-    def transform(self, field_name, field_type):
+    def transform(self, field_name: str, field_type: str):
         """
         Transform to str type
         :param field_name:
@@ -265,7 +265,7 @@ class FieldTypeTransformer:
         self.__df[field_name] = self.__df[field_name].astype(field_type)
 
     @dispatch(str, float)
-    def transform(self, field_name, field_type):
+    def transform(self, field_name: str, field_type: float):
         """
         Transform to float type
         :param field_name:
@@ -275,7 +275,7 @@ class FieldTypeTransformer:
         self.__df[field_name] = self.__df[field_name].astype(field_type)
 
     @dispatch(str, bool)
-    def transform(self, field_name, field_type):
+    def transform(self, field_name: str, field_type: bool):
         """
         Transform to bool type
         :param field_name:
@@ -285,7 +285,7 @@ class FieldTypeTransformer:
         self.__df[field_name] = self.__df[field_name].astype(field_type)
 
     @dispatch(str, object)
-    def transform(self, field_name, field_type):
+    def transform(self, field_name: str, field_type: object):
         """
         Transform to object type
         :param field_name:
