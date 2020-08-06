@@ -148,7 +148,7 @@ def get_random_string(length: int) -> str:
 
 @dataclass
 class SourceSettings:
-    source_type: str
+    pass
 
 
 @dataclass
@@ -180,6 +180,10 @@ class Extractor(ABC):
     def has_next(self) -> bool:
         pass
 
+    @abstractmethod
+    def reset(self) -> None:
+        pass
+
 
 class Transformer(ABC):
     @abstractmethod
@@ -189,7 +193,7 @@ class Transformer(ABC):
 
 @dataclass
 class SinkSettings:
-    sink_type: str
+    pass
 
 
 class Loader(ABC):
@@ -208,6 +212,9 @@ class ETL(ABC):
         self.transformers = transformers
         self.loader = loader
 
+    def has_next(self) -> bool:
+        return self.extractor.has_next()
+
     def execute_next(self) -> None:
         extracted_data = self.extractor.extract_next()
         transformed_data = extracted_data
@@ -216,38 +223,8 @@ class ETL(ABC):
         self.loader.load(transformed_data)
 
     def execute_all(self) -> None:
-        while self.extractor.has_next():
+        while self.has_next():
             self.execute_next()
 
-
-class InMemoryCheckpoint(CheckpointHandler):
-    """Stores the checkpoint state in form pf python dict"""
-
-    def __init__(self, state: ExtractorState):
-        self.data = {}
-        super().__init__(state)
-
-    def save_state(self, state: ExtractorState) -> None:
-        save_data = {
-            "state": state,
-            "save_time": datetime.now()
-        }
-        self.data = save_data
-
-    def latest_state(self):
-        return self.data.get("state", None)
-
-
-class CheckPointedExtractor(Extractor):
-
-    def __init__(self, settings: SourceSettings, checkpoint: CheckpointHandler):
-        self.checkpoint = checkpoint
-        super().__init__(settings)
-
-    @abstractmethod
-    def extract_next(self):
-        pass
-
-    @abstractmethod
-    def has_next(self) -> bool:
-        pass
+    def reset_source(self) -> None:
+        self.extractor.reset()

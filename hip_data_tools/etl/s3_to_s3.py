@@ -1,10 +1,11 @@
 """
 Module to deal with data transfer from S3 to Cassandra
 """
+from typing import List
 
 from hip_data_tools.etl.common import ETL
 from hip_data_tools.etl.s3 import S3SourceSettings, S3SinkSettings, S3FileLocationExtractor, \
-    S3FileCopier
+    S3FileCopier, S3Key
 
 
 class S3ToS3FileCopy(ETL):
@@ -43,3 +44,6 @@ class S3ToS3FileCopy(ETL):
             transformers=[],
             loader=S3FileCopier(sink)
         )
+
+    def list_source_files(self) -> List[S3Key]:
+        return self.extractor.list_source_files()

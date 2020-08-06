@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from dataclasses import dataclass
 from typing import Optional, List, Tuple, Any, NewType
 
 from pandas import DataFrame
@@ -8,17 +9,17 @@ from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.common import LOG
 from hip_data_tools.etl.common import SourceSettings, Extractor, SinkSettings, Loader
 
-
-class S3SourceSettings(SourceSettings):
-    source_bucket: str
-    source_key_prefix: str
-    suffix: Optional[str]
-    connection_settings: AwsConnectionSettings
-
-
 S3Key = NewType("S3Key", str)
 FileName = NewType("FileName", str)
 S3Bucket = NewType("S3Bucket", str)
+
+
+@dataclass
+class S3SourceSettings(SourceSettings):
+    bucket: S3Bucket
+    key_prefix: S3Key
+    suffix: Optional[str]
+    connection_settings: AwsConnectionSettings
 
 
 class S3Extractor(Extractor):
@@ -30,7 +31,7 @@ class S3Extractor(Extractor):
     def _get_s3_util(self) -> S3Util:
         if self._s3_util is None:
             self._s3_util = S3Util(
-                bucket=self.settings.source_bucket,
+                bucket=self.settings.bucket,
                 conn=AwsConnectionManager(self.settings.connection_settings),
             )
         return self._s3_util
@@ -50,9 +51,9 @@ class S3FilesExtractor(S3Extractor):
         self._source_keys = None
         self.file_counter = 0
 
-    def _list_source_files(self) -> List[str]:
+    def list_source_files(self) -> List[S3Key]:
         if self._source_keys is None:
-            keys = self._get_s3_util().get_keys(self.settings.source_key_prefix)
+            keys = self._get_s3_util().get_keys(self.settings.key_prefix)
             if self.settings.suffix:
                 keys = [key for key in keys if key.endswith(self.settings.suffix)]
             self._source_keys = keys
@@ -61,18 +62,24 @@ class S3FilesExtractor(S3Extractor):
         return self._source_keys
 
     def _next_file_path(self) -> str:
+        file = self.list_source_files()[self.file_counter - 1]
         self.file_counter -= 1
-        return self._list_source_files()[self.file_counter]
+        return file
 
     @abstractmethod
     def extract_next(self) -> Tuple[str, str]:
         pass
 
     def has_next(self) -> bool:
+        self.list_source_files()
         return self.file_counter > 0
+
+    def reset(self) -> None:
+        self._source_keys = None
 
 
 class S3FileLocationExtractor(S3FilesExtractor):
+
     def __init__(self, settings: S3SourceSettings):
         super().__init__(settings)
 
@@ -81,7 +88,7 @@ class S3FileLocationExtractor(S3FilesExtractor):
         next eligible source coordinates
         Returns: Tuple[str,str]
         """
-        return self.settings.source_bucket, self._next_file_path()
+        return self.settings.bucket, self._next_file_path()
 
 
 class S3ParquetFileDataExtractor(S3FilesExtractor):
@@ -97,9 +104,10 @@ class S3ParquetFileDataExtractor(S3FilesExtractor):
         return s3.download_parquet_as_dataframe(key=self._next_file_path())
 
 
+@dataclass
 class S3SinkSettings(SinkSettings):
-    target_bucket: str
-    target_key_prefix: str
+    bucket: S3Bucket
+    key_prefix: S3Key
     connection_settings: AwsConnectionSettings
 
 
@@ -112,7 +120,7 @@ class S3Loader(Loader):
     def _get_s3_util(self) -> S3Util:
         if self._s3_util is None:
             self._s3_util = S3Util(
-                bucket=self.settings.target_bucket,
+                bucket=self.settings.bucket,
                 conn=AwsConnectionManager(self.settings.connection_settings),
             )
         return self._s3_util
@@ -128,7 +136,7 @@ class S3FileCopier(S3Loader):
 
     def _get_target_key(self, source_key: str) -> str:
         file_name = source_key.split('/')[-1]
-        return f"{self.settings.target_key_prefix}/{file_name}"
+        return f"{self.settings.key_prefix}/{file_name}"
 
     def load(self, data: Tuple[S3Bucket, S3Key]) -> None:
         """
@@ -147,9 +155,9 @@ class S3FileCopier(S3Loader):
         LOG.info("Transferring Key s3://%s/%s to s3://%s/%s",
                  source_bucket,
                  source_key,
-                 self.settings.target_bucket,
+                 self.settings.bucket,
                  target_key)
-        s3.copy(copy_source, self.settings.target_bucket, target_key)
+        s3.copy(copy_source, self.settings.bucket, target_key)
 
 
 class S3DataFrameAsParquetFileLoader(S3Loader):
