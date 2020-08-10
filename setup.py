@@ -87,6 +87,8 @@ setup(
         "gspread",
         "googleads",
         "numpy",
+        "mysql-connector-python>=8.0.11, <=8.0.18",
+        "mysqlclient>=1.3.6,<1.4",
     ],
     test_suite="tests",
     tests_require=[
