@@ -203,9 +203,8 @@ class AdWordsReportsToS3:
             if field_type is np.dtype(int):
                 df[field_name] = pd.to_numeric(df[field_name], errors='coerce')
                 df[field_name].fillna(0, inplace=True)
-                df[field_name] = df[field_name].astype(field_type)
-            else:
-                df[field_name] = df[field_name].astype(field_type)
+
+            df[field_name] = df[field_name].astype(field_type)
 
     def transfer(self, **kwargs):
         """
