@@ -259,3 +259,33 @@ class TestAdWordsUtil(TestCase):
         actual = AdWordsParallelDataReadEstimator.get_parallel_payloads(ad_util, page_size=100,
                                                                         number_of_workers=5)
         self.assertEqual(expected, actual)
+
+    def test__should__give_parallel_payloads__when__page_size_is_greater_than_total_entries(self):
+        # Load secrets via env vars
+        execfile("../../secrets.py")
+        conn = GoogleAdWordsConnectionManager(
+            GoogleAdWordsConnectionSettings(
+                client_id=os.getenv("adwords_client_id"),
+                user_agent="Tester",
+                client_customer_id=os.getenv("adwords_client_root_customer_id"),
+                secrets_manager=GoogleAdWordsSecretsManager()))
+        ad_util = AdWordsParallelDataReadEstimator(
+            conn=conn, service="test_service",
+            version="version_1",
+            query=ReportQueryBuilder().Select(
+                'CampaignId').From(
+                'CAMPAIGN_NEGATIVE_KEYWORDS_PERFORMANCE_REPORT').Build())
+
+        def _get_total_entries(self):
+            return 20
+
+        AdWordsParallelDataReadEstimator._get_total_entries = _get_total_entries
+
+        expected = [{'number_of_pages': 1, 'page_size': 20, 'start_index': 0, 'worker': 0},
+                    {'number_of_pages': 0, 'page_size': 0, 'start_index': 0, 'worker': 1},
+                    {'number_of_pages': 0, 'page_size': 0, 'start_index': 0, 'worker': 2},
+                    {'number_of_pages': 0, 'page_size': 0, 'start_index': 0, 'worker': 3},
+                    {'number_of_pages': 0, 'page_size': 0, 'start_index': 0, 'worker': 4}]
+        actual = AdWordsParallelDataReadEstimator.get_parallel_payloads(ad_util, page_size=100,
+                                                                        number_of_workers=5)
+        self.assertEqual(expected, actual)
