@@ -2,6 +2,7 @@
 This Module handles the connection and operations on Google AdWords accounts using adwords API
 """
 import gzip
+import math
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 from typing import List, Optional, Any
@@ -271,15 +272,35 @@ class AdWordsParallelDataReadEstimator(AdWordsUtil):
         pages_per_worker = round(number_of_pages / number_of_workers)
         start_index = 0
         result = []
+        page_size_per_worker = page_size
+        refined_number_of_pages_per_worker = pages_per_worker
+        if page_size >= total_entries:
+            page_size_per_worker = 0
+        if page_size * number_of_workers > total_entries:
+            page_size_per_worker = 0
+            refined_number_of_pages_per_worker = 0
         for worker in range(number_of_workers):
             payload = {
                 "worker": worker,
                 "start_index": start_index,
-                "number_of_pages": pages_per_worker,
-                "page_size": page_size,
+                "number_of_pages": refined_number_of_pages_per_worker,
+                "page_size": page_size_per_worker,
             }
             start_index = start_index + (page_size * pages_per_worker)
             result.append(payload)
+        if page_size >= total_entries:
+            result[0]["number_of_pages"] = 1
+            result[0]["page_size"] = total_entries
+        if page_size * number_of_workers > total_entries:
+            last_page_size = total_entries % page_size
+            number_of_workers_with_non_zero_pages = math.ceil(total_entries / page_size)
+            for workers_with_non_zero_pages in range(number_of_workers_with_non_zero_pages):
+                result[workers_with_non_zero_pages]["number_of_pages"] = 1
+                result[workers_with_non_zero_pages]["page_size"] = page_size
+            for worker_with_zero_pages in range(number_of_workers_with_non_zero_pages,
+                                                number_of_workers):
+                result[worker_with_zero_pages]["start_index"] = 0
+            result[number_of_workers_with_non_zero_pages - 1]["page_size"] = last_page_size
         return result
 
     def _get_total_entries(self) -> int:
