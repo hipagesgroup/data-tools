@@ -276,7 +276,7 @@ class AdWordsParallelDataReadEstimator(AdWordsUtil):
         refined_number_of_pages_per_worker = pages_per_worker
         if page_size >= total_entries:
             page_size_per_worker = 0
-        if page_size * number_of_workers > total_entries:
+        elif page_size * number_of_workers > total_entries:
             page_size_per_worker = 0
             refined_number_of_pages_per_worker = 0
         for worker in range(number_of_workers):
@@ -291,7 +291,7 @@ class AdWordsParallelDataReadEstimator(AdWordsUtil):
         if page_size >= total_entries:
             result[0]["number_of_pages"] = 1
             result[0]["page_size"] = total_entries
-        if page_size * number_of_workers > total_entries:
+        elif page_size * number_of_workers > total_entries:
             last_page_size = total_entries % page_size
             number_of_workers_with_non_zero_pages = math.ceil(total_entries / page_size)
             for workers_with_non_zero_pages in range(number_of_workers_with_non_zero_pages):
