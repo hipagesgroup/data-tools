@@ -71,7 +71,7 @@ setup(
     install_requires=[
         "stringcase",
         "attrs",
-        "boto3==1.14.46",
+        "boto3==1.14.47",
         "joblib",
         "pandas",
         "GitPython",
@@ -87,7 +87,7 @@ setup(
         "gspread",
         "googleads",
         "numpy",
-        "botocore==1.17.44",
+        "botocore==1.17.47",
     ],
     test_suite="tests",
     tests_require=[
