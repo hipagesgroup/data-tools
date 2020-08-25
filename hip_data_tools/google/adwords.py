@@ -231,6 +231,31 @@ class AdWordsDataReader(AdWordsUtil):
         return estimator.get_parallel_payloads(page_size, number_of_workers)
 
 
+def _refine_result_list(number_of_workers: int, page_size: int, result: list,
+                        total_entries: int) -> None:
+    last_page_size = total_entries % page_size
+    number_of_workers_with_non_zero_pages = math.ceil(total_entries / page_size)
+    for workers_with_non_zero_pages in range(number_of_workers_with_non_zero_pages):
+        result[workers_with_non_zero_pages]["number_of_pages"] = 1
+        result[workers_with_non_zero_pages]["page_size"] = page_size
+    for worker_with_zero_pages in range(number_of_workers_with_non_zero_pages,
+                                        number_of_workers):
+        result[worker_with_zero_pages]["start_index"] = 0
+    result[number_of_workers_with_non_zero_pages - 1]["page_size"] = last_page_size
+
+
+def _refine_page_confings(page_size: int, pages_per_worker: int, total_entries: int,
+                          number_of_workers: int) -> (int, int):
+    page_size_per_worker = page_size
+    refined_number_of_pages_per_worker = pages_per_worker
+    if page_size >= total_entries:
+        page_size_per_worker = 0
+    elif page_size * number_of_workers > total_entries:
+        page_size_per_worker = 0
+        refined_number_of_pages_per_worker = 0
+    return page_size_per_worker, refined_number_of_pages_per_worker
+
+
 class AdWordsParallelDataReadEstimator(AdWordsUtil):
     """
     Class to use a service endpoint and awql query to estimate the number of parallel payloads, and
@@ -272,7 +297,7 @@ class AdWordsParallelDataReadEstimator(AdWordsUtil):
         pages_per_worker = round(number_of_pages / number_of_workers)
         start_index = 0
         result = []
-        page_size_per_worker, refined_number_of_pages_per_worker = self._refine_page_confings(
+        page_size_per_worker, refined_number_of_pages_per_worker = _refine_page_confings(
             page_size, pages_per_worker, total_entries, number_of_workers)
         for worker in range(number_of_workers):
             payload = {
@@ -287,31 +312,8 @@ class AdWordsParallelDataReadEstimator(AdWordsUtil):
             result[0]["number_of_pages"] = 1
             result[0]["page_size"] = total_entries
         elif page_size * number_of_workers > total_entries:
-            self._refine_result_list(number_of_workers, page_size, result, total_entries)
+            _refine_result_list(number_of_workers, page_size, result, total_entries)
         return result
-
-    def _refine_result_list(self, number_of_workers: int, page_size: int, result: list,
-                            total_entries: int) -> None:
-        last_page_size = total_entries % page_size
-        number_of_workers_with_non_zero_pages = math.ceil(total_entries / page_size)
-        for workers_with_non_zero_pages in range(number_of_workers_with_non_zero_pages):
-            result[workers_with_non_zero_pages]["number_of_pages"] = 1
-            result[workers_with_non_zero_pages]["page_size"] = page_size
-        for worker_with_zero_pages in range(number_of_workers_with_non_zero_pages,
-                                            number_of_workers):
-            result[worker_with_zero_pages]["start_index"] = 0
-        result[number_of_workers_with_non_zero_pages - 1]["page_size"] = last_page_size
-
-    def _refine_page_confings(self, page_size: int, pages_per_worker: int, total_entries: int,
-                              number_of_workers: int) -> (int, int):
-        page_size_per_worker = page_size
-        refined_number_of_pages_per_worker = pages_per_worker
-        if page_size >= total_entries:
-            page_size_per_worker = 0
-        elif page_size * number_of_workers > total_entries:
-            page_size_per_worker = 0
-            refined_number_of_pages_per_worker = 0
-        return page_size_per_worker, refined_number_of_pages_per_worker
 
     def _get_total_entries(self) -> int:
         query = self.query
