@@ -87,7 +87,7 @@ setup(
         "gspread",
         "googleads",
         "numpy",
-        "botocore==1.17.44",
+        "botocore==1.17.45",
         "boto3==1.14.45",
     ],
     test_suite="tests",
