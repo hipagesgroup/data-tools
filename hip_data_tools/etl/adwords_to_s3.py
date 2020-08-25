@@ -217,7 +217,7 @@ class AdWordsReportsToS3:
         if self.__settings.target_file_prefix:
             file_name = f"{self.__settings.target_file_prefix}{file_name}"
         dataframe_columns_to_snake_case(data)
-        if self.__settings.transformation_field_type_mask is not None:
+        if self.__settings.transformation_field_type_mask:
             self._mask_field_types(data)
         s3u.upload_dataframe_as_parquet(
             dataframe=data,
