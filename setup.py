@@ -87,6 +87,7 @@ setup(
         "gspread",
         "googleads",
         "numpy",
+        "botocore==1.17.44",
     ],
     test_suite="tests",
     tests_require=[
@@ -99,7 +100,6 @@ setup(
         "freezegun==0.1.11",
         "testcontainers",
         "ecdsa==0.14.1",
-        "botocore==1.17.44",
     ],
     cmdclass={'test': PyTest},
     python_requires='~=3.6',
