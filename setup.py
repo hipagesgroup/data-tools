@@ -71,7 +71,6 @@ setup(
     install_requires=[
         "stringcase",
         "attrs",
-        "boto3",
         "joblib",
         "pandas",
         "GitPython",
@@ -81,12 +80,13 @@ setup(
         "tqdm",
         "retrying",
         "arrow",
-        "s3fs",
+        "s3fs==0.4.2",
         "dataclasses",
         "oauth2client",
         "gspread",
         "googleads",
         "numpy",
+        "boto3",
     ],
     test_suite="tests",
     tests_require=[
