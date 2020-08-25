@@ -71,7 +71,7 @@ setup(
     install_requires=[
         "stringcase",
         "attrs",
-        "boto3==1.14.38",
+        "boto3==1.14.37",
         "joblib",
         "pandas",
         "GitPython",
