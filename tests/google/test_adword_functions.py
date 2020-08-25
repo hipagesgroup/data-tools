@@ -17,7 +17,8 @@ class TestAdWordsParallelDataReadEstimator(TestCase):
                 client_customer_id="adwords_client_root_customer_id",
                 secrets_manager=None))
         cls.ad_util = AdWordsParallelDataReadEstimator(
-            conn=conn, service="test_service",
+            conn=conn,
+            service="test_service",
             version="version_1",
             query=ReportQueryBuilder().Select(
                 'CampaignId').From(
