@@ -90,3 +90,8 @@ complex_field      object"""
 
         kwargs = {}
         AdWordsReportsToS3.transfer(adwords_reports_to_s3_util, **kwargs)
+
+    @classmethod
+    def tearDown(cls):
+        S3Util.upload_dataframe_as_parquet = None
+        AdWordsReportsToS3._get_report_data = None
