@@ -26,7 +26,8 @@ class TestAdwordsReportsToS3(TestCase):
                                                 "array_field": np.dtype(object),
                                                 "num_array_filed": np.dtype(object),
                                                 "time_field": np.dtype(object),
-                                                "complex_field": np.dtype(object)}))
+                                                "complex_field": np.dtype(object)},
+                allow_overwrite=True))
 
         input_value_dict = {'ad_group_id': {0: 94823864785, 1: 34523864785},
                             'labels': {0: 'Hello_1', 1: 'Hello_2'},
