@@ -27,8 +27,7 @@ class TestAdwordsReportsToS3(TestCase):
                                                 "array_field": np.dtype(object),
                                                 "num_array_filed": np.dtype(object),
                                                 "time_field": np.dtype(object),
-                                                "complex_field": np.dtype(object)},
-                allow_overwrite=True))
+                                                "complex_field": np.dtype(object)}))
 
         input_value_dict = {'ad_group_id': {0: 94823864785, 1: 34523864785},
                             'labels': {0: 'Hello_1', 1: 'Hello_2'},
@@ -64,8 +63,7 @@ complex_field      object"""
                 target_key_prefix="",
                 target_file_prefix="",
                 target_connection_settings=None,
-                transformation_field_type_mask=None,
-                allow_overwrite=False))
+                transformation_field_type_mask=None))
 
         input_value_dict = {'ad_group_id': {0: 94823864785, 1: 34523864785},
                             'labels': {0: 'Hello_1', 1: 'Hello_2'},

@@ -170,7 +170,6 @@ class AdWordsReportToS3Settings:
     target_file_prefix: Optional[str]
     target_connection_settings: AwsConnectionSettings
     transformation_field_type_mask: Optional[Dict[str, np.dtype]]
-    allow_overwrite: bool
 
 
 class AdWordsReportsToS3:
