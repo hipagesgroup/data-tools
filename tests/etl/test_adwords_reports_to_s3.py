@@ -5,6 +5,7 @@ import pandas as pd
 from pandas._libs.tslibs.timestamps import Timestamp
 
 from hip_data_tools.aws.s3 import S3Util
+from hip_data_tools.etl.adwords_to_athena import get_target_prefix_with_partition_dirs
 from hip_data_tools.etl.adwords_to_s3 import AdWordsReportsToS3, AdWordsReportToS3Settings
 
 
@@ -51,6 +52,31 @@ array_field        object
 num_array_filed    object
 time_field         object
 complex_field      object"""
+        self.assertEqual(expected, actual)
+
+    def test__should__return_key_prefix_with_partition_dirs__when__a_key_prefix_and_partition_values_are_given(
+            self):
+        actual = get_target_prefix_with_partition_dirs(
+            target_key_prefix="data/external/source=adwords/type=report_archive/database=common/table=google_adwords__ad_performance_report__monthly",
+            partition_values=[("report_start_date_dim_key", "20180901"),
+                              ("report_end_date_dim_key", "20181001")])
+        expected = "data/external/source=adwords/type=report_archive/database=common/table=google_adwords__ad_performance_report__monthly/report_start_date_dim_key=20180901/report_end_date_dim_key=20181001"
+        self.assertEqual(expected, actual)
+
+    def test__should__return_key_prefix__when__partition_values_are_empty(
+            self):
+        actual = get_target_prefix_with_partition_dirs(
+            target_key_prefix="data/external/source=adwords/type=report_archive/database=common/table=google_adwords__ad_performance_report__monthly",
+            partition_values=[])
+        expected = "data/external/source=adwords/type=report_archive/database=common/table=google_adwords__ad_performance_report__monthly"
+        self.assertEqual(expected, actual)
+
+    def test__should__return_key_prefix__when__partition_values_are_None(
+            self):
+        actual = get_target_prefix_with_partition_dirs(
+            target_key_prefix="data/external/source=adwords/type=report_archive/database=common/table=google_adwords__ad_performance_report__monthly",
+            partition_values=None)
+        expected = "data/external/source=adwords/type=report_archive/database=common/table=google_adwords__ad_performance_report__monthly"
         self.assertEqual(expected, actual)
 
     def integration_test__should__transfer_data__when__the_method_is_called(self):
