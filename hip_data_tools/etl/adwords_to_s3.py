@@ -220,8 +220,6 @@ class AdWordsReportsToS3:
         dataframe_columns_to_snake_case(data)
         if self.__settings.transformation_field_type_mask:
             self._mask_field_types(data)
-        if self.__settings.allow_overwrite:
-            s3u.delete_recursive(key_prefix=self.__settings.target_key_prefix)
         s3u.upload_dataframe_as_parquet(
             dataframe=data,
             key=self.__settings.target_key_prefix,
