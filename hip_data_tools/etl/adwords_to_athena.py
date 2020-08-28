@@ -34,9 +34,9 @@ class AdWordsToAthena(AdWordsToS3):
     def __init__(self, settings: AdWordsToAthenaSettings):
         self.__settings = settings
         self.base_dir = settings.target_key_prefix
-        settings.target_key_prefix = get_target_prefix_with_partition_dirs(
-            target_key_prefix=settings.target_key_prefix,
-            partition_values=settings.partition_values)
+        if self.__settings.is_partitioned_table:
+            partition_dirs = "/".join([f"{k}={v}" for k, v in settings.partition_values])
+            settings.target_key_prefix = f"{settings.target_key_prefix}/{partition_dirs}"
         super().__init__(settings)
 
     def _get_athena_util(self):
@@ -99,9 +99,7 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
     def __init__(self, settings: AdWordsReportsToAthenaSettings):
         self.__settings = settings
         self.base_dir = settings.target_key_prefix
-        self._final_target_prefix = get_target_prefix_with_partition_dirs(
-            target_key_prefix=settings.target_key_prefix,
-            partition_values=settings.partition_values)
+        self._final_target_prefix = self.get_target_prefix_with_partition_dirs()
         super().__init__(settings)
 
     def _get_athena_util(self):
@@ -166,16 +164,12 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
         }
         return athena_table_settings
 
-
-def get_target_prefix_with_partition_dirs(target_key_prefix: str,
-                                          partition_values: list) -> str:
-    """
-    Calculate the target s3 key prefix including partition directories
-    :param target_key_prefix:
-    :param partition_values:
-    :return:
-    """
-    if partition_values:
-        partition_dirs = "/".join([f"{k}={v}" for k, v in partition_values])
-        return f"{target_key_prefix}/{partition_dirs}"
-    return target_key_prefix
+    def get_target_prefix_with_partition_dirs(self) -> str:
+        """
+        Calculate the target s3 key prefix including partition directories
+        Returns: modified target key prefix
+        """
+        if self.__settings.partition_values:
+            partition_dirs = "/".join([f"{k}={v}" for k, v in self.__settings.partition_values])
+            return f"{self.__settings.target_key_prefix}/{partition_dirs}"
+        return self.__settings.target_key_prefix
