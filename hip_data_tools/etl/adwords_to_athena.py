@@ -167,7 +167,7 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
     def get_target_prefix_with_partition_dirs(self) -> str:
         """
         Calculate the target s3 key prefix including partition directories
-        Returns: modified target key prefix
+        Returns: modified target key prefix string
         """
         if self.__settings.partition_values:
             partition_dirs = "/".join([f"{k}={v}" for k, v in self.__settings.partition_values])
