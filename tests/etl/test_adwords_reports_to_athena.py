@@ -43,7 +43,7 @@ class TestAdwordsReportsToAthena(TestCase):
                 target_database="common",
                 target_table="google_adwords__ad_performance_report__monthly",
                 target_table_ddl_progress=True,
-                is_partitioned_table=True,
+                is_partitioned_table=False,
                 partition_values=[]))
         actual = adwords_reports_to_athena_util.get_target_prefix_with_partition_dirs()
         expected = "data/external/source=adwords/type=report_archive/database=common/table=google_adwords__ad_performance_report__monthly"
@@ -64,7 +64,7 @@ class TestAdwordsReportsToAthena(TestCase):
                 target_database="common",
                 target_table="google_adwords__ad_performance_report__monthly",
                 target_table_ddl_progress=True,
-                is_partitioned_table=True,
+                is_partitioned_table=False,
                 partition_values=None))
         actual = adwords_reports_to_athena_util.get_target_prefix_with_partition_dirs()
         expected = "data/external/source=adwords/type=report_archive/database=common/table=google_adwords__ad_performance_report__monthly"

@@ -99,7 +99,10 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
     def __init__(self, settings: AdWordsReportsToAthenaSettings):
         self.__settings = settings
         self.base_dir = settings.target_key_prefix
-        self._final_target_prefix = self.get_target_prefix_with_partition_dirs()
+        if self.__settings.is_partitioned_table:
+            partition_dirs = "/".join([f"{k}={v}" for k, v in settings.partition_values])
+            settings.target_key_prefix = f"{settings.target_key_prefix}/{partition_dirs}"
+        self._final_target_prefix = settings.target_key_prefix
         super().__init__(settings)
 
     def _get_athena_util(self):
@@ -166,10 +169,7 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
 
     def get_target_prefix_with_partition_dirs(self) -> str:
         """
-        Calculate the target s3 key prefix including partition directories
+        Return the target s3 key prefix which includes partition directories
         Returns: modified target key prefix string
         """
-        if self.__settings.partition_values:
-            partition_dirs = "/".join([f"{k}={v}" for k, v in self.__settings.partition_values])
-            return f"{self.__settings.target_key_prefix}/{partition_dirs}"
         return self.__settings.target_key_prefix
