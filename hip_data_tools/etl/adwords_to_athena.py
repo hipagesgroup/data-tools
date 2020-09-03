@@ -171,5 +171,5 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
         """
         if self.__settings.partition_values:
             partition_dirs = "/".join([f"{k}={v}" for k, v in self.__settings.partition_values])
-            return f"{self.__settings.target_key_prefix}/{partition_dirs}"
+            self.__settings.target_key_prefix = f"{self.__settings.target_key_prefix}/{partition_dirs}"
         return self.__settings.target_key_prefix
