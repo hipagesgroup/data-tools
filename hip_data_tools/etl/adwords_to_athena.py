@@ -166,3 +166,10 @@ class AdWordsReportsToAthena(AdWordsReportsToS3):
             "s3_dir": self.base_dir,
         }
         return athena_table_settings
+
+    def get_target_prefix_with_partition_dirs(self) -> str:
+        """
+        Return the target s3 key prefix which includes partition directories
+        Returns: modified target key prefix string
+        """
+        return self.__settings.target_key_prefix

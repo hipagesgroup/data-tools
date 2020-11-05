@@ -71,7 +71,6 @@ setup(
     install_requires=[
         "stringcase",
         "attrs",
-        "boto3",
         "joblib",
         "pandas",
         "GitPython",
@@ -81,7 +80,7 @@ setup(
         "tqdm",
         "retrying",
         "arrow",
-        "s3fs",
+        "s3fs==0.4.2",
         "dataclasses",
         "oauth2client",
         "gspread",
@@ -89,6 +88,7 @@ setup(
         "numpy",
         "mysql-connector-python>=8.0.11, <=8.0.18",
         "mysqlclient>=1.3.6,<1.4",
+        "boto3",
     ],
     test_suite="tests",
     tests_require=[
