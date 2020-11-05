@@ -20,7 +20,7 @@ class AthenaToDataFrame(S3ToDataFrame):
     """
     Class to transfer parquet data from s3 to Dataframe
     Args:
-        settings (S3ToDataFrame): the settings around the etl to be executed
+        settings (AthenaToDataFrameSettings): the settings around the etl to be executed
     """
 
     def __init__(self, settings: AthenaToDataFrameSettings):
