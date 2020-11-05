@@ -1,5 +1,5 @@
 """
-handle ETL of data from Athena to Python Dataframe
+handle ETL of data from Athena to Pandas Dataframe
 """
 from attr import dataclass
 
