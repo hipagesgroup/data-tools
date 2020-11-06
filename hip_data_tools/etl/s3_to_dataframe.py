@@ -1,5 +1,5 @@
 """
-Module to deal with data transfer from S3 to Cassandra
+Module to deal with data transfer from S3 to Pandas DataFrame
 """
 from typing import Iterator, List
 
@@ -14,7 +14,7 @@ from hip_data_tools.common import LOG
 
 @dataclass
 class S3ToDataFrameSettings:
-    """S3 to Cassandra ETL settings"""
+    """S3 to DataFrame ETL settings"""
     source_bucket: str
     source_key_prefix: str
     source_connection_settings: AwsConnectionSettings

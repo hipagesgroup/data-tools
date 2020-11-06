@@ -1,5 +1,5 @@
 """
-handle ETL of data from Athena to Cassandra
+handle ETL of data from Athena to Pandas Dataframe
 """
 from attr import dataclass
 
@@ -10,7 +10,7 @@ from hip_data_tools.etl.s3_to_dataframe import S3ToDataFrameSettings, S3ToDataFr
 
 @dataclass
 class AthenaToDataFrameSettings:
-    """S3 to Cassandra ETL settings"""
+    """S3 to Dataframe ETL settings"""
     source_database: str
     source_table: str
     source_connection_settings: AwsConnectionSettings
@@ -18,9 +18,9 @@ class AthenaToDataFrameSettings:
 
 class AthenaToDataFrame(S3ToDataFrame):
     """
-    Class to transfer parquet data from s3 to Cassandra
+    Class to transfer parquet data from s3 to Dataframe
     Args:
-        settings (AthenaToCassandraSettings): the settings around the etl to be executed
+        settings (AthenaToDataFrameSettings): the settings around the etl to be executed
     """
 
     def __init__(self, settings: AthenaToDataFrameSettings):

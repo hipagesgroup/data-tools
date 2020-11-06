@@ -92,7 +92,7 @@ setup(
     tests_require=[
         'pytest',
         'pytest-mock==1.10.1',
-        "moto",
+        "moto==1.3.8",
         "pyarrow",
         "python-snappy",
         "pytest-stub",
