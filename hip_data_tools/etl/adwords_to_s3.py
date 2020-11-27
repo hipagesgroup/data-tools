@@ -200,7 +200,7 @@ class AdWordsReportsToS3:
 
     def _mask_field_types(self, df: DataFrame):
         for field_name, field_type in self.__settings.transformation_field_type_mask.items():
-            if field_type is np.dtype(int):
+            if field_type is int:
                 df[field_name] = pd.to_numeric(df[field_name], errors='coerce')
                 df[field_name].fillna(0, inplace=True)
 
