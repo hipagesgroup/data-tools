@@ -141,7 +141,7 @@ class TestAdwordsToS3(TestCase):
                 aws_session_token_var="SOME_CUSTOM_AWS_SESSION_TOKEN"),
             profile=None
         )
-        target_bucket = "au-com-hipages-data-scratchpad"
+        target_bucket = "test-bucket"
         target_key_prefix = "something/test"
 
         # Load secrets via env vars
@@ -149,7 +149,7 @@ class TestAdwordsToS3(TestCase):
         adwords_settings = GoogleAdWordsConnectionSettings(
             client_id=os.getenv("adwords_client_id"),
             user_agent="Tester",
-            client_customer_id="4698302577",
+            client_customer_id="1111111111",
             secrets_manager=GoogleAdWordsSecretsManager())
         target_table = "test_adwords_geo_performance_report"
         etl_settings = AdWordsReportsToAthenaSettings(
