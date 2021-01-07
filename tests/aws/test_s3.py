@@ -124,6 +124,15 @@ class TestS3Util(TestCase):
         assert_frame_equal(test_object, redown_df)
 
     @mock_s3
+    def test_should__upload_dataframe_and_download_parquet__when_using_s3util_with_kwargs(self):
+        self.s3.create_bucket()
+        upload_key = "temp456"
+        test_object = pd.DataFrame([1, 2, 3, 4], columns=["one"])
+        self.s3.upload_dataframe_as_parquet(dataframe=test_object, key=upload_key, use_deprecated_int96_timestamps=True)
+        redown_df = self.s3.download_parquet_as_dataframe(f"{upload_key}/data.parquet")
+        assert_frame_equal(test_object, redown_df)
+
+    @mock_s3
     def test_should__delete_recursive__when_using_s3util(self):
         self.s3.create_bucket()
         sample_file = "./sample6.txt"

@@ -92,7 +92,8 @@ class S3Util(AwsUtil):
     def upload_dataframe_as_parquet(self,
                                     dataframe: DataFrame,
                                     key: str,
-                                    file_name: str = "data") -> None:
+                                    file_name: str = "data",
+                                    **kwargs) -> None:
         """
         Exports a datafame to a parquet file on s3
         Args:
@@ -108,7 +109,7 @@ class S3Util(AwsUtil):
 
         tmp_file = NamedTemporaryFile(delete=False)
         destination = f"{key}/{file_name}.parquet"
-        dataframe.to_parquet(fname=tmp_file.name)
+        dataframe.to_parquet(fname=tmp_file.name, **kwargs)
         self.upload_file(local_file_path=tmp_file.name, key=destination, remove_local=True)
 
     def download_parquet_as_dataframe(self,
