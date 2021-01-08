@@ -22,7 +22,7 @@ from hip_data_tools.google.adwords import GoogleAdWordsConnectionSettings, \
 class TestAthenaToAdWordsOfflineConversion(TestCase):
     def test_the_transformation_works(self):
         aws_conn = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=None,
             profile="default")
         execfile("../../secrets.py")
@@ -83,7 +83,7 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
 
     def test_adwords_upload_with_duplicates_in_same_batch(self):
         aws_conn = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=None,
             profile="default")
         execfile("../../secrets.py")
@@ -189,7 +189,7 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
 
     def test_multiple_runs_of_same_data_and_verify_deduplication(self):
         aws_conn = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=None,
             profile="default")
         execfile("../../secrets.py")
@@ -314,7 +314,7 @@ class TestAthenaToAdWordsOfflineConversion(TestCase):
 
     def test_full_integration_with_local_cassandra(self):
         aws_conn = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=None,
             profile="default")
         execfile("../../secrets.py")

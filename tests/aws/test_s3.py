@@ -17,7 +17,7 @@ class TestS3Util(TestCase):
     def setUpClass(cls):
         cls.bucket = "TEST_BUCKET"
         conn = AwsConnectionManager(
-            AwsConnectionSettings(region="ap-southeast-2", secrets_manager=AwsSecretsManager(),
+            AwsConnectionSettings(region="us-east-1", secrets_manager=AwsSecretsManager(),
                                   profile=None))
         cls.s3 = S3Util(conn=conn, bucket=cls.bucket)
 

@@ -16,7 +16,7 @@ class TestS3ToDataFrame(TestCase):
         test_bucket = "TEST_BUCKET_DEST"
         test_key = "some/key"
         aws_conn = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         s3_util = S3Util(conn=AwsConnectionManager(aws_conn), bucket=test_bucket)
@@ -50,7 +50,7 @@ class TestS3ToDataFrame(TestCase):
         test_bucket = "SOME_OTHER_BUCKET"
         test_key = "some/key"
         aws_conn = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         s3_util = S3Util(conn=AwsConnectionManager(aws_conn), bucket=test_bucket)
@@ -81,7 +81,7 @@ class TestS3ToDataFrame(TestCase):
         test_bucket = "TEST_BUCKET_ITR"
         test_key = "some/key"
         aws_conn = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         s3_util = S3Util(conn=AwsConnectionManager(aws_conn), bucket=test_bucket)

@@ -42,7 +42,7 @@ class TestS3Util(TestCase):
             target_table_name='test_sheets_example_v2',
             target_s3_bucket='au-com-hipages-data-scratchpad',
             target_s3_dir='sheets_example_v2',
-            target_connection_settings=AwsConnectionSettings(region='ap-southeast-2',
+            target_connection_settings=AwsConnectionSettings(region='us-east-1',
                                                              profile='default',
                                                              secrets_manager=None),
             target_table_ddl_progress=True

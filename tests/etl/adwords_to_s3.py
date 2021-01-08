@@ -18,7 +18,7 @@ class TestAdwordsToS3(TestCase):
         execfile("../../secrets.py")
 
         aws_setting = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         target_bucket = os.getenv('S3_TEST_BUCKET')
@@ -54,7 +54,7 @@ class TestAdwordsToS3(TestCase):
         # Load secrets via env vars
         execfile("../../secrets.py")
         aws_setting = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         target_bucket = os.getenv('S3_TEST_BUCKET')
@@ -93,7 +93,7 @@ class TestAdwordsToS3(TestCase):
         # Load secrets via env vars
         execfile("../../secrets.py")
         aws_setting = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         target_bucket = os.getenv('S3_TEST_BUCKET')
@@ -134,7 +134,7 @@ class TestAdwordsToS3(TestCase):
         execfile("../../secrets.py")
 
         aws_setting = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         target_bucket = os.getenv('S3_TEST_BUCKET')

@@ -15,7 +15,7 @@ class TestS3ToS3(TestCase):
     @mock_s3
     def test__list_source_files__should_work_without_suffix(self):
         aws_setting = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         source_bucket = "TEST_SOURCE_BUCKET"
@@ -50,7 +50,7 @@ class TestS3ToS3(TestCase):
     @mock_s3
     def test__list_source_files__should_work_with_suffix(self):
         aws_setting = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         source_bucket = "TEST_SOURCE_BUCKET"
@@ -89,7 +89,7 @@ class TestS3ToS3(TestCase):
     @mock_s3
     def test__transfer_file__should_work(self):
         aws_setting = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         source_bucket = "TEST_SOURCE_BUCKET"
@@ -130,7 +130,7 @@ class TestS3ToS3(TestCase):
     @mock_s3
     def test__transfer_all_files__should_work(self):
         aws_setting = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         source_bucket = "TEST_SOURCE_BUCKET"
@@ -168,7 +168,7 @@ class TestS3ToS3(TestCase):
     @mock_s3
     def test__transfer_all_files__should_work_without_transformers(self):
         aws_setting = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         source_bucket = "TEST_SOURCE_BUCKET"

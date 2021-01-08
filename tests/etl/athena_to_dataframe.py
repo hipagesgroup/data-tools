@@ -10,7 +10,7 @@ class TestS3ToDataFrame(TestCase):
         test_database = "xxx"
         test_table = "xxx"
         aws_conn = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=None,
             profile="default")
 
