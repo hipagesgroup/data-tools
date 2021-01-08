@@ -27,7 +27,7 @@ class TestS3ToCassandra(TestCase):
         test_bucket = "test"
         test_source_key_prefix = "test_for_s3_to_cassandra"
         aws_conn_settings = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         s3 = S3Util(conn=AwsConnectionManager(aws_conn_settings), bucket=test_bucket)

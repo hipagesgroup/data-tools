@@ -17,7 +17,7 @@ class TestAdwordsToS3(TestCase):
 
     def test__should__get_correct_estimations__with__etl_get_parallel_payloads(self):
         aws_setting = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         target_bucket = os.getenv('S3_TEST_BUCKET')
@@ -77,7 +77,7 @@ class TestAdwordsToS3(TestCase):
 
     def test__should__create_table__with__a_general_report(self):
         aws_setting = AwsConnectionSettings(
-            region="ap-southeast-2",
+            region="us-east-1",
             secrets_manager=AwsSecretsManager(),
             profile=None)
         target_bucket = os.getenv('S3_TEST_BUCKET')
