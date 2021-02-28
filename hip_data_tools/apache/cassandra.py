@@ -2,7 +2,7 @@
 Utility for connecting to and transforming data in Cassandra clusters
 """
 import os
-from typing import List
+from typing import List, Tuple
 
 import pandas as pd
 from attr import dataclass
@@ -118,7 +118,7 @@ def _cql_manage_column_lists(data_frame, primary_key_column_list):
 
 def _validate_primary_key_list(column_dict, primary_key_column_list):
     if primary_key_column_list is None or not primary_key_column_list:
-        raise ValidationError("please provide at least one primary key column")
+        raise ValidationError("please provide at least one primary key column or partition key column")
     for key in primary_key_column_list:
         if key not in column_dict.keys():
             raise ValidationError(
@@ -384,39 +384,57 @@ class CassandraUtil:
     def create_table_from_dataframe(self,
                                     data_frame: DataFrame,
                                     table_name: str,
-                                    primary_key_column_list: List[str],
+                                    partition_key_column_list: List[str],
+                                    clustering_key_column_list: List[str],
                                     table_options_statement=""):
         """
         Create a new table in cassandra based on a pandas DataFrame
         Args:
             data_frame (DataFrame): the data frame to be synced
             table_name (str): name of the table to create
-            primary_key_column_list (lost[str]): list of columns in the data frame that constitute
-            primary key for new table
+            partition_key_column_list (list[str]): list of columns in the data frame that constitute
+            partition key for new table
+            clustering_key_column_list (list[str]): list of columns in the data frame that constitute
+            clustering keys for new table
             table_options_statement (str): a cql valid WITH statement to specify table options as
             specified in https://docs.datastax.com/en/dse/6.0/cql/cql/cql_reference/cql_commands
             /cqlCreateTable.html#table_optionsŒ
 
         Returns: ResultSet
-
         """
         cql = self._dataframe_to_cassandra_ddl(
             data_frame,
-            primary_key_column_list,
+            partition_key_column_list,
+            clustering_key_column_list,
             table_name,
             table_options_statement)
         return self.execute(cql, row_factory=dict_factory)
 
     def _dataframe_to_cassandra_ddl(self,
                                     data_frame: DataFrame,
-                                    primary_key_column_list: List[str],
+                                    partition_key_column_list: List[str],
+                                    clustering_key_column_list: List[str],
                                     table_name: str,
                                     table_options_statement: str = ""):
-        column_list = _cql_manage_column_lists(data_frame, primary_key_column_list)
+        """
+        Generates a 'create table' cql statement with primary keys (using compound keys for the partition)
+        Args:
+            data_frame (Dataframe):
+            partition_key_column_list (list[str]): list of columns specifying the columns to be used to partition the data
+            clustering_key_column_list (list[str]): list of columns specifying the columns to be used to clustering the data
+            table_name (str): name of the table to create
+            table_options_statement (str):
+
+        Returns:  str
+        """
+        column_list = _cql_manage_column_lists(data_frame, partition_key_column_list + clustering_key_column_list)
+        partition_key = "(" + ", ".join(partition_key_column_list) + ")"
+        cluster_keys = ", ".join(clustering_key_column_list)
         cql = f"""
         CREATE TABLE IF NOT EXISTS {self.keyspace}.{table_name} (
             {", ".join(column_list)},
-            PRIMARY KEY ({", ".join(primary_key_column_list)}))
+            # PRIMARY KEY ({", ".join([partition_key,cluster_keys])})
+            )
         {table_options_statement};
         """
         LOG.debug(cql)
