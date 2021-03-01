@@ -428,12 +428,12 @@ class CassandraUtil:
         Returns:  str
         """
         column_list = _cql_manage_column_lists(data_frame, partition_key_column_list + clustering_key_column_list)
-        partition_key = "(" + ", ".join(partition_key_column_list) + ")"
-        cluster_keys = ", ".join(clustering_key_column_list)
+        partition_key = ["(" + ", ".join(partition_key_column_list) + ")"]
+        cluster_keys = [", ".join(clustering_key_column_list)]
         cql = f"""
         CREATE TABLE IF NOT EXISTS {self.keyspace}.{table_name} (
             {", ".join(column_list)},
-            PRIMARY KEY ({", ".join([partition_key,cluster_keys])})
+            PRIMARY KEY ({", ".join([partition_key + cluster_keys])})
             )
         {table_options_statement};
         """
