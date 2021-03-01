@@ -303,7 +303,7 @@ class TestCassandraUtil(TestCase):
         """
         self.assertEqual(actual, expected)
 
-        # Test partition keys
+        # Test compound keys
         actual = CassandraUtil._dataframe_to_cassandra_ddl(
             mock_cassandra_util, df,
             primary_key_column_list=["abc","abc2"],
@@ -319,6 +319,18 @@ class TestCassandraUtil(TestCase):
         ;
         """
         self.assertEqual(actual, expected)
+
+        # Test partition keys not part of the parimary key
+        actual = CassandraUtil._dataframe_to_cassandra_ddl(
+            mock_cassandra_util, df,
+            primary_key_column_list=["abc"],
+            partition_key_column_list=["abc2"],
+            table_name="test",
+            table_options_statement=""
+        )
+        with self.assertRaises(Exception) as context:
+            _validate_primary_key_list()
+        self.assertTrue('The column abc2 is not in the primary key list. It cannot be specified as part of the partition key' in context.exception)
 
         # Test composite key
         actual = CassandraUtil._dataframe_to_cassandra_ddl(
