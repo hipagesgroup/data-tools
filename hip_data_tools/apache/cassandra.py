@@ -431,7 +431,7 @@ class CassandraUtil:
         # create list of partition keys
         partition_key = ["(" + ", ".join(partition_key_column_list) + ")"]
         # create list of cluster keys (empty if none)
-        cluster_keys = list(filter(None, [", ".join(clustering_key_column_list)]))
+        cluster_keys = [", ".join(clustering_key_column_list)] if len(clustering_key_column_list)>0 else []
         cql = f"""
         CREATE TABLE IF NOT EXISTS {self.keyspace}.{table_name} (
             {", ".join(column_list)},
