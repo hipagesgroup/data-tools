@@ -11,7 +11,8 @@ from pandas.util.testing import assert_frame_equal
 
 from hip_data_tools.apache.cassandra import CassandraUtil, dataframe_to_cassandra_tuples, \
     _standardize_datatype, dicts_to_cassandra_tuples, CassandraSecretsManager, \
-    _get_data_frame_column_types, get_cql_columns_from_dataframe, ValidationError
+    _get_data_frame_column_types, get_cql_columns_from_dataframe, ValidationError ,\
+    _validate_primary_key_list
 
 
 class TestCassandraUtil(TestCase):
@@ -220,6 +221,13 @@ class TestCassandraUtil(TestCase):
                                       'abc3': 'float64',
                                       })
 
+    def test__validate_primary_key_list__should_work(self):
+        # Primary key not in column dict
+        self.assertRaises(ValidationError, _validate_primary_key_list, ["abc","abc2"], ["abc3"], [])
+        # Partition keys not part of the primary key
+        self.assertRaises(ValidationError, _validate_primary_key_list, ["abc","abc2"], ["abc"], ["abc2"])
+
+
     def test__convert_dataframe_columns_to_cassandra__should_work(self):
         data = [
             {
@@ -319,18 +327,6 @@ class TestCassandraUtil(TestCase):
         ;
         """
         self.assertEqual(actual, expected)
-
-        # Test partition keys not part of the primary key
-        actual = CassandraUtil._dataframe_to_cassandra_ddl(
-            mock_cassandra_util, df,
-            primary_key_column_list=["abc"],
-            partition_key_column_list=["abc2"],
-            table_name="test",
-            table_options_statement=""
-        )
-        with self.assertRaises(ValidationError) as context:
-            _validate_primary_key_list()
-        self.assertTrue('The column abc2 is not in the primary key list. It cannot be specified as part of the partition key' in context.exception)
 
         # Test composite key
         actual = CassandraUtil._dataframe_to_cassandra_ddl(
