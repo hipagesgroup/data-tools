@@ -109,23 +109,34 @@ class ValidationError(Exception):
         super().__init__(message)
 
 
-def _cql_manage_column_lists(data_frame, primary_key_column_list):
+def _cql_manage_column_lists(data_frame, primary_key_column_list, partition_key_column_list):
     column_dict = get_cql_columns_from_dataframe(data_frame)
     column_list = [f"{k} {v}" for (k, v) in column_dict.items()]
     _validate_primary_key_list(column_dict, primary_key_column_list)
+    _validate_partition_key_list(primary_key_column_list, partition_key_column_list)
     return column_list
 
 
 def _validate_primary_key_list(column_dict, primary_key_column_list):
     if primary_key_column_list is None or not primary_key_column_list:
-        raise ValidationError("please provide at least one primary key column or partition key column")
+        raise ValidationError("please provide at least one primary key column")
     for key in primary_key_column_list:
         if key not in column_dict.keys():
             raise ValidationError(
-                f"The column {key} is not in the column list, it cannot be specified as a primary "
+                f"The column {key} is not in the column list, it cannot be specified as a primary"
                 "key",
             )
 
+def _validate_partition_key_list(primary_key_column_list, partition_key_column_list):
+    if primary_key_column_list is None or not primary_key_column_list:
+        raise ValidationError("please provide at least one primary key column")
+    if partition_key_column_list is not None or partition_key_column_list:
+        for key in partition_key_column_list:
+            if key not in primary_key_column_list.keys():
+                raise ValidationError(
+                    f"The column {key} is not in the primary key list. It cannot be specified as part of the partition"
+                    "key",
+                )
 
 class CassandraSecretsManager(SecretsManager):
     """
@@ -384,18 +395,18 @@ class CassandraUtil:
     def create_table_from_dataframe(self,
                                     data_frame: DataFrame,
                                     table_name: str,
+                                    primary_key_column_list: List[str],
                                     partition_key_column_list: List[str],
-                                    clustering_key_column_list: List[str],
                                     table_options_statement=""):
         """
         Create a new table in cassandra based on a pandas DataFrame
         Args:
             data_frame (DataFrame): the data frame to be synced
             table_name (str): name of the table to create
+            primary_key_column_list (list[str]): list of columns in the data frame that constitute
+            the primary keys for new table
             partition_key_column_list (list[str]): list of columns in the data frame that constitute
-            partition key for new table
-            clustering_key_column_list (list[str]): list of columns in the data frame that constitute
-            clustering keys for new table
+            partition key for new table. If provided these must be a subset of the primary_key_column_list
             table_options_statement (str): a cql valid WITH statement to specify table options as
             specified in https://docs.datastax.com/en/dse/6.0/cql/cql/cql_reference/cql_commands
             /cqlCreateTable.html#table_optionsŒ
@@ -404,33 +415,34 @@ class CassandraUtil:
         """
         cql = self._dataframe_to_cassandra_ddl(
             data_frame,
+            primary_key_column_list,
             partition_key_column_list,
-            clustering_key_column_list,
             table_name,
             table_options_statement)
         return self.execute(cql, row_factory=dict_factory)
 
     def _dataframe_to_cassandra_ddl(self,
                                     data_frame: DataFrame,
+                                    primary_key_column_list: List[str],
                                     partition_key_column_list: List[str],
-                                    clustering_key_column_list: List[str],
                                     table_name: str,
                                     table_options_statement: str = ""):
         """
         Generates a 'create table' cql statement with primary keys (using compound keys for the partition)
         Args:
             data_frame (Dataframe):
+            primary_key_column_list (list[str]): list of columns specifying the columns to be used as primary key
             partition_key_column_list (list[str]): list of columns specifying the columns to be used to partition the data
-            clustering_key_column_list (list[str]): list of columns specifying the columns to be used to clustering the data
             table_name (str): name of the table to create
             table_options_statement (str):
 
         Returns:  str
         """
-        column_list = _cql_manage_column_lists(data_frame, partition_key_column_list + clustering_key_column_list)
+        column_list = _cql_manage_column_lists(data_frame, primary_key_column_list, partition_key_column_list)
         # create list of partition keys
         partition_key = ["(" + ", ".join(partition_key_column_list) + ")"]
         # create list of cluster keys (empty if none)
+        clustering_key_column_list = [x for x in primary_key_column_list if x not in partition_key_column_list]
         cluster_keys = [", ".join(clustering_key_column_list)] if len(clustering_key_column_list)>0 else []
         cql = f"""
         CREATE TABLE IF NOT EXISTS {self.keyspace}.{table_name} (

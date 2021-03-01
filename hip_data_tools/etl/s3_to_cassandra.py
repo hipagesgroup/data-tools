@@ -19,8 +19,8 @@ class S3ToCassandraSettings(S3ToDataFrameSettings):
     """S3 to Cassandra ETL settings"""
     destination_keyspace: str
     destination_table: str
+    destination_table_primary_keys: list
     destination_table_partition_key: list
-    destination_table_clustering_keys: list
     destination_connection_settings: CassandraConnectionSettings
     destination_table_options_statement: str = ""
     destination_batch_size: int = 1
@@ -63,12 +63,10 @@ class S3ToCassandra(S3ToDataFrame):
         self._get_cassandra_util().create_table_from_dataframe(
             data_frame=data_frame,
             table_name=self.__settings.destination_table,
+            primary_key_column_list=self.__settings.destination_table_primary_keys,
             partition_key_column_list=self.__settings.destination_table_partition_key,
-            clustering_key_column_list=self.__settings.destination_table_clustering_keys,
             table_options_statement=self.__settings.destination_table_options_statement,
         )
-
-
 
     def create_and_upsert_all(self) -> List[List[Result]]:
         """

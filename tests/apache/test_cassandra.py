@@ -272,8 +272,8 @@ class TestCassandraUtil(TestCase):
         # Test compound key
         actual = CassandraUtil._dataframe_to_cassandra_ddl(
             mock_cassandra_util, df,
+            primary_key_column_list=["abc","abc2"],
             partition_key_column_list=["abc"],
-            clustering_key_column_list=["abc2"],
             table_name="test",
             table_options_statement=""
         )
@@ -289,8 +289,8 @@ class TestCassandraUtil(TestCase):
         # Test composite key
         actual = CassandraUtil._dataframe_to_cassandra_ddl(
             mock_cassandra_util, df,
+            primary_key_column_list=["abc", "abc2"],
             partition_key_column_list=["abc", "abc2"],
-            clustering_key_column_list=[],
             table_name="test",
             table_options_statement="WITH comments = 'some text that describes the table'"
         )

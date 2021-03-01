@@ -8,8 +8,7 @@ import pandas as pd
 
 from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 from hip_data_tools.aws.s3 import S3Util
-from hip_data_tools.etl.s3_to_cassandra import S3ToCassandra, S3ToCassandraSettings, CassandraUtil, CassandraConnectionManager, CassandraSecretsManager, CassandraConnectionSettings
-from cassandra.policies import DCAwareRoundRobinPolicy
+from hip_data_tools.etl.s3_to_cassandra import S3ToCassandra, S3ToCassandraSettings
 
 class TestS3ToCassandra(TestCase):
     @classmethod
@@ -46,8 +45,8 @@ class TestS3ToCassandra(TestCase):
             source_connection_settings=aws_conn_settings,
             destination_keyspace="test",
             destination_table="test",
+            destination_table_primary_keys=[],
             destination_table_partition_key=[],
-            destination_table_clustering_keys=[],
             destination_table_options_statement="",
             destination_batch_size=2,
             destination_connection_settings=Mock(),
