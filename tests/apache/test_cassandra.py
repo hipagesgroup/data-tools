@@ -223,9 +223,9 @@ class TestCassandraUtil(TestCase):
 
     def test__validate_primary_key_list__should_work(self):
         # Primary key not in column dict
-        self.assertRaises(ValidationError, _validate_primary_key_list, ["abc","abc2"], ["abc3"], [])
+        self.assertRaises(ValidationError, _validate_primary_key_list, {"abc":1,"abc2":2}, ["abc3"], [])
         # Partition keys not part of the primary key
-        self.assertRaises(ValidationError, _validate_primary_key_list, ["abc","abc2"], ["abc"], ["abc2"])
+        self.assertRaises(ValidationError, _validate_primary_key_list, {"abc":1,"abc2":2}, ["abc"], ["abc2"])
 
 
     def test__convert_dataframe_columns_to_cassandra__should_work(self):
