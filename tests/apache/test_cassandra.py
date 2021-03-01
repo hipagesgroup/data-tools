@@ -280,7 +280,8 @@ class TestCassandraUtil(TestCase):
         expected = """
         CREATE TABLE IF NOT EXISTS test.test (
             abc map, abc2 bigint, abc3 double,
-            PRIMARY KEY ((abc), abc2))
+            PRIMARY KEY ((abc), abc2)
+            )
         ;
         """
         self.assertEqual(actual, expected)
@@ -296,7 +297,8 @@ class TestCassandraUtil(TestCase):
         expected = """
         CREATE TABLE IF NOT EXISTS test.test (
             abc map, abc2 bigint, abc3 double,
-            PRIMARY KEY ((abc, abc2)))
+            PRIMARY KEY ((abc, abc2))
+            )
         WITH comments = 'some text that describes the table';
         """
         self.assertEqual(actual, expected)
