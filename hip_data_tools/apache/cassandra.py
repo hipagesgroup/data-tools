@@ -443,7 +443,7 @@ class CassandraUtil:
         partition_key_column_list = partition_key_column_list if len(partition_key_column_list) > 0 \
             else primary_key_column_list[0]
         partition_key = ["(" + ", ".join(partition_key_column_list) + ")"]
-        # create list of cluster keys (empty if none)
+        # create list of cluster keys from the remainder of the primary key columns
         clustering_key_column_list = [x for x in primary_key_column_list if x not in partition_key_column_list]
         cluster_keys = [", ".join(clustering_key_column_list)] if len(clustering_key_column_list)>0 else []
         cql = f"""

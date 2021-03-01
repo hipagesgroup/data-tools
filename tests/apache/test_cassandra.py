@@ -269,11 +269,11 @@ class TestCassandraUtil(TestCase):
         mock_cassandra_util = Mock()
         mock_cassandra_util.keyspace = "test"
 
-        # Test compound key
+        # Test empty partition keys
         actual = CassandraUtil._dataframe_to_cassandra_ddl(
             mock_cassandra_util, df,
             primary_key_column_list=["abc","abc2"],
-            partition_key_column_list=["abc"],
+            partition_key_column_list=[],
             table_name="test",
             table_options_statement=""
         )
@@ -281,6 +281,40 @@ class TestCassandraUtil(TestCase):
         CREATE TABLE IF NOT EXISTS test.test (
             abc map, abc2 bigint, abc3 double,
             PRIMARY KEY ((abc), abc2)
+            )
+        ;
+        """
+        self.assertEqual(actual, expected)
+
+        # Test none in partition keys
+        actual = CassandraUtil._dataframe_to_cassandra_ddl(
+            mock_cassandra_util, df,
+            primary_key_column_list=["abc","abc2"],
+            partition_key_column_list=None,
+            table_name="test",
+            table_options_statement=""
+        )
+        expected = """
+        CREATE TABLE IF NOT EXISTS test.test (
+            abc map, abc2 bigint, abc3 double,
+            PRIMARY KEY ((abc), abc2)
+            )
+        ;
+        """
+        self.assertEqual(actual, expected)
+
+        # Test partition keys
+        actual = CassandraUtil._dataframe_to_cassandra_ddl(
+            mock_cassandra_util, df,
+            primary_key_column_list=["abc","abc2"],
+            partition_key_column_list=["abc2"],
+            table_name="test",
+            table_options_statement=""
+        )
+        expected = """
+        CREATE TABLE IF NOT EXISTS test.test (
+            abc map, abc2 bigint, abc3 double,
+            PRIMARY KEY ((abc2), abc)
             )
         ;
         """
