@@ -4,7 +4,6 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from moto import mock_s3
-import pandas as pd
 
 from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 from hip_data_tools.aws.s3 import S3Util
