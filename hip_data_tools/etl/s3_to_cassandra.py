@@ -19,11 +19,8 @@ class S3ToCassandraSettings(S3ToDataFrameSettings):
     """S3 to Cassandra ETL settings"""
     destination_keyspace: str
     destination_table: str
-    # specify either partition and clustering columns (composite partition keys)
     destination_table_partition_key: list
     destination_table_clustering_keys: list
-    # or specify the primary keys columns (compound partition keys)
-    destination_table_primary_keys: list
     destination_connection_settings: CassandraConnectionSettings
     destination_table_options_statement: str = ""
     destination_batch_size: int = 1
@@ -62,24 +59,15 @@ class S3ToCassandra(S3ToDataFrame):
         files = self.list_source_files()
         data_frame = self._get_s3_util().download_parquet_as_dataframe(
             key=files[0])
-        if len(self.__settings.destination_table_partition_key) > 0:
-            # use specified partition and clustering keys
-            self._get_cassandra_util().create_table_from_dataframe(
-                data_frame=data_frame,
-                table_name=self.__settings.destination_table,
-                partition_key_column_list=self.__settings.destination_table_partition_key,
-                clustering_key_column_list=self.__settings.destination_table_clustering_keys,
-                table_options_statement=self.__settings.destination_table_options_statement,
-            )
-        else:
-            # create partition and clustering keys from primary keys
-            self._get_cassandra_util().create_table_from_dataframe(
-                data_frame=data_frame,
-                table_name=self.__settings.destination_table,
-                partition_key_column_list=self.__settings.destination_table_primary_keys[0],
-                clustering_key_column_list=self.__settings.destination_table_primary_keys[1:],
-                table_options_statement=self.__settings.destination_table_options_statement,
-            )
+        # use specified partition and clustering keys
+        self._get_cassandra_util().create_table_from_dataframe(
+            data_frame=data_frame,
+            table_name=self.__settings.destination_table,
+            partition_key_column_list=self.__settings.destination_table_partition_key,
+            clustering_key_column_list=self.__settings.destination_table_clustering_keys,
+            table_options_statement=self.__settings.destination_table_options_statement,
+        )
+
 
 
     def create_and_upsert_all(self) -> List[List[Result]]:

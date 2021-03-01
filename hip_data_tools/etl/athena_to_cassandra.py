@@ -17,7 +17,8 @@ class AthenaToCassandraSettings:
     source_connection_settings: AwsConnectionSettings
     destination_keyspace: str
     destination_table: str
-    destination_table_primary_keys: list
+    destination_table_partition_key: list
+    destination_table_clustering_keys: list
     destination_connection_settings: CassandraConnectionSettings
     destination_table_options_statement: str = ""
     destination_batch_size: int = 1
@@ -42,7 +43,8 @@ class AthenaToCassandra(S3ToCassandra):
             source_connection_settings=self.__settings.source_connection_settings,
             destination_keyspace=self.__settings.destination_keyspace,
             destination_table=self.__settings.destination_table,
-            destination_table_primary_keys=self.__settings.destination_table_primary_keys,
+            destination_table_partition_key=self.__settings.destination_table_partition_key,
+            destination_table_clustering_keys=self.__settings.destination_table_clustering_keys,
             destination_table_options_statement=self.__settings.destination_table_options_statement,
             destination_batch_size=self.__settings.destination_batch_size,
             destination_connection_settings=self.__settings.destination_connection_settings,
