@@ -224,7 +224,7 @@ class TestCassandraUtil(TestCase):
 
     def test__validate_primary_key_list__should_work(self):
         # Primary key not in column dict
-        self.assertRaises(ValidationError, _validate_primary_key_list, {"abc":1,"abc2":2}, ["abc3"], [])
+        self.assertRaises(ValidationError, _validate_primary_key_list, {"abc":1,"abc2":2}, ["abc3"])
 
 
     def test__validate_partition_key_list__should_work(self):
