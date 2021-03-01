@@ -270,28 +270,30 @@ class TestCassandraUtil(TestCase):
         mock_cassandra_util.keyspace = "test"
         actual = CassandraUtil._dataframe_to_cassandra_ddl(
             mock_cassandra_util, df,
-            primary_key_column_list=["abc"],
+            destination_table_partition_key=["abc"],
+            destination_table_clustering_keys=["abc2"],
             table_name="test",
             table_options_statement=""
         )
         expected = """
         CREATE TABLE IF NOT EXISTS test.test (
             abc map, abc2 bigint, abc3 double,
-            PRIMARY KEY (abc))
+            PRIMARY KEY ((abc),abc2))
         ;
         """
         self.assertEqual(actual, expected)
 
         actual = CassandraUtil._dataframe_to_cassandra_ddl(
             mock_cassandra_util, df,
-            primary_key_column_list=["abc", "abc2"],
+            destination_table_partition_key=["abc", "abc2"],
+            destination_table_clustering_keys=[],
             table_name="test",
             table_options_statement="WITH comments = 'some text that describes the table'"
         )
         expected = """
         CREATE TABLE IF NOT EXISTS test.test (
             abc map, abc2 bigint, abc3 double,
-            PRIMARY KEY (abc, abc2))
+            PRIMARY KEY ((abc, abc2)))
         WITH comments = 'some text that describes the table';
         """
         self.assertEqual(actual, expected)

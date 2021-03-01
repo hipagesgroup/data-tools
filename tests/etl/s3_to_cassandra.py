@@ -55,35 +55,3 @@ class TestS3ToCassandra(TestCase):
 
         actual = util.list_source_files()
         self.assertListEqual(actual, expected)
-
-
-    @mock_s3
-    def test__create_table_statement__should_generate_create_table_cql(self):
-        load_balancing_policy = DCAwareRoundRobinPolicy(local_dc='AWS_VPC_AP_SOUTHEAST_2')
-        cassandra_conn_settings= CassandraConnectionManager(
-            settings = CassandraConnectionSettings(
-                cluster_ips=['127.0.0.1'],
-                port=9042,
-                load_balancing_policy=load_balancing_policy,
-                secrets_manager=CassandraSecretsManager(),
-                ssl_options = None
-            )
-        )
-        df = pd.DataFrame({'col1': ['a', 'a', 'b', 'b'], 'col2': [1, 2, 3, 4], 'col3': [5, 6, 7, 8],
-                           'col4': ['x', 'x', 'y', 'y'], 'col5': [1, 2, 1, 2], 'col6': [1, 2, 1, 2]})
-        test_table = "test"
-        test_partition_key = ['col1', 'col3']
-        test_cluster_keys = ['col2', 'col4']
-        test_columns = ['col5', 'col6']
-        test_source_key_prefix = "test_for_s3_to_cassandra"
-        util = CassandraUtil(keyspace= test_source_key_prefix, conn=cassandra_conn_settings)
-        expected = f"""
-        CREATE TABLE IF NOT EXISTS {test_source_key_prefix}.{test_table} (
-            {", ".join(test_columns)},
-                PRIMARY KEY (({", ".join(test_partition_key)}),{", ".join(test_cluster_keys)})
-            )"""
-        actual = util._dataframe_to_cassandra_ddl(data_frame=df,
-                                                  partition_key_column_list=test_partition_key,
-                                                  clustering_key_column_list=test_cluster_keys,
-                                                  table_name=test_table)
-        self.assertListEqual(actual, expected)
