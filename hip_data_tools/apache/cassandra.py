@@ -115,7 +115,7 @@ def _cql_manage_column_lists(data_frame, primary_key_column_list, partition_key_
     _validate_partition_key_list(column_dict, primary_key_column_list, partition_key_column_list)
     return column_list
 
-def _validate_primary_key_list(column_dict, primary_key_column_list, partition_key_column_list):
+def _validate_primary_key_list(column_dict, primary_key_column_list):
     if primary_key_column_list is None or not primary_key_column_list:
         raise ValidationError("please provide at least one primary key column")
     for key in primary_key_column_list:
@@ -126,7 +126,7 @@ def _validate_primary_key_list(column_dict, primary_key_column_list, partition_k
             )
 
 def _validate_partition_key_list(column_dict, primary_key_column_list, partition_key_column_list):
-    _validate_primary_key_list(column_dict, primary_key_column_list, partition_key_column_list)
+    _validate_primary_key_list(column_dict, primary_key_column_list)
     if partition_key_column_list is None or not partition_key_column_list:
         LOG.debug('No partition key specified. Revert to using first column from the primary key for partitioning.')
         return
