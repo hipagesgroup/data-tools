@@ -433,7 +433,7 @@ class CassandraUtil:
         cql = f"""
         CREATE TABLE IF NOT EXISTS {self.keyspace}.{table_name} (
             {", ".join(column_list)},
-                PRIMARY KEY ({", ".join([partition_key,cluster_keys])})
+            PRIMARY KEY ({", ".join([partition_key,cluster_keys])})
             )
         {table_options_statement};
         """
