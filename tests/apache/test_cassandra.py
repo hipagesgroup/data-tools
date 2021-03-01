@@ -268,10 +268,12 @@ class TestCassandraUtil(TestCase):
         df = DataFrame(data)
         mock_cassandra_util = Mock()
         mock_cassandra_util.keyspace = "test"
+
+        # Test compound key
         actual = CassandraUtil._dataframe_to_cassandra_ddl(
             mock_cassandra_util, df,
-            destination_table_partition_key=["abc"],
-            destination_table_clustering_keys=["abc2"],
+            partition_key_column_list=["abc"],
+            clustering_key_column_list=["abc2"],
             table_name="test",
             table_options_statement=""
         )
@@ -283,10 +285,11 @@ class TestCassandraUtil(TestCase):
         """
         self.assertEqual(actual, expected)
 
+        # Test composite key
         actual = CassandraUtil._dataframe_to_cassandra_ddl(
             mock_cassandra_util, df,
-            destination_table_partition_key=["abc", "abc2"],
-            destination_table_clustering_keys=[],
+            partition_key_column_list=["abc", "abc2"],
+            clustering_key_column_list=[],
             table_name="test",
             table_options_statement="WITH comments = 'some text that describes the table'"
         )
