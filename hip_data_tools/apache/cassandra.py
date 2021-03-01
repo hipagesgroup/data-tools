@@ -112,20 +112,8 @@ class ValidationError(Exception):
 def _cql_manage_column_lists(data_frame, primary_key_column_list, partition_key_column_list):
     column_dict = get_cql_columns_from_dataframe(data_frame)
     column_list = [f"{k} {v}" for (k, v) in column_dict.items()]
-    _validate_primary_key_list(column_dict, primary_key_column_list, partition_key_column_list)
+    _validate_partition_key_list(column_dict, primary_key_column_list, partition_key_column_list)
     return column_list
-
-
-def _validate_partition_key_list(primary_key_column_list, partition_key_column_list):
-    if partition_key_column_list is None or not partition_key_column_list:
-        LOG.debug('No partition key specified. Revert to using first column from the primary key for partitioning.')
-        return
-    for key in partition_key_column_list:
-        if key not in primary_key_column_list:
-            raise ValidationError(
-                f"The column {key} is not in the primary key list. It cannot be specified as part of the partition key",
-            )
-
 
 def _validate_primary_key_list(column_dict, primary_key_column_list, partition_key_column_list):
     if primary_key_column_list is None or not primary_key_column_list:
@@ -136,7 +124,17 @@ def _validate_primary_key_list(column_dict, primary_key_column_list, partition_k
                 f"The column {key} is not in the column list, it cannot be specified as a primary "
                 "key",
             )
-    _validate_partition_key_list(primary_key_column_list, partition_key_column_list)
+
+def _validate_partition_key_list(column_dict, primary_key_column_list, partition_key_column_list):
+    _validate_primary_key_list(column_dict, primary_key_column_list, partition_key_column_list)
+    if partition_key_column_list is None or not partition_key_column_list:
+        LOG.debug('No partition key specified. Revert to using first column from the primary key for partitioning.')
+        return
+    for key in partition_key_column_list:
+        if key not in primary_key_column_list:
+            raise ValidationError(
+                f"The column {key} is not in the primary key list. It cannot be specified as part of the partition key",
+            )
 
 class CassandraSecretsManager(SecretsManager):
     """
