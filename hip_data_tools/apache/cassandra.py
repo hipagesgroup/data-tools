@@ -123,7 +123,7 @@ def _validate_primary_key_list(column_dict, primary_key_column_list):
     for key in primary_key_column_list:
         if key not in column_dict.keys():
             raise ValidationError(
-                f"The column {key} is not in the column list, it cannot be specified as a primary"
+                f"The column {key} is not in the column list, it cannot be specified as a primary "
                 "key",
             )
 
@@ -132,7 +132,7 @@ def _validate_partition_key_list(primary_key_column_list, partition_key_column_l
         raise ValidationError("please provide at least one primary key column")
     if partition_key_column_list is not None or partition_key_column_list:
         for key in partition_key_column_list:
-            if key not in primary_key_column_list.keys():
+            if key not in primary_key_column_list:
                 raise ValidationError(
                     f"The column {key} is not in the primary key list. It cannot be specified as part of the partition"
                     "key",
@@ -439,7 +439,9 @@ class CassandraUtil:
         Returns:  str
         """
         column_list = _cql_manage_column_lists(data_frame, primary_key_column_list, partition_key_column_list)
-        # create list of partition keys
+        # create list of partition keys from first column of the primary key if not specified
+        partition_key_column_list = partition_key_column_list if partition_key_column_list is None
+            or not partition_key_column_list else primary_key_column_list[0]
         partition_key = ["(" + ", ".join(partition_key_column_list) + ")"]
         # create list of cluster keys (empty if none)
         clustering_key_column_list = [x for x in primary_key_column_list if x not in partition_key_column_list]
