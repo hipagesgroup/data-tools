@@ -11,7 +11,7 @@ from pandas.util.testing import assert_frame_equal
 
 from hip_data_tools.apache.cassandra import CassandraUtil, dataframe_to_cassandra_tuples, \
     _standardize_datatype, dicts_to_cassandra_tuples, CassandraSecretsManager, \
-    _get_data_frame_column_types, get_cql_columns_from_dataframe
+    _get_data_frame_column_types, get_cql_columns_from_dataframe, ValidationError
 
 
 class TestCassandraUtil(TestCase):
@@ -320,7 +320,7 @@ class TestCassandraUtil(TestCase):
         """
         self.assertEqual(actual, expected)
 
-        # Test partition keys not part of the parimary key
+        # Test partition keys not part of the primary key
         actual = CassandraUtil._dataframe_to_cassandra_ddl(
             mock_cassandra_util, df,
             primary_key_column_list=["abc"],
@@ -328,7 +328,7 @@ class TestCassandraUtil(TestCase):
             table_name="test",
             table_options_statement=""
         )
-        with self.assertRaises(Exception) as context:
+        with self.assertRaises(ValidationError) as context:
             _validate_primary_key_list()
         self.assertTrue('The column abc2 is not in the primary key list. It cannot be specified as part of the partition key' in context.exception)
 
