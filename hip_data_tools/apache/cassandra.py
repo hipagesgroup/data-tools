@@ -440,8 +440,8 @@ class CassandraUtil:
         """
         column_list = _cql_manage_column_lists(data_frame, primary_key_column_list, partition_key_column_list)
         # create list of partition keys from first column of the primary key if not specified
-        partition_key_column_list = partition_key_column_list if partition_key_column_list is None
-            or not partition_key_column_list else primary_key_column_list[0]
+        partition_key_column_list = partition_key_column_list if len(partition_key_column_list) > 0 \
+            else primary_key_column_list[0]
         partition_key = ["(" + ", ".join(partition_key_column_list) + ")"]
         # create list of cluster keys (empty if none)
         clustering_key_column_list = [x for x in primary_key_column_list if x not in partition_key_column_list]
