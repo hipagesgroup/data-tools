@@ -11,7 +11,8 @@ from pandas.util.testing import assert_frame_equal
 
 from hip_data_tools.apache.cassandra import CassandraUtil, dataframe_to_cassandra_tuples, \
     _standardize_datatype, dicts_to_cassandra_tuples, CassandraSecretsManager, \
-    _get_data_frame_column_types, get_cql_columns_from_dataframe
+    _get_data_frame_column_types, get_cql_columns_from_dataframe, ValidationError ,\
+    _validate_primary_key_list, _validate_partition_key_list
 
 
 class TestCassandraUtil(TestCase):
@@ -22,7 +23,7 @@ class TestCassandraUtil(TestCase):
         mock_result_set.current_rows = expected
         mock_cassandra_util = Mock()
         mock_cassandra_util.execute = Mock(return_value=mock_result_set)
-        actual = CassandraUtil.read_as_dictonary_list(mock_cassandra_util, "SELECT abc FROM def")
+        actual = CassandraUtil.read_as_dictionary_list(mock_cassandra_util, "SELECT abc FROM def")
         self.assertListEqual(actual, expected)
         mock_cassandra_util.execute.assert_called_once()
 
@@ -220,6 +221,17 @@ class TestCassandraUtil(TestCase):
                                       'abc3': 'float64',
                                       })
 
+
+    def test__validate_primary_key_list__should_work(self):
+        # Primary key not in column dict
+        self.assertRaises(ValidationError, _validate_primary_key_list, {"abc":1,"abc2":2}, ["abc3"])
+
+
+    def test__validate_partition_key_list__should_work(self):
+        # Partition keys not part of the primary key
+        self.assertRaises(ValidationError, _validate_partition_key_list, {"abc":1,"abc2":2}, ["abc"], ["abc2"])
+
+
     def test__convert_dataframe_columns_to_cassandra__should_work(self):
         data = [
             {
@@ -268,30 +280,71 @@ class TestCassandraUtil(TestCase):
         df = DataFrame(data)
         mock_cassandra_util = Mock()
         mock_cassandra_util.keyspace = "test"
+
+        # Test empty partition keys
         actual = CassandraUtil._dataframe_to_cassandra_ddl(
             mock_cassandra_util, df,
-            primary_key_column_list=["abc"],
+            primary_key_column_list=["abc","abc2"],
+            partition_key_column_list=[],
             table_name="test",
             table_options_statement=""
         )
         expected = """
         CREATE TABLE IF NOT EXISTS test.test (
             abc map, abc2 bigint, abc3 double,
-            PRIMARY KEY (abc))
+            PRIMARY KEY ((abc), abc2)
+            )
         ;
         """
         self.assertEqual(actual, expected)
 
+        # Test none in partition keys
+        actual = CassandraUtil._dataframe_to_cassandra_ddl(
+            mock_cassandra_util, df,
+            primary_key_column_list=["abc","abc2"],
+            partition_key_column_list=None,
+            table_name="test",
+            table_options_statement=""
+        )
+        expected = """
+        CREATE TABLE IF NOT EXISTS test.test (
+            abc map, abc2 bigint, abc3 double,
+            PRIMARY KEY ((abc), abc2)
+            )
+        ;
+        """
+        self.assertEqual(actual, expected)
+
+        # Test compound keys
+        actual = CassandraUtil._dataframe_to_cassandra_ddl(
+            mock_cassandra_util, df,
+            primary_key_column_list=["abc","abc2"],
+            partition_key_column_list=["abc2"],
+            table_name="test",
+            table_options_statement=""
+        )
+        expected = """
+        CREATE TABLE IF NOT EXISTS test.test (
+            abc map, abc2 bigint, abc3 double,
+            PRIMARY KEY ((abc2), abc)
+            )
+        ;
+        """
+        self.assertEqual(actual, expected)
+
+        # Test composite key
         actual = CassandraUtil._dataframe_to_cassandra_ddl(
             mock_cassandra_util, df,
             primary_key_column_list=["abc", "abc2"],
+            partition_key_column_list=["abc", "abc2"],
             table_name="test",
             table_options_statement="WITH comments = 'some text that describes the table'"
         )
         expected = """
         CREATE TABLE IF NOT EXISTS test.test (
             abc map, abc2 bigint, abc3 double,
-            PRIMARY KEY (abc, abc2))
+            PRIMARY KEY ((abc, abc2))
+            )
         WITH comments = 'some text that describes the table';
         """
         self.assertEqual(actual, expected)

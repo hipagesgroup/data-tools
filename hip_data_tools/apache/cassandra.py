@@ -109,12 +109,11 @@ class ValidationError(Exception):
         super().__init__(message)
 
 
-def _cql_manage_column_lists(data_frame, primary_key_column_list):
+def _cql_manage_column_lists(data_frame, primary_key_column_list, partition_key_column_list):
     column_dict = get_cql_columns_from_dataframe(data_frame)
     column_list = [f"{k} {v}" for (k, v) in column_dict.items()]
-    _validate_primary_key_list(column_dict, primary_key_column_list)
+    _validate_partition_key_list(column_dict, primary_key_column_list, partition_key_column_list)
     return column_list
-
 
 def _validate_primary_key_list(column_dict, primary_key_column_list):
     if primary_key_column_list is None or not primary_key_column_list:
@@ -126,6 +125,17 @@ def _validate_primary_key_list(column_dict, primary_key_column_list):
                 "key",
             )
 
+def _validate_partition_key_list(column_dict, primary_key_column_list, partition_key_column_list):
+    _validate_primary_key_list(column_dict, primary_key_column_list)
+    if partition_key_column_list is None or not partition_key_column_list:
+        LOG.debug("partition_key_column_list : %s\nNo partition key specified. Revert to using first column from the primary key for partitioning.",
+            str(partition_key_column_list))
+        return
+    for key in partition_key_column_list:
+        if key not in primary_key_column_list:
+            raise ValidationError(
+                f"The column {key} is not in the primary key list. It cannot be specified as part of the partition key",
+            )
 
 class CassandraSecretsManager(SecretsManager):
     """
@@ -337,7 +347,7 @@ class CassandraUtil:
         LOG.debug("Executing query: %s", batch)
         return self._session.execute(batch, timeout=300.0)
 
-    def upsert_dictonary_list_in_batches(self,
+    def upsert_dictionary_list_in_batches(self,
                                          data: List[dict],
                                          table: str,
                                          batch_size: int = 2
@@ -355,7 +365,7 @@ class CassandraUtil:
                                        batch_size)
         return self._execute_batches(batches)
 
-    def upsert_dictonary_list(self,
+    def upsert_dictionary_list(self,
                               data: List[dict],
                               table: str,
                               ) -> List[Result]:
@@ -385,24 +395,27 @@ class CassandraUtil:
                                     data_frame: DataFrame,
                                     table_name: str,
                                     primary_key_column_list: List[str],
+                                    partition_key_column_list: List[str],
                                     table_options_statement=""):
         """
         Create a new table in cassandra based on a pandas DataFrame
         Args:
             data_frame (DataFrame): the data frame to be synced
             table_name (str): name of the table to create
-            primary_key_column_list (lost[str]): list of columns in the data frame that constitute
-            primary key for new table
+            primary_key_column_list (list[str]): list of columns in the data frame that constitute
+            the primary keys for new table
+            partition_key_column_list (list[str]): list of columns in the data frame that constitute
+            partition key for new table. If provided these must be a subset of the primary_key_column_list
             table_options_statement (str): a cql valid WITH statement to specify table options as
             specified in https://docs.datastax.com/en/dse/6.0/cql/cql/cql_reference/cql_commands
             /cqlCreateTable.html#table_optionsŒ
 
         Returns: ResultSet
-
         """
         cql = self._dataframe_to_cassandra_ddl(
             data_frame,
             primary_key_column_list,
+            partition_key_column_list,
             table_name,
             table_options_statement)
         return self.execute(cql, row_factory=dict_factory)
@@ -410,19 +423,39 @@ class CassandraUtil:
     def _dataframe_to_cassandra_ddl(self,
                                     data_frame: DataFrame,
                                     primary_key_column_list: List[str],
+                                    partition_key_column_list: List[str],
                                     table_name: str,
                                     table_options_statement: str = ""):
-        column_list = _cql_manage_column_lists(data_frame, primary_key_column_list)
+        """
+        Generates a 'create table' cql statement with primary keys (using compound keys for the partition)
+        Args:
+            data_frame (Dataframe):
+            primary_key_column_list (list[str]): list of columns specifying the columns to be used as primary key
+            partition_key_column_list (list[str]): list of columns specifying the columns to be used to partition the data
+            table_name (str): name of the table to create
+            table_options_statement (str):
+
+        Returns:  str
+        """
+        column_list = _cql_manage_column_lists(data_frame, primary_key_column_list, partition_key_column_list)
+        # create list of partition keys from first column of the primary key if not specified
+        partition_key_column_list = partition_key_column_list if partition_key_column_list is not None and \
+            len(partition_key_column_list) > 0 else [primary_key_column_list[0]]
+        partition_key = ["(" + ", ".join(partition_key_column_list) + ")"]
+        # create list of cluster keys from the remainder of the primary key columns
+        clustering_key_column_list = [x for x in primary_key_column_list if x not in partition_key_column_list]
+        cluster_keys = [", ".join(clustering_key_column_list)] if len(clustering_key_column_list)>0 else []
         cql = f"""
         CREATE TABLE IF NOT EXISTS {self.keyspace}.{table_name} (
             {", ".join(column_list)},
-            PRIMARY KEY ({", ".join(primary_key_column_list)}))
+            PRIMARY KEY ({", ".join(partition_key + cluster_keys)})
+            )
         {table_options_statement};
         """
         LOG.debug(cql)
         return cql
 
-    def read_as_dictonary_list(self, query: str, **kwargs) -> List[dict]:
+    def read_as_dictionary_list(self, query: str, **kwargs) -> List[dict]:
         """
         Read the results of a query in form of a list of dict
         Args:

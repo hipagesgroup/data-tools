@@ -9,7 +9,6 @@ from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSetting
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.etl.s3_to_cassandra import S3ToCassandra, S3ToCassandraSettings
 
-
 class TestS3ToCassandra(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -46,6 +45,7 @@ class TestS3ToCassandra(TestCase):
             destination_keyspace="test",
             destination_table="test",
             destination_table_primary_keys=[],
+            destination_table_partition_key=[],
             destination_table_options_statement="",
             destination_batch_size=2,
             destination_connection_settings=Mock(),

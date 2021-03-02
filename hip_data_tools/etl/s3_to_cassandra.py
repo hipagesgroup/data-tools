@@ -20,6 +20,7 @@ class S3ToCassandraSettings(S3ToDataFrameSettings):
     destination_keyspace: str
     destination_table: str
     destination_table_primary_keys: list
+    destination_table_partition_key: list
     destination_connection_settings: CassandraConnectionSettings
     destination_table_options_statement: str = ""
     destination_batch_size: int = 1
@@ -58,10 +59,12 @@ class S3ToCassandra(S3ToDataFrame):
         files = self.list_source_files()
         data_frame = self._get_s3_util().download_parquet_as_dataframe(
             key=files[0])
+        # use specified partition and clustering keys
         self._get_cassandra_util().create_table_from_dataframe(
             data_frame=data_frame,
             table_name=self.__settings.destination_table,
             primary_key_column_list=self.__settings.destination_table_primary_keys,
+            partition_key_column_list=self.__settings.destination_table_partition_key,
             table_options_statement=self.__settings.destination_table_options_statement,
         )
 
