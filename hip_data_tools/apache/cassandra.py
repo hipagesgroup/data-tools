@@ -128,7 +128,7 @@ def _validate_primary_key_list(column_dict, primary_key_column_list):
 def _validate_partition_key_list(column_dict, primary_key_column_list, partition_key_column_list):
     _validate_primary_key_list(column_dict, primary_key_column_list)
     if partition_key_column_list is None or not partition_key_column_list:
-        LOG.debug(f'partition_key_column_list : {partition_key_column_list}\n partition_key_column_list : {partition_key_column_list}\nNo partition key specified. Revert to using first column from the primary key for partitioning.')
+LOG.debug("partition_key_column_list : %s\nNo partition key specified. Revert to using first column from the primary key for partitioning.", str(partition_key_column_list))
         return
     for key in partition_key_column_list:
         if key not in primary_key_column_list:
