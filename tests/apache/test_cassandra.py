@@ -23,7 +23,7 @@ class TestCassandraUtil(TestCase):
         mock_result_set.current_rows = expected
         mock_cassandra_util = Mock()
         mock_cassandra_util.execute = Mock(return_value=mock_result_set)
-        actual = CassandraUtil.read_as_dictonary_list(mock_cassandra_util, "SELECT abc FROM def")
+        actual = CassandraUtil.read_as_dictionary_list(mock_cassandra_util, "SELECT abc FROM def")
         self.assertListEqual(actual, expected)
         mock_cassandra_util.execute.assert_called_once()
 

@@ -347,7 +347,7 @@ class CassandraUtil:
         LOG.debug("Executing query: %s", batch)
         return self._session.execute(batch, timeout=300.0)
 
-    def upsert_dictonary_list_in_batches(self,
+    def upsert_dictionary_list_in_batches(self,
                                          data: List[dict],
                                          table: str,
                                          batch_size: int = 2
@@ -365,7 +365,7 @@ class CassandraUtil:
                                        batch_size)
         return self._execute_batches(batches)
 
-    def upsert_dictonary_list(self,
+    def upsert_dictionary_list(self,
                               data: List[dict],
                               table: str,
                               ) -> List[Result]:
@@ -455,7 +455,7 @@ class CassandraUtil:
         LOG.debug(cql)
         return cql
 
-    def read_as_dictonary_list(self, query: str, **kwargs) -> List[dict]:
+    def read_as_dictionary_list(self, query: str, **kwargs) -> List[dict]:
         """
         Read the results of a query in form of a list of dict
         Args:
