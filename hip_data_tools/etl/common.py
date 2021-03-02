@@ -27,8 +27,8 @@ class EtlStates(Enum):
 
 class EtlSinkRecordState(Model):
     """Cassandra ORM model for the Etl Sink States"""
-    etl_signature = columns.Text(primary_key=True, required=True)
-    record_identifier = columns.Text(primary_key=True, required=True)
+    etl_signature = columns.Text(primary_key=True, partition_key=True, required=True)
+    record_identifier = columns.Text(primary_key=True, partition_key=True, required=True)
     record_state = columns.Text(required=True, default=EtlStates.Ready.value)
     state_created = columns.DateTime(required=True, default=datetime.now())
     state_last_updated = columns.DateTime(required=True, default=datetime.now())

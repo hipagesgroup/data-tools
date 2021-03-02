@@ -1,7 +1,7 @@
 """
 Module to deal with data transfer from S3 to Cassandra
 """
-from typing import List
+from typing import Optional, List
 
 from attr import dataclass
 from cassandra.datastax.graph import Result
@@ -19,8 +19,8 @@ class S3ToCassandraSettings(S3ToDataFrameSettings):
     """S3 to Cassandra ETL settings"""
     destination_keyspace: str
     destination_table: str
-    destination_table_primary_keys: list
-    destination_table_partition_key: list
+    destination_table_primary_keys: List[str]
+    destination_table_partition_key: Optional[List[str]]
     destination_connection_settings: CassandraConnectionSettings
     destination_table_options_statement: str = ""
     destination_batch_size: int = 1
