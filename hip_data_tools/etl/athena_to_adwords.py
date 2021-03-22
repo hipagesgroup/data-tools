@@ -163,7 +163,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         try:
             if self._verify_state(dat):
 
-                LOG.debug(f"State verified with, data: \n {dat} \n")
+                LOG.debug(f"State verified with, data: \n {dat}")
                 return dat, None
             else:
 
