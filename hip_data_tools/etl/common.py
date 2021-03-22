@@ -15,6 +15,7 @@ from cassandra.cqlengine.management import sync_table
 from cassandra.cqlengine.models import Model
 from cassandra.cqlengine.query import LWTException
 from pandas import DataFrame
+from hip_data_tools.common import LOG
 
 
 class EtlStates(Enum):
@@ -39,6 +40,7 @@ def sync_etl_state_table():
     Utility method to sync (Create) the table as per ORM model
     Returns: None
     """
+    LOG.debug("Sinking Cassandra Table using model")
     sync_table(EtlSinkRecordState)
 
 
@@ -75,16 +77,28 @@ class EtlSinkRecordStateManager:
         self.remote_state = self._get_or_create_state()
 
     def _get_or_create_state(self):
+
         try:
+
+            LOG.debug("Creating ETL record sink using etl_signature: "
+                      "%s, record_identifier: %s",
+                      self.etl_signature,
+                      self.record_identifier)
+
             return EtlSinkRecordState.if_not_exists().create(
                 etl_signature=self.etl_signature,
                 record_identifier=self.record_identifier)
+
         except LWTException as e:
+
+            LOG.debug("LWTException raised: \n %s", e)
+
             return EtlSinkRecordState.get(
                 etl_signature=e.existing['etl_signature'],
                 record_identifier=e.existing['record_identifier'])
 
     def _change_state(self, new_state):
+
         _state_change_validation(self.current_state(), new_state)
 
         self.remote_state.record_state = new_state.value
