@@ -123,8 +123,14 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         return self._get_adwords_util().upload_conversions(data_batch)
 
     def _state_manager_connect(self):
+
+        LOG.debug("Connecting to Cassandra")
+
         conn = CassandraConnectionManager(self.__settings.etl_state_manager_connection)
         conn.setup_connection(self.__settings.etl_state_manager_keyspace)
+
+        LOG.debug(f"Cassandra connection established: {conn.get_cluster()}")
+
         sync_etl_state_table()
 
     def _mark_processing(self, data: List[dict]) -> (List[dict], List[dict]):
@@ -146,14 +152,23 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
 
     def _verify_data_before_upsert(self, data: List[dict]) -> (List[dict], List[dict]):
         data, issues = map(list, zip(*[self._sanitise_data(dat) for dat in data]))
+
+        LOG.warn(f"Issues found in verification, number of issues "
+                 f"{len(issues)}.")
+
         # Remove None from the List
         return [i for i in data if i], [i for i in issues if i]
 
     def _sanitise_data(self, dat):
         try:
             if self._verify_state(dat):
+
+                LOG.debug(f"State verified with, data: \n {dat} \n")
                 return dat, None
             else:
+
+                LOG.debug(f"Sink state found to be not ready, the data is: \n"
+                          f" {dat} \n")
                 return None, _get_structured_issue(f"Current state is not Ready", dat)
         except ValidationError as e:
             LOG.warning("Issue while trying to ready a record for the upload \n %s \n %s", e,
@@ -161,5 +176,8 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
             return None, _get_structured_issue(str(e), dat)
 
     def _verify_state(self, data):
+
         current_state = self._get_sink_manager(data).current_state()
+        LOG.debug(f"Current state of sink manager {current_state}")
+
         return current_state == EtlStates.Ready
