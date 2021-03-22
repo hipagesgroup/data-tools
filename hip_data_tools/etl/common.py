@@ -80,7 +80,7 @@ class EtlSinkRecordStateManager:
 
         try:
 
-            LOG.debug(f"Creating ETL record sink using etl_signiture: "
+            LOG.debug(f"Creating ETL record sink using etl_signature: "
                       f"{self.etl_signature}, record_identifier: "
                       f"{self.record_identfier}")
 
