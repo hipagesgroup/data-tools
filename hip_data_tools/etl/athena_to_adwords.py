@@ -124,12 +124,12 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
 
     def _state_manager_connect(self):
 
-        LOG.debug("Connecting to Cassandra")
+        LOG.info("Connecting to Cassandra")
 
         conn = CassandraConnectionManager(self.__settings.etl_state_manager_connection)
         conn.setup_connection(self.__settings.etl_state_manager_keyspace)
 
-        LOG.debug(f"Cassandra connection established: {conn.get_cluster()}")
+        LOG.info(f"Cassandra connection established")
 
         sync_etl_state_table()
 
@@ -168,7 +168,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
             else:
 
                 LOG.debug(f"Sink state found to be not ready, the data is: \n"
-                          f" {dat} \n")
+                          f" {dat}")
                 return None, _get_structured_issue(f"Current state is not Ready", dat)
         except ValidationError as e:
             LOG.warning("Issue while trying to ready a record for the upload \n %s \n %s", e,
