@@ -153,8 +153,8 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
     def _verify_data_before_upsert(self, data: List[dict]) -> (List[dict], List[dict]):
         data, issues = map(list, zip(*[self._sanitise_data(dat) for dat in data]))
 
-        LOG.warn(f"Issues found in verification, number of issues "
-                 f"{len(issues)}.")
+        LOG.warn("Issues found in verification, number of issues: %i",
+                 len(issues))
 
         # Remove None from the List
         return [i for i in data if i], [i for i in issues if i]
@@ -163,12 +163,13 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         try:
             if self._verify_state(dat):
 
-                LOG.debug(f"State verified with, data: \n {dat}")
+                LOG.debug("State verified with, data: \n %s", dat)
+
                 return dat, None
             else:
 
-                LOG.debug(f"Sink state found to be not ready, the data is: \n"
-                          f" {dat}")
+                LOG.debug(f"Sink state found to be not ready, the data is: "
+                          f"%s", dat)
                 return None, _get_structured_issue(f"Current state is not Ready", dat)
         except ValidationError as e:
             LOG.warning("Issue while trying to ready a record for the upload \n %s \n %s", e,
@@ -178,6 +179,6 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
     def _verify_state(self, data):
 
         current_state = self._get_sink_manager(data).current_state()
-        LOG.debug(f"Current state of sink manager {current_state}")
+        LOG.debug("Current state of sink manager %s", current_state)
 
         return current_state == EtlStates.Ready

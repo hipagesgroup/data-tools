@@ -40,7 +40,7 @@ def sync_etl_state_table():
     Utility method to sync (Create) the table as per ORM model
     Returns: None
     """
-    LOG.debug(f"Sinking Cassandra Table using model")
+    LOG.debug("Sinking Cassandra Table using model")
     sync_table(EtlSinkRecordState)
 
 
@@ -80,9 +80,10 @@ class EtlSinkRecordStateManager:
 
         try:
 
-            LOG.debug(f"Creating ETL record sink using etl_signature: "
-                      f"{self.etl_signature}, record_identifier: "
-                      f"{self.record_identfier}")
+            LOG.debug("Creating ETL record sink using etl_signature: "
+                      "%s, record_identifier: %s",
+                      self.etl_signature,
+                      self.record_identfier)
 
             return EtlSinkRecordState.if_not_exists().create(
                 etl_signature=self.etl_signature,
@@ -90,7 +91,7 @@ class EtlSinkRecordStateManager:
 
         except LWTException as e:
 
-            LOG.debug(f"LWTException raised, full stacktrace {str(e)}")
+            LOG.debug("LWTException raised: \n %s", e)
 
             return EtlSinkRecordState.get(
                 etl_signature=e.existing['etl_signature'],
