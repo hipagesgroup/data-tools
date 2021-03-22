@@ -83,7 +83,7 @@ class EtlSinkRecordStateManager:
             LOG.debug("Creating ETL record sink using etl_signature: "
                       "%s, record_identifier: %s",
                       self.etl_signature,
-                      self.record_identfier)
+                      self.record_identifier)
 
             return EtlSinkRecordState.if_not_exists().create(
                 etl_signature=self.etl_signature,
