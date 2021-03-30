@@ -53,7 +53,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         """
         Upload the next file in line from the athena table onto AdWords offline conversion
         Returns:
-            verfication_issues List[dict]: a tuple of lists outlining any
+            verification_issues List[dict]: a tuple of lists outlining any
             verification failures
             successes List[dict]: The responses for successful uploads to
             the Google Adwords API
@@ -66,7 +66,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         """
         Upload all files from the Athena table onto AdWords offline conversion
         Returns:
-            verfication_issues List[dict]: a tuple of lists outlining any
+            verification_issues List[dict]: a tuple of lists outlining any
             verification failures
             successes List[dict]: The responses for successful uploads to
             the Google Adwords API
@@ -74,21 +74,21 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
             Google Adwords API
         """
 
-        verfication_issues, successes, failures = [], [], []
+        verification_issues, successes, failures = [], [], []
 
         for key in self.list_source_files():
             issues, success, fail = \
                 self._process_data_frame(self.get_data_frame(key))
 
-            verfication_issues.extend(issues)
+            verification_issues.extend(issues)
             successes.extend(success)
             failures.extend(fail)
 
-        if len(verfication_issues) > 0:
+        if len(verification_issues) > 0:
             LOG.warning("There were %s verification failures",
-                        len(verfication_issues))
+                        len(verification_issues))
 
-            LOG.debug("All verification failures: \n %s", verfication_issues)
+            LOG.debug("All verification failures: \n %s", verification_issues)
 
         if len(failures) > 0:
             LOG.warning("There were %s failures uploading to the adwords "
@@ -100,9 +100,9 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
 
         LOG.info("There were %s records successfully uploaded from a total of %s submitted items",
                  len(successes),
-                 len(successes) + len(failures) + len(verfication_issues))
+                 len(successes) + len(failures) + len(verification_issues))
 
-        return verfication_issues, successes, failures
+        return verification_issues, successes, failures
 
     def _get_adwords_util(self):
         if self._adwords is None:
@@ -132,21 +132,21 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
     def _process_data_frame(self, data_frame) -> (List[dict]):
         data_dict = self._data_frame_to_destination_dict(data_frame)
         self._state_manager_connect()
-        ready_data, verfication_issues = self._verify_data_before_upsert(data_dict)
+        ready_data, verification_issues = self._verify_data_before_upsert(data_dict)
         data_dict_batches = self._chunk_batches(ready_data)
         successes = []
         failures = []
 
         for data_batch in data_dict_batches:
             data_to_process, processing_issue = self._mark_processing(data_batch)
-            verfication_issues.extend(processing_issue)
+            verification_issues.extend(processing_issue)
             success, fail = self._upload_conversions(data_to_process)
             self._mark_upload_results(fail, success)
 
             successes.extend(success)
             failures.extend(fail)
 
-        return verfication_issues, successes, failures
+        return verification_issues, successes, failures
 
     def _upload_conversions(self, data_batch):
         return self._get_adwords_util().upload_conversions(data_batch)
