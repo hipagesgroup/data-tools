@@ -49,38 +49,60 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         super().__init__(settings)
         self._adwords = None
 
-    def upload_next(self) -> List[dict]:
+    def upload_next(self) ->(List[dict], List[dict], List[dict]):
         """
         Upload the next file in line from the athena table onto AdWords offline conversion
-        Returns List[dict]: a list of issues in the format
-        [
-            {
-                "error": " some error",
-                "data": {
-                ... original data body of the data that caused issues
-                }
-            },
-        ]
+        Returns:
+            verfication_issues List[dict]: a tuple of lists outlining any
+            verification failures
+            successes List[dict]: The responses for successful uploads to
+            the Google Adwords API
+            failures List[dict]: The responses for failed uploads to the
+            Google Adwords API
         """
         return self._process_data_frame(self.next())
 
-    def upload_all(self) -> List[dict]:
+    def upload_all(self) -> (List[dict], List[dict], List[dict]):
         """
         Upload all files from the Athena table onto AdWords offline conversion
-        Returns List[dict]: a list of issues in the format
-        [
-            {
-                "error": " some error",
-                "data": {
-                ... original data body of the data that caused issues
-                }
-            }.
-        ]
+        Returns:
+            verfication_issues List[dict]: a tuple of lists outlining any
+            verification failures
+            successes List[dict]: The responses for successful uploads to
+            the Google Adwords API
+            failures List[dict]: The responses for failed uploads to the
+            Google Adwords API
         """
-        issues = []
+
+        verfication_issues, successes, failures = [], [], []
+
         for key in self.list_source_files():
-            issues.extend(self._process_data_frame(self.get_data_frame(key)))
-        return issues
+            issues, success, fail = \
+                self._process_data_frame(self.get_data_frame(key))
+
+            verfication_issues.extend(issues)
+            successes.extend(success)
+            failures.extend(fail)
+
+        if len(verfication_issues) > 0:
+            LOG.warning("There were %s verification failures",
+                        len(verfication_issues))
+
+            LOG.debug("All verification failures: \n %s", verfication_issues)
+
+        if len(failures) > 0:
+            LOG.warning("There were %s failures uploading to the adwords "
+                        "API", len(failures))
+
+            LOG.info("Sample Failure: \n %s", failures[0])
+
+            LOG.debug("All failures: \n %s", failures)
+
+        LOG.info("There were %s records successfully uploaded from a total of %s submitted items",
+                 len(successes),
+                 len(successes) + len(failures) + len(verfication_issues))
+
+        return verfication_issues, successes, failures
 
     def _get_adwords_util(self):
         if self._adwords is None:
@@ -107,17 +129,24 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         n = self.__settings.destination_batch_size
         return [lst[i * n:(i + 1) * n] for i in range((len(lst) + n - 1) // n)]
 
-    def _process_data_frame(self, data_frame) -> List[dict]:
+    def _process_data_frame(self, data_frame) -> (List[dict]):
         data_dict = self._data_frame_to_destination_dict(data_frame)
         self._state_manager_connect()
-        ready_data, issues = self._verify_data_before_upsert(data_dict)
+        ready_data, verfication_issues = self._verify_data_before_upsert(data_dict)
         data_dict_batches = self._chunk_batches(ready_data)
+        successes = []
+        failures = []
+
         for data_batch in data_dict_batches:
             data_to_process, processing_issue = self._mark_processing(data_batch)
-            issues.extend(processing_issue)
+            verfication_issues.extend(processing_issue)
             success, fail = self._upload_conversions(data_to_process)
             self._mark_upload_results(fail, success)
-        return issues
+
+            successes.extend(success)
+            failures.extend(fail)
+
+        return verfication_issues, successes, failures
 
     def _upload_conversions(self, data_batch):
         return self._get_adwords_util().upload_conversions(data_batch)
@@ -153,32 +182,35 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
     def _verify_data_before_upsert(self, data: List[dict]) -> (List[dict], List[dict]):
         data, issues = map(list, zip(*[self._sanitise_data(dat) for dat in data]))
 
-        LOG.warning("Issues found in verification, number of issues: %i",
-                 len(issues))
+        if len(issues) > 0:
+            LOG.warning("Issues found in verification, number of issues: %i",
+                     len(issues))
 
         # Remove None from the List
         return [i for i in data if i], [i for i in issues if i]
 
     def _sanitise_data(self, dat):
         try:
-            if self._verify_state(dat):
 
-                LOG.debug("State verified with, data: \n %s", dat)
+            current_state = self._get_sink_manager(dat).current_state()
+
+            LOG.debug("Current state of sink manager %s", current_state)
+
+            if current_state == EtlStates.Ready:
+                LOG.debug("Record in ready state with data: %s", dat)
 
                 return dat, None
             else:
 
-                LOG.debug("Sink state found to be not ready, the data is: "
-                          "%s", dat)
-                return None, _get_structured_issue("Current state is not Ready", dat)
+                LOG.debug("Sink state found to be not ready, state is %s, the "
+                          "data is: "
+                          "%s", current_state, dat)
+
+                return None, _get_structured_issue(f"Current state is {current_state} "
+                                                   "state",  dat)
         except ValidationError as e:
             LOG.warning("Issue while trying to ready a record for the upload \n %s \n %s", e,
                         dat)
             return None, _get_structured_issue(str(e), dat)
 
-    def _verify_state(self, data):
 
-        current_state = self._get_sink_manager(data).current_state()
-        LOG.debug("Current state of sink manager %s", current_state)
-
-        return current_state == EtlStates.Ready
