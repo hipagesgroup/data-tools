@@ -2,8 +2,8 @@
 Setup and release this package for wider consumption using setup tools
 """
 import os
-
 import sys
+
 from setuptools import setup, find_packages
 from setuptools.command.test import test as test_command
 
@@ -72,7 +72,7 @@ setup(
         "stringcase",
         "attrs",
         "joblib",
-        "pandas",
+        "pandas==1.1.5",
         "GitPython",
         "confluent-kafka",
         "pyarrow",
@@ -85,7 +85,7 @@ setup(
         "oauth2client",
         "gspread",
         "googleads",
-        "numpy",
+        "numpy==1.19.5",
         "mysql-connector-python>=8.0.11, <=8.0.18",
         "mysqlclient>=1.3.6,<1.4",
         "boto3",
