@@ -2,6 +2,7 @@ from collections import OrderedDict
 from unittest import TestCase
 from unittest.mock import Mock
 
+from dataclasses import asdict
 from pandas import DataFrame
 
 import hip_data_tools.aws.athena as athena
@@ -296,7 +297,7 @@ class TestSqlInspector(TestCase):
         assert sql_inspector.table_schema_entries == expected_values
 
     def test__sql_inspector__should__identify_tables_used_by_query(self):
-        expected_values = [{'schemaName': 'foo', 'tableName': 'bar'}]
+        expected_values = [{'schema': 'foo', 'table': 'bar'}]
 
         query = """SELECT col1, col2 FROM foo.bar"""
 
@@ -314,6 +315,6 @@ class TestSqlInspector(TestCase):
                                      AthenaUtilDummy(database="test",
                                                      conn=None))
 
-        sql_inspector.identify_tables_used_by_query()
+        results = sql_inspector.identify_tables_used_by_query()
 
-        assert sql_inspector.table_schema_entries == expected_values
+        assert [asdict(x) for x in results] == expected_values

@@ -9,6 +9,7 @@ import time
 from typing import List, Any, Tuple
 from typing import Optional
 
+from dataclasses import dataclass
 from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsUtil, AwsConnectionManager
@@ -345,6 +346,15 @@ class AthenaUtil(AwsUtil):
         self.run_query("""DROP TABLE IF EXISTS {}""".format(table_name))
 
 
+@dataclass
+class SchemaTable:
+    """
+    Data class to store the references to schemas and tables
+    """
+    table: str
+    schema: str
+
+
 class SqlInspector:
     """
     This class enables the inspection of SQL by wrapping a query in an
@@ -368,8 +378,19 @@ class SqlInspector:
         self.table_schema_entries: List[dict] = []
 
     def identify_tables_used_by_query(self):
+        """
+        Identify the tables referenced and used by the query. These
+        references are then returned as a dataclass containing the references
+        Returns List[SchemaTable]: list of tables and their schemas used by
+            the query
+        """
+
         self.explain_query()
         self.extract_tables_from_explaination()
+        out = [SchemaTable(schema=x['schemaName'], table=x['tableName']) for
+               x in self.table_schema_entries]
+
+        return out
 
     def explain_query(self):
         """
