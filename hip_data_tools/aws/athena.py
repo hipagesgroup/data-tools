@@ -3,10 +3,13 @@ Utility to connect to, and perform DML and DDL operations on aws Athena
 """
 
 import csv
+import re
 import sys
 import time
 from typing import List, Any, Tuple
+from typing import Optional
 
+from dataclasses import dataclass
 from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsUtil, AwsConnectionManager
@@ -343,7 +346,118 @@ class AthenaUtil(AwsUtil):
         self.run_query("""DROP TABLE IF EXISTS {}""".format(table_name))
 
 
-def generate_csv_ctas(select_query, destination_table, destination_bucket, destination_key,
+@dataclass
+class SchemaTable:
+    """
+    Data class to store the references to schemas and tables
+    """
+    table: str
+    schema: str
+
+
+class SqlInspector:
+    """
+    This class enables the inspection of SQL by wrapping a query in an
+    EXPLAIN call and parsing the result. By parsing the result we can
+    identify components which comprise the query.
+
+    Args:
+        query (str): The SQL query to be examined by Athena
+        athena_util (Athena Util): Athena utility class which enables
+            explain queries to exectued
+
+    """
+
+    def __init__(self,
+                 query: str,
+                 athena_util: AthenaUtil):
+
+        self.query: str = query
+        self.athena_util: AthenaUtil = athena_util
+        self.query_explaination: Optional[dict] = None
+        self.table_schema_entries: List[dict] = []
+
+    def identify_tables_used_by_query(self):
+        """
+        Identify the tables referenced and used by the query. These
+        references are then returned as a dataclass containing the references
+        Returns List[SchemaTable]: list of tables and their schemas used by
+            the query
+        """
+
+        self.explain_query()
+        self.extract_tables_from_explaination()
+        out = [SchemaTable(schema=x['schemaName'], table=x['tableName']) for
+               x in self.table_schema_entries]
+
+        return out
+
+    def explain_query(self):
+        """
+        Wrap the query with an explain clause and execute the query, the
+        result then populates self.query_explaination
+
+        Returns: None
+
+        """
+
+        explain_query = f"Explain \n {self.query}"
+
+        results_dict = \
+            self.athena_util.run_query(explain_query, return_result=True)
+
+        self.query_explaination = results_dict
+
+    def extract_tables_from_explaination(self):
+        """
+        Extracts the table references from the explaination and deposits the
+        table references in self.table_schema_entries
+
+        Returns: None
+
+        """
+
+        results_set = self.query_explaination['ResultSet']
+
+        explaination_rows = results_set['Rows']
+
+        for row in explaination_rows:
+            for data in row['Data']:
+                refs = self.parse_table_entries(data['VarCharValue'])
+                self.table_schema_entries.extend(refs)
+
+    @staticmethod
+    def parse_table_entries(explain_entries: str) -> List[dict]:
+        """
+        This parses a line of the query explaination looking for refrences to
+        tables and schemas. Any references are extracted and
+        returned as a list of dictionaries
+        Args:
+            explain_entries str: Line from the query explaination
+
+        Returns List(dict): Returns a list of dictionaries of the which contain
+            refernces to the table and schema, each dictionary is the form:
+            {'schemaName': schemaName, 'tableName': tableName}
+
+        """
+        references_of_interest = ['schemaName', 'tableName']
+
+        tables_schemas = []
+
+        for reference in references_of_interest:
+            for x in re.findall(f'{reference}=.*?,', explain_entries):
+                tables_schemas.append([re.sub(f"{reference}=|,", "", x)])
+
+        if tables_schemas:
+            tables_schemas = [{'schemaName': x[0], 'tableName': x[1]}
+                              for x in
+                              zip(tables_schemas[0], tables_schemas[1])]
+
+        return tables_schemas
+
+
+def generate_csv_ctas(select_query, destination_table, destination_bucket,
+                      destination_key,
                       partition_fields=''):
     """
     Method to generate a CTAS query string for creating csv output
@@ -351,8 +465,10 @@ def generate_csv_ctas(select_query, destination_table, destination_bucket, desti
     Args:
         select_query (string): the query to be used for table generation
         destination_table (string): name of the new table being created
-        destination_bucket (string): the s3 bucket where the data from select query will be stored
-        destination_key (string): the s3 directory where the data from select query will be stored
+        destination_bucket (string): the s3 bucket where the data from select
+        query will be stored
+        destination_key (string): the s3 directory where the data from select
+        query will be stored
         partition_fields (string): partition field names
 
     Returns (string): CTAS Query in a string

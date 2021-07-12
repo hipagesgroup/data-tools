@@ -2,10 +2,12 @@ from collections import OrderedDict
 from unittest import TestCase
 from unittest.mock import Mock
 
+from dataclasses import asdict
 from pandas import DataFrame
 
 import hip_data_tools.aws.athena as athena
-from hip_data_tools.aws.athena import AthenaUtil
+from hip_data_tools.aws.athena import AthenaUtil, SqlInspector
+from .resources import explained_queries as explained_queries
 
 
 class TestAthenaUtil(TestCase):
@@ -173,7 +175,7 @@ class TestAthenaUtil(TestCase):
     def test__get_table_data_location__should_return_an_s3_location(self):
         mock_au = Mock()
         expected = ("abc", "def/pqr/")
-        # 
+        #
         mock_au.get_glue_table_metadata.return_value = {
             'Table': {
                 'StorageDescriptor': {
@@ -267,8 +269,52 @@ class TestAthenaUtil(TestCase):
                     {'column': 'field_5', 'type': 'STRING'},
                     {'column': 'field_6', 'type': 'DOUBLE'}]
         actual = athena.get_athena_columns_from_dataframe(data_frame=DataFrame(
-            data=[{"field_1": "sample str value", "field_2": 343, "field_3": None, "field_4": True,
-                   "field_5": OrderedDict(
-                       [('policyTopicEntries', []), ('reviewState', 'REVIEWED')]),
-                   "field_6": 2.3434}]))
+            data=[
+                {"field_1": "sample str value", "field_2": 343, "field_3": None,
+                 "field_4": True,
+                 "field_5": OrderedDict(
+                     [('policyTopicEntries', []), ('reviewState', 'REVIEWED')]),
+                 "field_6": 2.3434}]))
         self.assertEqual(actual, expected)
+
+
+class TestSqlInspector(TestCase):
+
+    def test__sql_inspector__should__append_explain_statement_to_query(self):
+        expected_values = [{'schemaName': 'foo', 'tableName': 'bar'}]
+
+        query = """SELECT col1, col2 FROM foo.bar"""
+
+        sql_inspector = SqlInspector(query=query,
+                                     athena_util=
+                                     AthenaUtil(database="test", conn=None))
+
+        sql_inspector.query_explaination = \
+            explained_queries.SIMPLE_SELECT_EXPLAINED_QUERY
+
+        sql_inspector.extract_tables_from_explaination()
+
+        assert sql_inspector.table_schema_entries == expected_values
+
+    def test__sql_inspector__should__identify_tables_used_by_query(self):
+        expected_values = [{'schema': 'foo', 'table': 'bar'}]
+
+        query = """SELECT col1, col2 FROM foo.bar"""
+
+        class AthenaUtilDummy(AthenaUtil):
+
+            def __init__(self, database, conn):
+                self.database = database
+                self.conn = conn
+
+            def run_query(self, explain_query, return_result=True):
+                return explained_queries.SIMPLE_SELECT_EXPLAINED_QUERY
+
+        sql_inspector = SqlInspector(query=query,
+                                     athena_util=
+                                     AthenaUtilDummy(database="test",
+                                                     conn=None))
+
+        results = sql_inspector.identify_tables_used_by_query()
+
+        assert [asdict(x) for x in results] == expected_values

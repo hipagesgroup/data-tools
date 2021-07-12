@@ -2,8 +2,8 @@
 Setup and release this package for wider consumption using setup tools
 """
 import os
-
 import sys
+
 from setuptools import setup, find_packages
 from setuptools.command.test import test as test_command
 
