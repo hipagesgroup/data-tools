@@ -410,7 +410,7 @@ class SqlInspector:
 
     def extract_tables_from_explaination(self):
         """
-        Extracts the table references from the explaination and deposits the
+        Extracts the unique table references from the explaination and deposits the
         table references in self.table_schema_entries
 
         Returns: None
@@ -424,7 +424,9 @@ class SqlInspector:
         for row in explaination_rows:
             for data in row['Data']:
                 refs = self.parse_table_entries(data['VarCharValue'])
-                self.table_schema_entries.extend(refs)
+                for table_entry in refs:
+                    if table_entry not in self.table_schema_entries:
+                        self.table_schema_entries.extend(refs)
 
     @staticmethod
     def parse_table_entries(explain_entries: str) -> List[dict]:
