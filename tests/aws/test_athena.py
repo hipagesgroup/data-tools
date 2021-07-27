@@ -297,9 +297,9 @@ class TestSqlInspector(TestCase):
         assert sql_inspector.table_schema_entries == expected_values
 
     def test__sql_inspector__should__identify_tables_used_by_query(self):
-        expected_values = [{'schema': 'foo', 'table': 'bar'}]
+        expected_values = [{'schema': 'foo', 'table': 'bar'}, {'schema': 'baz', 'table': 'qux'}]
 
-        query = """SELECT col1, col2 FROM foo.bar"""
+        query = """SELECT col1, col2 FROM foo.bar INNER JOIN baz.qux"""
 
         class AthenaUtilDummy(AthenaUtil):
 
@@ -309,6 +309,29 @@ class TestSqlInspector(TestCase):
 
             def run_query(self, explain_query, return_result=True):
                 return explained_queries.SIMPLE_SELECT_EXPLAINED_QUERY
+
+        sql_inspector = SqlInspector(query=query,
+                                     athena_util=
+                                     AthenaUtilDummy(database="test",
+                                                     conn=None))
+
+        results = sql_inspector.identify_tables_used_by_query()
+
+        assert [asdict(x) for x in results] == expected_values
+
+    def test__sql_inspector__should__identify_unique_tables_used_by_query(self):
+        expected_values = [{'schema': 'foo', 'table': 'bar'}]
+
+        query = """SELECT col1, col2 FROM foo.bar INNER JOIN foo.bar"""
+
+        class AthenaUtilDummy(AthenaUtil):
+
+            def __init__(self, database, conn):
+                self.database = database
+                self.conn = conn
+
+            def run_query(self, explain_query, return_result=True):
+                return explained_queries.SIMPLE_SELECT_EXPLAINED_SELF_JOIN_QUERY
 
         sql_inspector = SqlInspector(query=query,
                                      athena_util=
