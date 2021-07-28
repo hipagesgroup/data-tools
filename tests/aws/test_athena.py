@@ -281,9 +281,9 @@ class TestAthenaUtil(TestCase):
 class TestSqlInspector(TestCase):
 
     def test__sql_inspector__should__append_explain_statement_to_query(self):
-        expected_values = [{'schemaName': 'foo', 'tableName': 'bar'}]
+        expected_values = [{'schemaName': 'foo', 'tableName': 'bar'}, {'schemaName': 'baz', 'tableName': 'qux'}]
 
-        query = """SELECT col1, col2 FROM foo.bar"""
+        query = """SELECT col1, col2 FROM foo.bar INNER JOIN baz.qux"""
 
         sql_inspector = SqlInspector(query=query,
                                      athena_util=
