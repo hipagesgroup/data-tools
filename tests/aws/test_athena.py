@@ -35,7 +35,7 @@ class TestAthenaUtil(TestCase):
                 "storage_format_selector": "parquet",
                 "s3_bucket": "test",
                 "s3_dir": "abc",
-                "encryption": False
+                "encryption": False,
             }
         )
         expected = """
@@ -83,7 +83,7 @@ class TestAthenaUtil(TestCase):
                 "s3_bucket": "test",
                 "s3_dir": "data/external/",
                 "encryption": False,
-                "skip_headers": True
+                "skip_headers": True,
             }
         )
 
@@ -113,7 +113,8 @@ class TestAthenaUtil(TestCase):
             select_query="SELECT abc FROM def",
             destination_table="test",
             destination_bucket="test",
-            destination_key="test")
+            destination_key="test",
+        )
         expected = """        
         CREATE TABLE test
         WITH (
@@ -129,7 +130,8 @@ class TestAthenaUtil(TestCase):
             select_query="SELECT abc FROM def",
             destination_table="test",
             destination_bucket="test",
-            destination_key="test")
+            destination_key="test",
+        )
         expected = """        
         CREATE TABLE test
         WITH (
@@ -142,22 +144,13 @@ class TestAthenaUtil(TestCase):
         self.assertEqual(actual.split(), expected.split())
 
     def test__zip_columns__works_with_one(self):
-        input = [{
-            "column": "abc",
-            "type": "def"
-        }]
+        input = [{"column": "abc", "type": "def"}]
         actual = athena.zip_columns(input)
         expected = "abc def"
         self.assertEqual(actual, expected)
 
     def test__zip_columns__works_with_two(self):
-        input = [{
-            "column": "abc",
-            "type": "def"
-        }, {
-            "column": "pqr",
-            "type": "stu"
-        }]
+        input = [{"column": "abc", "type": "def"}, {"column": "pqr", "type": "stu"}]
         actual = athena.zip_columns(input)
         expected = "abc def, pqr stu"
         self.assertEqual(actual, expected)
@@ -177,9 +170,9 @@ class TestAthenaUtil(TestCase):
         expected = ("abc", "def/pqr/")
         #
         mock_au.get_glue_table_metadata.return_value = {
-            'Table': {
-                'StorageDescriptor': {
-                    'Location': "s3://abc/def/pqr/",
+            "Table": {
+                "StorageDescriptor": {
+                    "Location": "s3://abc/def/pqr/",
                 }
             }
         }
@@ -188,155 +181,178 @@ class TestAthenaUtil(TestCase):
 
     def test__get_table_columns__should_return_tuple_when_partition_is_present(self):
         mock_au = Mock()
-        expected = ([
-                        {"Name": "first_column", "Type": "string"},
-                        {"Name": "second_column", "Type": "string"},
-                    ], [
-                        {"Name": "first_partition_column", "Type": "string"},
-                        {"Name": "second_partition_column", "Type": "string"}
-                    ])
+        expected = (
+            [
+                {"Name": "first_column", "Type": "string"},
+                {"Name": "second_column", "Type": "string"},
+            ],
+            [
+                {"Name": "first_partition_column", "Type": "string"},
+                {"Name": "second_partition_column", "Type": "string"},
+            ],
+        )
         #
         mock_au.get_glue_table_metadata.return_value = {
-            "Table":
-                {
-                    "Name":
-                        "test",
-                    "DatabaseName": "test",
-                    "StorageDescriptor": {
-                        "Columns": [
-                            {"Name": "first_column", "Type": "string"},
-                            {"Name": "second_column", "Type": "string"},
-                        ],
-                    },
-                    "PartitionKeys": [
-                        {"Name": "first_partition_column", "Type": "string"},
-                        {"Name": "second_partition_column", "Type": "string"}
-                    ]
-                }
+            "Table": {
+                "Name": "test",
+                "DatabaseName": "test",
+                "StorageDescriptor": {
+                    "Columns": [
+                        {"Name": "first_column", "Type": "string"},
+                        {"Name": "second_column", "Type": "string"},
+                    ],
+                },
+                "PartitionKeys": [
+                    {"Name": "first_partition_column", "Type": "string"},
+                    {"Name": "second_partition_column", "Type": "string"},
+                ],
+            }
         }
 
         actual = AthenaUtil.get_table_columns(mock_au, "test")
         self.assertEqual(actual, expected)
 
-    def test__get_table_columns__should_return_tuple_when_partition_is_not_present(self):
+    def test__get_table_columns__should_return_tuple_when_partition_is_not_present(
+        self,
+    ):
         mock_au = Mock()
-        expected = ([
-                        {"Name": "first_column", "Type": "string"},
-                        {"Name": "second_column", "Type": "string"},
-                    ], [])
+        expected = (
+            [
+                {"Name": "first_column", "Type": "string"},
+                {"Name": "second_column", "Type": "string"},
+            ],
+            [],
+        )
         #
         mock_au.get_glue_table_metadata.return_value = {
-            "Table":
-                {
-                    "Name":
-                        "test",
-                    "DatabaseName": "test",
-                    "StorageDescriptor": {
-                        "Columns": [
-                            {"Name": "first_column", "Type": "string"},
-                            {"Name": "second_column", "Type": "string"},
-                        ],
-                    },
-                    "PartitionKeys": []
-                }
+            "Table": {
+                "Name": "test",
+                "DatabaseName": "test",
+                "StorageDescriptor": {
+                    "Columns": [
+                        {"Name": "first_column", "Type": "string"},
+                        {"Name": "second_column", "Type": "string"},
+                    ],
+                },
+                "PartitionKeys": [],
+            }
         }
 
         actual = AthenaUtil.get_table_columns(mock_au, "test")
         self.assertEqual(actual, expected)
 
     def test__get_table_settings_for_sheets_table__should_return_table_settings(self):
-        expected = {'exists': True, 'partitions': None, 'storage_format_selector': 'parquet',
-                    'encryption': False, 'table': 'branch_reports',
-                    'columns': [{'column': 'source', 'type': 'STRING'},
-                                {'column': 'report', 'type': 'STRING'}], 's3_bucket': 'test',
-                    's3_dir': 'data/external/'}
+        expected = {
+            "exists": True,
+            "partitions": None,
+            "storage_format_selector": "parquet",
+            "encryption": False,
+            "table": "branch_reports",
+            "columns": [
+                {"column": "source", "type": "STRING"},
+                {"column": "report", "type": "STRING"},
+            ],
+            "s3_bucket": "test",
+            "s3_dir": "data/external/",
+        }
 
-        actual = athena.get_table_settings_for_dataframe(dataframe=DataFrame(
-            data=[{"source": "source_value_1", "report": "report_value_1"},
-                  {"source": "source_value_2", "report": "report_value_2"}]), partitions=None,
+        actual = athena.get_table_settings_for_dataframe(
+            dataframe=DataFrame(
+                data=[
+                    {"source": "source_value_1", "report": "report_value_1"},
+                    {"source": "source_value_2", "report": "report_value_2"},
+                ]
+            ),
+            partitions=None,
             s3_bucket="test",
-            s3_dir="data/external/", table="branch_reports")
+            s3_dir="data/external/",
+            table="branch_reports",
+        )
 
         print(actual)
         self.assertEqual(actual, expected)
 
     def test__get_athena_columns_from_dataframe__should__return_col_names_and_types__when__a_data_frame_is_given(
-            self):
-        expected = [{'column': 'field_1', 'type': 'STRING'},
-                    {'column': 'field_2', 'type': 'BIGINT'},
-                    {'column': 'field_3', 'type': 'STRING'},
-                    {'column': 'field_4', 'type': 'BOOLEAN'},
-                    {'column': 'field_5', 'type': 'STRING'},
-                    {'column': 'field_6', 'type': 'DOUBLE'}]
-        actual = athena.get_athena_columns_from_dataframe(data_frame=DataFrame(
-            data=[
-                {"field_1": "sample str value", "field_2": 343, "field_3": None,
-                 "field_4": True,
-                 "field_5": OrderedDict(
-                     [('policyTopicEntries', []), ('reviewState', 'REVIEWED')]),
-                 "field_6": 2.3434}]))
+        self,
+    ):
+        expected = [
+            {"column": "field_1", "type": "STRING"},
+            {"column": "field_2", "type": "BIGINT"},
+            {"column": "field_3", "type": "STRING"},
+            {"column": "field_4", "type": "BOOLEAN"},
+            {"column": "field_5", "type": "STRING"},
+            {"column": "field_6", "type": "DOUBLE"},
+        ]
+        actual = athena.get_athena_columns_from_dataframe(
+            data_frame=DataFrame(
+                data=[
+                    {
+                        "field_1": "sample str value",
+                        "field_2": 343,
+                        "field_3": None,
+                        "field_4": True,
+                        "field_5": OrderedDict(
+                            [("policyTopicEntries", []), ("reviewState", "REVIEWED")]
+                        ),
+                        "field_6": 2.3434,
+                    }
+                ]
+            )
+        )
         self.assertEqual(actual, expected)
 
 
 class TestSqlInspector(TestCase):
-
     def test__sql_inspector__should__append_explain_statement_to_query(self):
-        expected_values = [{'schemaName': 'foo', 'tableName': 'bar'}, {'schemaName': 'baz', 'tableName': 'qux'}]
+        expected_values = [
+            {"schemaName": "foo", "tableName": "bar"},
+            {"schemaName": "baz", "tableName": "qux"},
+        ]
 
         query = """SELECT col1, col2 FROM foo.bar INNER JOIN baz.qux"""
 
-        sql_inspector = SqlInspector(query=query,
-                                     athena_util=
-                                     AthenaUtil(database="test", conn=None))
+        sql_inspector = SqlInspector(
+            query=query, athena_util=AthenaUtil(database="test", conn=None)
+        )
 
-        sql_inspector.query_explaination = \
+        sql_inspector.query_explaination = (
             explained_queries.SIMPLE_SELECT_EXPLAINED_QUERY
+        )
 
         sql_inspector.extract_tables_from_explaination()
 
         assert sql_inspector.table_schema_entries == expected_values
 
     def test__sql_inspector__should__identify_tables_used_by_query(self):
-        expected_values = [{'schema': 'foo', 'table': 'bar'}, {'schema': 'baz', 'table': 'qux'}]
+        expected_values = [
+            {"schema": "foo", "table": "bar"},
+            {"schema": "baz", "table": "qux"},
+        ]
 
         query = """SELECT col1, col2 FROM foo.bar INNER JOIN baz.qux"""
 
-        class AthenaUtilDummy(AthenaUtil):
+        mock_athena_util = Mock()
+        mock_athena_util.run_query.return_value = (
+            explained_queries.SIMPLE_SELECT_EXPLAINED_QUERY
+        )
 
-            def __init__(self, database, conn):
-                self.database = database
-                self.conn = conn
-
-            def run_query(self, explain_query, return_result=True):
-                return explained_queries.SIMPLE_SELECT_EXPLAINED_QUERY
-
-        sql_inspector = SqlInspector(query=query,
-                                     athena_util=
-                                     AthenaUtilDummy(database="test",
-                                                     conn=None))
+        sql_inspector = SqlInspector(query=query, athena_util=mock_athena_util)
 
         results = sql_inspector.identify_tables_used_by_query()
 
         assert [asdict(x) for x in results] == expected_values
 
     def test__sql_inspector__should__identify_unique_tables_used_by_query(self):
-        expected_values = [{'schema': 'foo', 'table': 'bar'}]
+        expected_values = [{"schema": "foo", "table": "bar"}]
 
         query = """SELECT col1, col2 FROM foo.bar INNER JOIN foo.bar"""
 
-        class AthenaUtilDummy(AthenaUtil):
+        mock_athena_util = Mock()
+        mock_athena_util.run_query.return_value = (
+            explained_queries.SIMPLE_SELECT_EXPLAINED_SELF_JOIN_QUERY
+        )
 
-            def __init__(self, database, conn):
-                self.database = database
-                self.conn = conn
-
-            def run_query(self, explain_query, return_result=True):
-                return explained_queries.SIMPLE_SELECT_EXPLAINED_SELF_JOIN_QUERY
-
-        sql_inspector = SqlInspector(query=query,
-                                     athena_util=
-                                     AthenaUtilDummy(database="test",
-                                                     conn=None))
+        sql_inspector = SqlInspector(query=query, athena_util=mock_athena_util)
 
         results = sql_inspector.identify_tables_used_by_query()
 
