@@ -409,7 +409,7 @@ class SqlInspector:
 
     def extract_tables_from_explaination(self):
         """
-        Extracts all the table references from the explanation and deposits the
+        Extracts unique table references from the explanation and deposits the
         table references in self.table_schema_entries
 
         Returns: None
