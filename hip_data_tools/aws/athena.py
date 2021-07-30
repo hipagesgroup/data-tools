@@ -403,30 +403,46 @@ class SqlInspector:
 
         explain_query = f"Explain \n {self.query}"
 
-        results_dict = \
-            self.athena_util.run_query(explain_query, return_result=True)
+        results_dict = self.athena_util.run_query(explain_query, return_result=True)
 
         self.query_explaination = results_dict
 
     def extract_tables_from_explaination(self):
         """
-        Extracts the unique table references from the explaination and deposits the
+        Extracts all the table references from the explanation and deposits the
         table references in self.table_schema_entries
 
         Returns: None
 
         """
 
-        results_set = self.query_explaination['ResultSet']
+        results_set = self.query_explaination["ResultSet"]
+        explanation_rows = results_set["Rows"]
+        refs = [
+            self.parse_table_entries(data["VarCharValue"])
+            for row in explanation_rows
+            for data in row["Data"]
+        ]
+        all_table_refs = [item for sublist in refs for item in sublist]
+        self.table_schema_entries = self.extract_unique_table_references(all_table_refs)
 
-        explaination_rows = results_set['Rows']
+    @staticmethod
+    def extract_unique_table_references(all_table_refs: List[dict]) -> List[dict]:
+        """
+        Method to extract unique values from the list of dictionary
+        Args:
+            all_table_refs List[dict]: Table and Schema references from the query explanation
 
-        for row in explaination_rows:
-            for data in row['Data']:
-                refs = self.parse_table_entries(data['VarCharValue'])
-                for table_entry in refs:
-                    if table_entry not in self.table_schema_entries:
-                        self.table_schema_entries.extend(refs)
+        Returns List(dict): Returns a list of dictionaries of the which contain
+            references to the table and schema, each dictionary is the form:
+            {'schemaName': schemaName, 'tableName': tableName}
+
+        """
+        table_schema_entries = []
+        for table_entry in all_table_refs:
+            if table_entry and table_entry not in table_schema_entries:
+                table_schema_entries.append(table_entry)
+        return table_schema_entries
 
     @staticmethod
     def parse_table_entries(explain_entries: str) -> List[dict]:
