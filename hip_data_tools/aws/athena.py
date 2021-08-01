@@ -355,6 +355,9 @@ class SchemaTable:
     schema: str
 
 
+
+
+
 class SqlInspector:
     """
     This class enables the inspection of SQL by wrapping a query in an
@@ -375,6 +378,7 @@ class SqlInspector:
         self.query: str = query
         self.athena_util: AthenaUtil = athena_util
         self.query_explaination: Optional[dict] = None
+        self.all_table_references: List[dict] = []
         self.table_schema_entries: List[dict] = []
 
     def identify_tables_used_by_query(self):
@@ -423,13 +427,12 @@ class SqlInspector:
             for row in explanation_rows
             for data in row["Data"]
         ]
-        all_table_refs = [item for sublist in refs for item in sublist]
-        self.table_schema_entries = self.extract_unique_table_references(all_table_refs)
+        self.all_table_references = [item for sublist in refs for item in sublist]
+        self.table_schema_entries = self.__extract_unique_table_references()
 
-    @staticmethod
-    def extract_unique_table_references(all_table_refs: List[dict]) -> List[dict]:
+    def __extract_unique_table_references(self):
         """
-        Method to extract unique values from the list of dictionary
+        Function to extract unique values from the list of dictionary
         Args:
             all_table_refs List[dict]: Table and Schema references from the query explanation
 
@@ -439,7 +442,7 @@ class SqlInspector:
 
         """
         table_schema_entries = []
-        for table_entry in all_table_refs:
+        for table_entry in self.all_table_references:
             if table_entry and table_entry not in table_schema_entries:
                 table_schema_entries.append(table_entry)
         return table_schema_entries
