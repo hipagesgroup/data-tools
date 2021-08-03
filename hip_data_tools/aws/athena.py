@@ -355,6 +355,9 @@ class SchemaTable:
     schema: str
 
 
+
+
+
 class SqlInspector:
     """
     This class enables the inspection of SQL by wrapping a query in an
@@ -375,6 +378,7 @@ class SqlInspector:
         self.query: str = query
         self.athena_util: AthenaUtil = athena_util
         self.query_explaination: Optional[dict] = None
+        self.all_table_references: List[dict] = []
         self.table_schema_entries: List[dict] = []
 
     def identify_tables_used_by_query(self):
@@ -403,28 +407,45 @@ class SqlInspector:
 
         explain_query = f"Explain \n {self.query}"
 
-        results_dict = \
-            self.athena_util.run_query(explain_query, return_result=True)
+        results_dict = self.athena_util.run_query(explain_query, return_result=True)
 
         self.query_explaination = results_dict
 
     def extract_tables_from_explaination(self):
         """
-        Extracts the table references from the explaination and deposits the
+        Extracts unique table references from the explanation and deposits the
         table references in self.table_schema_entries
 
         Returns: None
 
         """
 
-        results_set = self.query_explaination['ResultSet']
+        results_set = self.query_explaination["ResultSet"]
+        explanation_rows = results_set["Rows"]
+        refs = [
+            self.parse_table_entries(data["VarCharValue"])
+            for row in explanation_rows
+            for data in row["Data"]
+        ]
+        self.all_table_references = [item for sublist in refs for item in sublist]
+        self.table_schema_entries = self.__extract_unique_table_references()
 
-        explaination_rows = results_set['Rows']
+    def __extract_unique_table_references(self):
+        """
+        Function to extract unique values from the list of dictionary
+        Args:
+            all_table_refs List[dict]: Table and Schema references from the query explanation
 
-        for row in explaination_rows:
-            for data in row['Data']:
-                refs = self.parse_table_entries(data['VarCharValue'])
-                self.table_schema_entries.extend(refs)
+        Returns List(dict): Returns a list of dictionaries of the which contain
+            references to the table and schema, each dictionary is the form:
+            {'schemaName': schemaName, 'tableName': tableName}
+
+        """
+        table_schema_entries = []
+        for table_entry in self.all_table_references:
+            if table_entry and table_entry not in table_schema_entries:
+                table_schema_entries.append(table_entry)
+        return table_schema_entries
 
     @staticmethod
     def parse_table_entries(explain_entries: str) -> List[dict]:
