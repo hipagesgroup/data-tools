@@ -82,8 +82,7 @@ class AdWordsToAthena(AdWordsToS3):
     def __get_athena_columns(self, data):
         if self.__settings.athena_columns:
             return self.__settings.athena_columns
-        else:
-            return get_athena_columns_from_dataframe(data)
+        return get_athena_columns_from_dataframe(data)
 
 
 @dataclass
