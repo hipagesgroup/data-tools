@@ -22,6 +22,7 @@ class AdWordsToAthenaSettings(AdWordsToS3Settings):
     target_table_ddl_progress: bool
     is_partitioned_table: bool
     partition_values: Optional[List[Tuple[str, Any]]]
+    master_schema: Optional[List[dict]]
 
 
 class AdWordsToAthena(AdWordsToS3):
@@ -72,7 +73,8 @@ class AdWordsToAthena(AdWordsToS3):
             "storage_format_selector": "parquet",
             "encryption": False,
             "table": self.__settings.target_table,
-            "columns": get_athena_columns_from_dataframe(data),
+            "columns": self.__settings.master_schema if self.__settings.master_schema else get_athena_columns_from_dataframe(
+                data),
             "s3_bucket": self.__settings.target_bucket,
             "s3_dir": self.base_dir,
         }

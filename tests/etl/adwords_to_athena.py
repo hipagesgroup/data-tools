@@ -1,8 +1,10 @@
 import os
+from collections import OrderedDict
 from unittest import TestCase
+from unittest.mock import Mock
 
 from googleads.adwords import ServiceQueryBuilder, ReportQueryBuilder
-from pandas import np
+from pandas import np, DataFrame
 from py._builtin import execfile
 
 from hip_data_tools.aws.athena import AthenaUtil
@@ -213,3 +215,79 @@ class TestAdwordsToS3(TestCase):
         expected = 11
 
         self.assertEqual(expected, len(actual["ResultSet"]["Rows"]))
+
+    def test__should__create_athena_table_settings__when__the_master_schema_is_given(self):
+        mock_util = Mock()
+        mock_util._AdWordsToAthena__settings.is_partitioned_table = False
+        mock_util._AdWordsToAthena__settings.target_table = 'test_athena_table'
+        mock_util._AdWordsToAthena__settings.master_schema = [
+            {'column': 'field_1', 'type': 'STRING'},
+            {'column': 'field_2', 'type': 'BIGINT'},
+            {'column': 'field_3', 'type': 'STRING'},
+            {'column': 'field_4', 'type': 'BOOLEAN'},
+            {'column': 'field_5', 'type': 'array<int>'},
+            {'column': 'field_6', 'type': 'DOUBLE'}]
+        mock_util._AdWordsToAthena__settings.target_bucket = 'test-bucket'
+        mock_util.base_dir = 'data/'
+        actual = AdWordsToAthena._construct_athena_table_settings(mock_util, data=DataFrame(
+            data=[
+                {
+                    "field_1": "sample str value",
+                    "field_2": 343,
+                    "field_3": None,
+                    "field_4": True,
+                    "field_5": [1, 2, 3],
+                    "field_6": 2.3434,
+                }
+            ]
+        ))
+        expected = {'columns': [{'column': 'field_1', 'type': 'STRING'},
+                                {'column': 'field_2', 'type': 'BIGINT'},
+                                {'column': 'field_3', 'type': 'STRING'},
+                                {'column': 'field_4', 'type': 'BOOLEAN'},
+                                {'column': 'field_5', 'type': 'array<int>'},
+                                {'column': 'field_6', 'type': 'DOUBLE'}],
+                    'encryption': False,
+                    'exists': True,
+                    'partitions': [],
+                    's3_bucket': 'test-bucket',
+                    's3_dir': 'data/',
+                    'storage_format_selector': 'parquet',
+                    'table': 'test_athena_table'}
+
+        self.assertEqual(expected, actual)
+
+    def test__should__create_athena_table_settings__when__the_master_schema_is_not_given(self):
+        mock_util = Mock()
+        mock_util._AdWordsToAthena__settings.is_partitioned_table = False
+        mock_util._AdWordsToAthena__settings.target_table = 'test_athena_table'
+        mock_util._AdWordsToAthena__settings.master_schema = None
+        mock_util._AdWordsToAthena__settings.target_bucket = 'test-bucket'
+        mock_util.base_dir = 'data/'
+        actual = AdWordsToAthena._construct_athena_table_settings(mock_util, data=DataFrame(
+            data=[
+                {
+                    "field_1": "sample str value",
+                    "field_2": 343,
+                    "field_3": None,
+                    "field_4": True,
+                    "field_5": [1, 2, 3],
+                    "field_6": 2.3434,
+                }
+            ]
+        ))
+        expected = {'columns': [{'column': 'field_1', 'type': 'STRING'},
+                                {'column': 'field_2', 'type': 'BIGINT'},
+                                {'column': 'field_3', 'type': 'STRING'},
+                                {'column': 'field_4', 'type': 'BOOLEAN'},
+                                {'column': 'field_5', 'type': 'STRING'},
+                                {'column': 'field_6', 'type': 'DOUBLE'}],
+                    'encryption': False,
+                    'exists': True,
+                    'partitions': [],
+                    's3_bucket': 'test-bucket',
+                    's3_dir': 'data/',
+                    'storage_format_selector': 'parquet',
+                    'table': 'test_athena_table'}
+
+        self.assertEqual(expected, actual)
