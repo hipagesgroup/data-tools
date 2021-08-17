@@ -220,7 +220,7 @@ class TestAdwordsToS3(TestCase):
         mock_util = Mock()
         mock_util._AdWordsToAthena__settings.is_partitioned_table = False
         mock_util._AdWordsToAthena__settings.target_table = 'test_athena_table'
-        mock_util._AdWordsToAthena__settings.master_schema = [
+        mock_util._AdWordsToAthena__settings.athena_columns = [
             {'column': 'field_1', 'type': 'STRING'},
             {'column': 'field_2', 'type': 'BIGINT'},
             {'column': 'field_3', 'type': 'STRING'},
@@ -261,7 +261,7 @@ class TestAdwordsToS3(TestCase):
         mock_util = Mock()
         mock_util._AdWordsToAthena__settings.is_partitioned_table = False
         mock_util._AdWordsToAthena__settings.target_table = 'test_athena_table'
-        mock_util._AdWordsToAthena__settings.master_schema = None
+        mock_util._AdWordsToAthena__settings.athena_columns = None
         mock_util._AdWordsToAthena__settings.target_bucket = 'test-bucket'
         mock_util.base_dir = 'data/'
         actual = AdWordsToAthena._construct_athena_table_settings(mock_util, data=DataFrame(
