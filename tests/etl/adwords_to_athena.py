@@ -216,7 +216,7 @@ class TestAdwordsToS3(TestCase):
 
         self.assertEqual(expected, len(actual["ResultSet"]["Rows"]))
 
-    def test__should__create_athena_table_settings__when__the_master_schema_is_given(self):
+    def test__should__create_athena_table_settings__when__the_athena_columns_are_given(self):
         mock_util = Mock()
         mock_util._AdWordsToAthena__settings.is_partitioned_table = False
         mock_util._AdWordsToAthena__settings.target_table = 'test_athena_table'
@@ -257,7 +257,7 @@ class TestAdwordsToS3(TestCase):
 
         self.assertEqual(expected, actual)
 
-    def test__should__create_athena_table_settings__when__the_master_schema_is_not_given(self):
+    def test__should__create_athena_table_settings__when__the_athena_columns_are_not_given(self):
         mock_util = Mock()
         mock_util._AdWordsToAthena__settings.is_partitioned_table = False
         mock_util._AdWordsToAthena__settings.target_table = 'test_athena_table'
