@@ -102,6 +102,7 @@ setup(
         "freezegun==0.1.11",
         "testcontainers",
         "ecdsa==0.14.1",
+        "cfn-lint==0.58.4",
     ],
     cmdclass={'test': PyTest},
     python_requires='~=3.6',
