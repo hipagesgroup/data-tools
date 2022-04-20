@@ -1,13 +1,9 @@
 """
 This Module handles the connection and operations on Google AdWords accounts using adwords API
 """
-import gzip
 import math
 from collections import OrderedDict
-from tempfile import NamedTemporaryFile
 from typing import List, Optional, Any
-
-import pandas as pd
 from attr import dataclass
 from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads import oauth2
@@ -228,7 +224,6 @@ class AdWordsDataReader(GoogleAdsUtil):
         data_list = self.download_next_page_as_dict()
         return nested_list_of_dict_to_dataframe(data_list)
 
-
     def set_query(self, query) -> None:
         """
         Sets the new query for the class to use awql, once the query is set, the download methods
@@ -240,14 +235,12 @@ class AdWordsDataReader(GoogleAdsUtil):
         self.__pager = None
         self.query = query
 
-
     def _get_query(self):
         if self.query is None:
             raise Exception(
                 "Please set the query attribute using the method set_query(...)"
             )
         return self.query
-
 
     def _get_query_pager(self, query):
         if self.__pager is None:
@@ -318,7 +311,6 @@ class AdWordsParallelDataReadEstimator(GoogleAdsUtil):
         version (str): Adwords service api version to use for querying
         query (ServiceQueryBuilder): the Query builder object without limit clause
     """
-
 
     def __init__(
         self, conn: GoogleAdsConnectionManager, service: str, version: str, query
@@ -422,13 +414,19 @@ class GoogleAdsClicksConversionUtil(GoogleAdsUtil):
     def __init__(self, conn: GoogleAdsConnectionManager):
         super().__init__(conn, type="ClickConversion", version="v10")
 
-    def get_click_conversion(self):
+    def click_conversion(self, data):
         """
         Gets the customer details of the adwords accounts associated with the connection
         Returns: List[dict]
 
         """
-        return self._get_type()
+        click_conversion = self._get_type()
+        click_conversion.gclid = data["gclid"]
+        click_conversion.conversion_value = data["conversion_value"]
+        click_conversion.conversion_date_time = data["conversion_date_time"]
+        click_conversion.conversion_action = data["conversion_action"]
+        click_conversion.currency_code = data["currency_code"]
+        return click_conversion
 
 
 class GoogleAdsUploadClickConversionsRequestUtil(GoogleAdsUtil):
@@ -443,13 +441,17 @@ class GoogleAdsUploadClickConversionsRequestUtil(GoogleAdsUtil):
     def __init__(self, conn: GoogleAdsConnectionManager):
         super().__init__(conn, type="UploadClickConversionsRequest", version="v10")
 
-    def get_upload_click_conversion(self):
+    def upload_click_conversion(self, click_conversion):
         """
         Gets the customer details of the adwords accounts associated with the connection
         Returns: List[dict]
 
         """
-        return self._get_type()
+        request = self._get_type()
+        request.customer_id = self.client_customer_id
+        request.conversions.append(click_conversion)
+        request.partial_failure = True
+        return request
 
 
 class GoogleAdsConversionActionUtil(GoogleAdsUtil):
@@ -577,53 +579,13 @@ class GoogleAdsOfflineConversionUtil(GoogleAdsUtil):
         """
         if not data:
             return [], []
-        else:
-            mutations = self._get_mutations_from_conversions_batch(data)
-            result = self._upload_mutations_batch(mutations)
-
-            if result['ListReturnValue.Type'] != 'OfflineConversionFeedReturnValue':
-                raise Exception(
-                    f"Unhandled Exception while loading batch of conversions, response: {result}")
-            uploaded = [x for x in result['value'] if x is not None]
-            #  Append actual data to the failed conversions
-            fails = [_find_and_append_data(fail, data) for fail in result['partialFailureErrors']]
-
-            return uploaded, fails
-            # return result
+        result = self._upload_mutations_batch(data)
+        partial_failure = getattr(result, "partial_failure_error", None)
+        uploaded = getattr(result, "results", None)
+        return uploaded, partial_failure
 
     def _upload_mutations_batch(self, mutations):
-        # return self._get_service(partial_failure=True).upload_click_conversions(mutations)
         return self._get_service().upload_click_conversions(mutations)
-
-    def _get_mutations_from_conversions_batch(
-        self, conversions: List[dict]
-    ) -> List[dict]:
-        # return [self._get_mutation_from_conversion(d) for d in conversions]
-        return [self._get_mutation_from_conversion(d) for d in conversions]
-
-    def _get_mutation_from_conversion(self, conversion: dict) -> dict:
-        # self._verify_required_columns(conversion)
-        # self._verify_accepted_columns(conversion)
-        print("\n")
-        print(conversion)
-        print("\n")
-
-        return {"operator": "ADD", "operand": conversion}
-
-    def _verify_required_columns(self, conversion: dict) -> None:
-        for col in self.required_fields:
-            if col not in conversion:
-                raise ValueError(
-                    f"The column {col} is required byt not present in the data {conversion}"
-                )
-
-    def _verify_accepted_columns(self, conversion: dict) -> None:
-        for col in conversion.keys():
-            if col not in self.valid_fields:
-                raise ValueError(
-                    f"The column {col} present in the DataFrame is not in the allowed column list "
-                    f"{self.valid_fields}"
-                )
 
 
 def get_page_as_list_of_dict(page: dict) -> List[OrderedDict]:
@@ -659,205 +621,6 @@ def zeep_object_to_dict(obj: Any) -> OrderedDict:
     return obj_dict
 
 
-class AdWordsCampaignUtil(AdWordsDataReader):
-    """
-    Handles the querying of Adwords Campaign service
-    Args:
-        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
-        adwords client
-    """
-
-    def __init__(self, conn: GoogleAdsConnectionManager):
-        super().__init__(conn, service="CampaignService", version="v201809")
-
-    def set_query_to_fetch_all(
-        self, start_index: int = 0, page_size: int = 500
-    ) -> None:
-        """
-        Get all campaigns associated with an account
-        Returns: None
-        """
-        query = (
-            ServiceQueryBuilder()
-            .Select("Id", "Name", "Status")
-            # .Where('Status').EqualTo('ENABLED')
-            .OrderBy("Id")
-            .Limit(start_index, page_size)
-            .Build()
-        )
-        self.set_query(query)
-
-
-class AdWordsAdGroupUtil(AdWordsDataReader):
-    """
-    Handles the querying of Adwords AdGroup service
-    Args:
-        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
-        adwords client
-    """
-
-    def __init__(self, conn: GoogleAdsConnectionManager):
-        super().__init__(conn=conn, service="AdGroupService", version="v201809")
-        self._all_query = None
-
-    def set_query_to_fetch_by_campaign(
-        self, campaign_id: str, start_index: int = 0, page_size: int = 500
-    ) -> None:
-        """
-        Get all AdGroups for the given Campaign
-        Args:
-            campaign_id (str): the adwords campaign to query
-            page_size:
-            start_index:
-        Returns: None
-        """
-        query = (
-            ServiceQueryBuilder()
-            .Select("Id", "CampaignId", "CampaignName", "Status")
-            .Where("CampaignId")
-            .EqualTo(campaign_id)
-            .OrderBy("Id")
-            .Limit(start_index, page_size)
-            .Build()
-        )
-        self.set_query(query)
-
-    def set_query_to_fetch_all(
-        self, start_index: int = 0, page_size: int = 500
-    ) -> None:
-        """
-        Get all Ad groups in the account
-        Args:\
-            page_size:
-            start_index:
-        Returns: None
-        """
-        query = (
-            ServiceQueryBuilder()
-            .Select(
-                "Id",
-                "CampaignId",
-                "CampaignName",
-                "Status",
-                "Settings",
-                "Labels",
-                "ContentBidCriterionTypeGroup",
-                "BaseCampaignId",
-                "BaseAdGroupId",
-                "TrackingUrlTemplate",
-                "FinalUrlSuffix",
-                "UrlCustomParameters",
-                "AdGroupType",
-            )
-            .OrderBy("Id")
-            .Limit(start_index, page_size)
-            .Build()
-        )
-        self.set_query(query)
-
-
-class AdWordsAdGroupAdUtil(AdWordsDataReader):
-    """
-    Handles the querying of Adwords AdGroupAd service
-    Args:
-        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
-        adwords client
-    """
-
-    def __init__(self, conn: GoogleAdsConnectionManager):
-        super().__init__(conn, service="AdGroupAdService", version="v201809")
-        self._all_query = None
-
-    def set_query_to_fetch_all(self, start_index: int = 0, page_size: int = 500):
-        """
-        Get all Ad groups Ads in the account
-        Args:
-            page_size:
-            start_index:
-        Returns: None
-        """
-        query = (
-            ServiceQueryBuilder()
-            .Select("Id")
-            .OrderBy("Id")
-            .Limit(start_index, page_size)
-            .Build()
-        )
-        self.set_query(query)
-
-
-class AdWordsReportDefinitionReader(GoogleAdsUtil):
-    """
-    Class to interact with the ReportDefinitionService and access fields for adwords reports
-    Args:
-        conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
-    adwords client
-    """
-
-    def __init__(self, conn: GoogleAdsConnectionManager):
-        super().__init__(
-            conn=conn, service="ReportDefinitionService", version="v201809"
-        )
-
-    def get_report_fields(self, report_type: str) -> List[dict]:
-        """
-        Get a list of fields for a given report.
-        Args:
-            report_type (str): Possible reports are defined in the documentation here -
-            https://developers.google.com/adwords/api/docs/appendix/reports/all-reports
-        Returns: List[dict]
-        """
-        return self._get_service().getReportFields(report_type)
-
-
-class AdWordsReportReader:
-    """
-    Generic data reader class for downloading data from report awql efficiently
-    Args:
-            conn (GoogleAdWordsConnectionManager): Connection manager to handle the creation of
-        adwords client
-    """
-
-    def __init__(self, conn: GoogleAdsConnectionManager):
-        self.conn = conn
-        self.version = "v201809"
-        self.__downloader = None
-
-    def _get_report_downloader(self):
-        if self.__downloader is None:
-            client = self.conn.get_adwords_client()
-            self.__downloader = client.GetReportDownloader(version=self.version)
-        return self.__downloader
-
-    def awql_to_dataframe(
-        self, query, include_zero_impressions: bool = True, **kwargs
-    ) -> DataFrame:
-        """
-        Download the data returned by report query in a compressed format and return it in form of
-        a pandas dataframe
-        Args:
-            query (ReportQuery): an awql report query, see example
-            https://github.com/googleads/googleads-python-lib/blob/master/examples/adwords
-            /v201809/reporting/stream_criteria_report_results.py#L34-L39
-            include_zero_impressions (bool): include_zero_impressions
-        Returns: DataFrame
-        """
-        with NamedTemporaryFile(mode="w+b") as temp_file:
-            self._get_report_downloader().DownloadReportWithAwql(
-                query,
-                "GZIPPED_CSV",
-                temp_file,
-                skip_report_header=True,
-                skip_column_header=False,
-                skip_report_summary=True,
-                include_zero_impressions=include_zero_impressions,
-                **kwargs,
-            )
-            with gzip.open(temp_file.name, mode="rt") as csv_file:
-                dataframe = pd.read_csv(csv_file, sep=",", header=0)
-        return dataframe
-
-
 class AdWordsManagedCustomerUtil(GoogleAdsUtil):
     """
     Adwords Utility to parse through and gather Account Information for all sub accounts
@@ -879,11 +642,10 @@ class AdWordsManagedCustomerUtil(GoogleAdsUtil):
         ]
 
     def _init_selector(self, offset, page_size):
-        selector = {
+        return {
             "fields": self.selector_fields,
             "paging": {"startIndex": str(offset), "numberResults": str(page_size)},
         }
-        return selector
 
     def get_all_accounts(self, page_size: int = 1000) -> List[dict]:
         """
