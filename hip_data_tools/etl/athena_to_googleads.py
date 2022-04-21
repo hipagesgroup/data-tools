@@ -1,5 +1,5 @@
 """
-handle ETL of data from Athena to Google Ads API
+handle ETL of offline conversion data from Athena to Google Ads API
 """
 from typing import List, Tuple
 
