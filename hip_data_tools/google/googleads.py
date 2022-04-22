@@ -382,7 +382,7 @@ class GoogleAdsCustomerUtil(AdWordsDataReader):
     """
 
     def __init__(self, conn: GoogleAdsConnectionManager):
-        super().__init__(conn, service="CustomerService", version="v10")
+        super().__init__(conn, service="CustomerService", version="v8")
 
     def get_customers(self) -> List[dict]:
         """
@@ -412,7 +412,7 @@ class GoogleAdsClicksConversionUtil(GoogleAdsUtil):
     """
 
     def __init__(self, conn: GoogleAdsConnectionManager):
-        super().__init__(conn, type="ClickConversion", version="v10")
+        super().__init__(conn, type="ClickConversion", version="v8")
 
     def click_conversion(self, data):
         """
@@ -439,7 +439,7 @@ class GoogleAdsUploadClickConversionsRequestUtil(GoogleAdsUtil):
     """
 
     def __init__(self, conn: GoogleAdsConnectionManager):
-        super().__init__(conn, type="UploadClickConversionsRequest", version="v10")
+        super().__init__(conn, type="UploadClickConversionsRequest", version="v8")
 
     def upload_click_conversion(self, click_conversion):
         """
@@ -464,7 +464,7 @@ class GoogleAdsConversionActionUtil(GoogleAdsUtil):
     """
 
     def __init__(self, conn: GoogleAdsConnectionManager):
-        super().__init__(conn, service="ConversionActionService", version="v10")
+        super().__init__(conn, service="ConversionActionService", version="v8")
 
     def get_conversion_action(self, customer_id: str, conversion_action_id: str):
         """
@@ -486,7 +486,7 @@ class GoogleAdsOfflineConversionUtil(GoogleAdsUtil):
     """
 
     def __init__(self, conn: GoogleAdsConnectionManager):
-        super().__init__(conn, service="ConversionUploadService", version="v10")
+        super().__init__(conn, service="ConversionUploadService", version="v8")
         self.required_fields = [
             "gclid",
             "conversion_action",
