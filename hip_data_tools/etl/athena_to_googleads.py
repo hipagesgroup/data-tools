@@ -168,7 +168,7 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
 
     def _chunk_batches(self, lst: List[dict]) -> List[List[dict]]:
         n = self.__settings.destination_batch_size
-        return [lst[i * n : (i + 1) * n] for i in range((len(lst) + n - 1) // n)]
+        return [lst[i * n: (i + 1) * n] for i in range((len(lst) + n - 1) // n)]
 
     def _process_data_frame(self, data_frame) -> Tuple[list, list, list]:
         data_dict = self._data_frame_to_destination_dict(data_frame)
@@ -202,6 +202,6 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
         return self._get_googleads_click_conversion_util().click_conversion(data)
 
     def _get_upload_conversion_request_batch(self, click_conversion):
-        return self._get_upload_click_conversion_request_util().upload_click_conversion(
-            click_conversion
-        )
+        return self._get_upload_click_conversion_request_util().upload_click_conversion(self.__settings.customer_id,
+                                                                                        click_conversion
+                                                                                        )

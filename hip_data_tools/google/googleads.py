@@ -441,14 +441,14 @@ class GoogleAdsUploadClickConversionsRequestUtil(GoogleAdsUtil):
     def __init__(self, conn: GoogleAdsConnectionManager):
         super().__init__(conn, type="UploadClickConversionsRequest", version="v8")
 
-    def upload_click_conversion(self, click_conversion):
+    def upload_click_conversion(self, customer_id: str, click_conversion):
         """
         Gets the customer details of the adwords accounts associated with the connection
         Returns: List[dict]
 
         """
         request = self._get_type()
-        request.customer_id = self.client_customer_id
+        request.customer_id = customer_id
         request.conversions.append(click_conversion)
         request.partial_failure = True
         return request
