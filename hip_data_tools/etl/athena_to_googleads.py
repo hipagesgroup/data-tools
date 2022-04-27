@@ -141,7 +141,7 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
 
     def _get_upload_click_conversion_request_util(self):
         if self._upload_click_conversion_request is None:
-            self._click_conversion = GoogleAdsUploadClickConversionsRequestUtil(
+            self._upload_click_conversion_request = GoogleAdsUploadClickConversionsRequestUtil(
                 GoogleAdsConnectionManager(
                     self.__settings.destination_connection_settings
                 )
