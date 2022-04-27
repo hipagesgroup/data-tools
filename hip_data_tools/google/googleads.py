@@ -494,7 +494,7 @@ class GoogleAdsOfflineConversionUtil(GoogleAdsUtil):
             "conversion_value",
         ]
         self.valid_fields = self.required_fields + [
-            "conversionCurrencyCode",
+            "currency_code",
             "externalAttributionCredit",
             "externalAttributionModel",
         ]
