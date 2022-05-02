@@ -177,7 +177,6 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
         self._state_manager_connect()
         ready_data, verification_issues = self._verify_data_before_upsert(data_dict)
         data_dict_batches = self._chunk_batches(ready_data)
-        # data_dict_batches = self._chunk_batches(data_dict)
         successes = []
         failures = []
         verification_issues = []
