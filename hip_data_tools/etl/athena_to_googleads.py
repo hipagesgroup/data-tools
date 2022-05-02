@@ -186,7 +186,7 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
             data_to_process, processing_issue = self._mark_processing(data_batch)
             verification_issues.extend(processing_issue)
             click_conversions = [
-                self._get_click_conversion_batch(dat) for dat in data_batch
+                self._get_click_conversion_batch(dat) for dat in data_to_process
             ]
             request = [
                 self._get_upload_conversion_request_batch(click_conversion)
