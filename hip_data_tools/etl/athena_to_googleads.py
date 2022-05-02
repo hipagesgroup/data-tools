@@ -4,10 +4,12 @@ handle ETL of offline conversion data from Athena to Google Ads API
 from typing import List, Tuple
 
 from attr import dataclass
+from cassandra.cqlengine import ValidationError
 from pandas import DataFrame
 
 from hip_data_tools.apache.cassandra import (
     CassandraConnectionSettings,
+    CassandraConnectionManager,
 )
 from hip_data_tools.common import LOG
 from hip_data_tools.etl.athena_to_dataframe import (
@@ -15,7 +17,7 @@ from hip_data_tools.etl.athena_to_dataframe import (
     AthenaToDataFrameSettings,
 )
 from hip_data_tools.etl.common import (
-    EtlSinkRecordStateManager,
+    EtlSinkRecordStateManager, sync_etl_state_table, EtlStates
 )
 from hip_data_tools.google.googleads import (
     GoogleAdsOfflineConversionUtil,
@@ -41,7 +43,7 @@ class AthenaToGoogleAdsOfflineConversionSettings(AthenaToDataFrameSettings):
 
 
 def _get_record_signature(record: dict):
-    return f"{record['googleClickId']}||{record['conversionName']}||{record['conversionTime']}"
+    return f"{record['gclid']}||conversion_attempt||{record['conversion_date_time']}"
 
 
 def _get_structured_issue(error, data):
@@ -172,15 +174,17 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
 
     def _process_data_frame(self, data_frame) -> Tuple[list, list, list]:
         data_dict = self._data_frame_to_destination_dict(data_frame)
-        # self._state_manager_connect()
-        # ready_data, verification_issues = self._verify_data_before_upsert(data_dict)
-        # data_dict_batches = self._chunk_batches(ready_data)
-        data_dict_batches = self._chunk_batches(data_dict)
+        self._state_manager_connect()
+        ready_data, verification_issues = self._verify_data_before_upsert(data_dict)
+        data_dict_batches = self._chunk_batches(ready_data)
+        # data_dict_batches = self._chunk_batches(data_dict)
         successes = []
         failures = []
         verification_issues = []
 
         for data_batch in data_dict_batches:
+            data_to_process, processing_issue = self._mark_processing(data_batch)
+            verification_issues.extend(processing_issue)
             click_conversions = [
                 self._get_click_conversion_batch(dat) for dat in data_batch
             ]
@@ -197,6 +201,68 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
 
     def _upload_conversions(self, data_batch):
         return self._get_googleads_util().upload_conversions(data_batch)
+
+    def _state_manager_connect(self):
+
+        LOG.info("Connecting to Cassandra")
+
+        conn = CassandraConnectionManager(self.__settings.etl_state_manager_connection)
+        conn.setup_connection(self.__settings.etl_state_manager_keyspace)
+
+        LOG.info("Cassandra connection established")
+
+        sync_etl_state_table()
+
+    def _mark_processing(self, data: List[dict]) -> (List[dict], List[dict]):
+        data_for_processing = []
+        issues = []
+        for dat in data:
+            try:
+                self._get_sink_manager(dat).processing()
+                data_for_processing.append(dat)
+            except ValidationError as e:
+                issues.append(_get_structured_issue(str(e), dat))
+        return data_for_processing, issues
+
+    def _mark_upload_results(self, fail: List[dict], success: List[dict]) -> None:
+        for dat in success:
+            self._get_sink_manager(dat).succeeded()
+        for dat in fail:
+            self._get_sink_manager(dat["data"]).failed()
+
+    def _verify_data_before_upsert(self, data: List[dict]) -> (List[dict], List[dict]):
+        data, issues = map(list, zip(*[self._sanitise_data(dat) for dat in data]))
+
+        if len(issues) > 0:
+            LOG.warning("Issues found in verification, number of issues: %i",
+                        len(issues))
+
+        # Remove None from the List
+        return [i for i in data if i], [i for i in issues if i]
+
+    def _sanitise_data(self, dat):
+        try:
+
+            current_state = self._get_sink_manager(dat).current_state()
+
+            LOG.debug("Current state of sink manager %s", current_state)
+
+            if current_state == EtlStates.Ready:
+                LOG.debug("Record in ready state with data: %s", dat)
+
+                return dat, None
+            else:
+
+                LOG.debug("Sink state found to be not ready, state is %s, the "
+                          "data is: "
+                          "%s", current_state, dat)
+
+                return None, _get_structured_issue(f"Current state is {current_state} "
+                                                   "state", dat)
+        except ValidationError as e:
+            LOG.warning("Issue while trying to ready a record for the upload \n %s \n %s", e,
+                        dat)
+            return None, _get_structured_issue(str(e), dat)
 
     def _get_click_conversion_batch(self, data):
         return self._get_googleads_click_conversion_util().click_conversion(data)
