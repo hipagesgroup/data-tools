@@ -43,7 +43,7 @@ class AthenaToGoogleAdsOfflineConversionSettings(AthenaToDataFrameSettings):
 
 
 def _get_record_signature(record: dict):
-    return f"{record['gclid']}||conversion_attempt||{record['conversion_date_time']}"
+    return f"{record['gclid']}||conversion_action||{record['conversion_date_time']}"
 
 
 def _get_structured_issue(error, data):
@@ -232,12 +232,14 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
     def _verify_data_before_upsert(self, data: List[dict]) -> (List[dict], List[dict]):
         data, issues = map(list, zip(*[self._sanitise_data(dat) for dat in data]))
 
-        if len(issues) > 0:
-            LOG.warning("Issues found in verification, number of issues: %i",
-                        len(issues))
-
         # Remove None from the List
-        return [i for i in data if i], [i for i in issues if i]
+        data_clean = [i for i in data if i]
+        issues_clean = [i for i in issues if i]
+
+        if len(issues) > 0:
+            LOG.warning(f"Issues found in verification, number of issues: {len(issues_clean)}", )
+
+        return data_clean, issues_clean
 
     def _sanitise_data(self, dat):
         try:
