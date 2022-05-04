@@ -230,7 +230,7 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
         for dat in success:
             self._get_sink_manager(dat).succeeded()
         for dat in fail:
-            self._get_sink_manager(dat).failed()
+            self._get_sink_manager(dat["data"]).failed()
 
     def _verify_data_before_upsert(self, data: List[dict]) -> (List[dict], List[dict]):
         data, issues = map(list, zip(*[self._sanitise_data(dat) for dat in data]))
