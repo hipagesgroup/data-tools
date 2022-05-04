@@ -580,12 +580,26 @@ class GoogleAdsOfflineConversionUtil(GoogleAdsUtil):
         if not data:
             return [], []
         result = self._upload_mutations_batch(data)
-        partial_failure = getattr(result, "partial_failure_error", None)
-        uploaded = getattr(result, "results", None)
-        return uploaded, partial_failure
+        return self._get_response(data, result)
 
     def _upload_mutations_batch(self, mutations):
         return self._get_service().upload_click_conversions(mutations)
+
+    def _get_conversions(self, data):
+        conversions = getattr(data, "conversions")[0]
+        return {
+            "gclid": conversions.gclid,
+            "conversion_name": "conversion_action",
+            "conversion_date_time": conversions.conversion_date_time,
+        }
+
+    def _get_response(self, data, result):
+        uploaded, partial_failure = None, None
+        if getattr(result, "partial_failure_error").code == 0:
+            uploaded = self._get_conversions(data)
+        else:
+            partial_failure = self._get_conversions(data)
+        return uploaded, partial_failure
 
 
 def get_page_as_list_of_dict(page: dict) -> List[OrderedDict]:

@@ -108,7 +108,7 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
 
         if failures:
             LOG.warning(
-                "There were %s failures uploading to the adwords " "API", len(failures)
+                "There were %s failures uploading to the googleads " "API", len(failures)
             )
 
             LOG.info("Sample Failure: \n %s", failures[0])
@@ -193,8 +193,11 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
             ]
             response = [self._upload_conversions(r) for r in request]
             success, fail = list(zip(*response))
-            successes.extend(success)
-            failures.extend(fail)
+            success_clean = [i for i in success if i]
+            failure_clean = [i for i in fail if i]
+            self._mark_upload_results(failure_clean, success_clean)
+            successes.extend(success_clean)
+            failures.extend(failure_clean)
 
         return verification_issues, successes, failures
 
