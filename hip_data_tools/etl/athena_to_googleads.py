@@ -193,6 +193,7 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
             ]
             response = [self._upload_conversions(r) for r in request]
             LOG.debug(f'Number of responses: {len(response)}')
+            LOG.debug(f'API Response: {response}')
             success, fail = list(zip(*response))
             success_clean = [i for i in success if i]
             failure_clean = [i for i in fail if i]
