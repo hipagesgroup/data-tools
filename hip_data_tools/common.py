@@ -18,7 +18,6 @@ COMMON_INTEGER_FIELDS = ["id", "campaign_id", "base_ad_group_id", "country__terr
                          "most_specific_location"]
 
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
 """
 logger object to handle logging in the entire package
 """
