@@ -1,12 +1,11 @@
 """
 This Module handles the connection and operations on Google AdWords accounts using adwords API
 """
-from ctypes import Union
 import gzip
 import math
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Tuple
 
 import pandas as pd
 from attr import dataclass
@@ -245,7 +244,7 @@ def _refine_result_list(number_of_workers: int, page_size: int, result: list,
 
 
 def _refine_page_confings(page_size: int, pages_per_worker: int, total_entries: int,
-                          number_of_workers: int) -> Union(int, int):
+                          number_of_workers: int) -> Tuple(int, int):
     page_size_per_worker = page_size
     refined_number_of_pages_per_worker = pages_per_worker
     if page_size_per_worker >= total_entries:
@@ -376,7 +375,7 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
         ]
         self.conversion_time_format = '%Y%m%d %H%M%S %Z'
 
-    def upload_conversions(self, data: List[dict]) -> Union(List[dict], List[dict]):
+    def upload_conversions(self, data: List[dict]) -> Tuple(List[dict], List[dict]):
         """
         Upload a list of conversions as a batch
         Args:

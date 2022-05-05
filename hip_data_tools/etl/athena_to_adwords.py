@@ -1,8 +1,7 @@
 """
 handle ETL of data from Athena to Cassandra
 """
-from ctypes import Union
-from typing import List
+from typing import List, Tuple
 
 from attr import dataclass
 from cassandra.cqlengine import ValidationError
@@ -50,7 +49,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         super().__init__(settings)
         self._adwords = None
 
-    def upload_next(self) -> Union(List[dict], List[dict], List[dict]):
+    def upload_next(self) -> Tuple(List[dict], List[dict], List[dict]):
         """
         Upload the next file in line from the athena table onto AdWords offline conversion
         Returns:
@@ -63,7 +62,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         """
         return self._process_data_frame(self.next())
 
-    def upload_all(self) -> Union(List[dict], List[dict], List[dict]):
+    def upload_all(self) -> Tuple(List[dict], List[dict], List[dict]):
         """
         Upload all files from the Athena table onto AdWords offline conversion
         Returns:
@@ -163,7 +162,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
 
         sync_etl_state_table()
 
-    def _mark_processing(self, data: List[dict]) -> Union(List[dict], List[dict]):
+    def _mark_processing(self, data: List[dict]) -> Tuple(List[dict], List[dict]):
         data_for_processing = []
         issues = []
         for dat in data:
@@ -180,7 +179,7 @@ class AthenaToAdWordsOfflineConversion(AthenaToDataFrame):
         for dat in fail:
             self._get_sink_manager(dat["data"]).failed()
 
-    def _verify_data_before_upsert(self, data: List[dict]) -> Union(List[dict], List[dict]):
+    def _verify_data_before_upsert(self, data: List[dict]) -> Tuple(List[dict], List[dict]):
         data, issues = map(list, zip(*[self._sanitise_data(dat) for dat in data]))
 
         if len(issues) > 0:

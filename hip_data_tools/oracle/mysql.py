@@ -4,7 +4,6 @@ Utility to read and write from and to mysql
 from builtins import str
 from contextlib import closing
 from dataclasses import dataclass
-from ctypes import Union
 from typing import Optional, Dict, Tuple, Any
 
 import MySQLdb
@@ -16,7 +15,7 @@ from hip_data_tools.common import SecretsManager, KeyValueSource, ENVIRONMENT, L
 
 
 def prepare_upsert_query(table: str, primary_keys: Dict[str, Any],
-                         data: Dict[str, Any]) -> Union(str, Tuple):
+                         data: Dict[str, Any]) -> Tuple(str, Tuple):
     """
     Helper to prep upsert query
     Args:
