@@ -192,9 +192,13 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
                 for click_conversion in click_conversions
             ]
             response = [self._upload_conversions(r) for r in request]
+            LOG.debug(f'Number of responses: {len(response)}')
+            LOG.debug(f'API Response: {response}')
             success, fail = list(zip(*response))
             success_clean = [i for i in success if i]
             failure_clean = [i for i in fail if i]
+            LOG.debug(f'Success clean records: {success_clean}')
+            LOG.debug(f'Fail clean records: {failure_clean}')
             self._mark_upload_results(failure_clean, success_clean)
             successes.extend(success_clean)
             failures.extend(failure_clean)
@@ -221,6 +225,7 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
         for dat in data:
             try:
                 self._get_sink_manager(dat).processing()
+                LOG.debug(f'Processing data: {dat}')
                 data_for_processing.append(dat)
             except ValidationError as e:
                 issues.append(_get_structured_issue(str(e), dat))
@@ -228,8 +233,10 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
 
     def _mark_upload_results(self, fail: List[dict], success: List[dict]) -> None:
         for dat in success:
+            LOG.debug(f'Uploading success data to Cassandra: {dat}')
             self._get_sink_manager(dat).succeeded()
         for dat in fail:
+            LOG.debug(f'Uploading fail data to Cassandra: {dat}')
             self._get_sink_manager(dat).failed()
 
     def _verify_data_before_upsert(self, data: List[dict]) -> (List[dict], List[dict]):
