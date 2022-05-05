@@ -14,8 +14,7 @@ from pandas import DataFrame
 from hip_data_tools.common import SecretsManager, KeyValueSource, ENVIRONMENT, LOG
 
 
-def prepare_upsert_query(table: str, primary_keys: Dict[str, Any],
-                         data: Dict[str, Any]) -> tuple(str, Tuple):
+def prepare_upsert_query(table: str, primary_keys: Dict[str, Any], data: Dict[str, Any]) -> Tuple(str, Tuple):
     """
     Helper to prep upsert query
     Args:

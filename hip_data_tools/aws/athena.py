@@ -311,7 +311,7 @@ class AthenaUtil(AwsUtil):
         key = "/".join(location.split("/")[3:])
         return (bucket, key)
 
-    def get_table_columns(self, table: str) -> tuple[List[dict], List[dict]]:
+    def get_table_columns(self, table: str) -> Tuple[List[dict], List[dict]]:
         """
         Retrieves the table's columns using glue meta store
         Args:

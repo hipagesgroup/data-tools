@@ -3,6 +3,7 @@ This Module handles the connection and operations on Google AdWords accounts usi
 """
 import gzip
 import math
+from ctypes import Union
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 from typing import List, Optional, Any, Tuple
@@ -244,7 +245,7 @@ def _refine_result_list(number_of_workers: int, page_size: int, result: list,
 
 
 def _refine_page_confings(page_size: int, pages_per_worker: int, total_entries: int,
-                          number_of_workers: int) -> tuple(int, int):
+                          number_of_workers: int) -> Union(int, int):
     page_size_per_worker = page_size
     refined_number_of_pages_per_worker = pages_per_worker
     if page_size_per_worker >= total_entries:
