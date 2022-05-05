@@ -41,7 +41,7 @@ class PyTest(test_command):
         Returns: None
         """
         test_command.initialize_options(self)
-        self.pytest_args = ["-vv --numprocesses=auto"]
+        self.pytest_args = ["-vv","--numprocesses=auto"]
 
     def finalize_options(self):
         """
