@@ -80,7 +80,6 @@ setup(
         "retrying",
         "arrow",
         "s3fs==0.4.2",
-        "dataclasses",
         "oauth2client",
         "gspread",
         "googleads",
