@@ -109,7 +109,7 @@ jobs:
   test:
     working_directory: ~/project
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.6
     steps:
       - checkout
       - run:
@@ -135,7 +135,7 @@ jobs:
             coverage report
   deploy:
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.6
     steps:
       - checkout
       - run:
@@ -159,7 +159,7 @@ jobs:
             twine upload dist/*
   semantic_release:
     docker:
-      - image: circleci/node:10
+      - image: cimg/node:10
     steps:
       - *restore_repo
       - checkout
