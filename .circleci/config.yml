@@ -125,6 +125,7 @@ jobs:
             pip install --upgrade setuptools coverage wheel
       - run:
           name: install snappy as its used in tests
+          ##/snappy is not available in the docker image
           command: |
             sudo apt-get update -y
             sudo apt-get install -y libsnappy-dev
