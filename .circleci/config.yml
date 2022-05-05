@@ -120,7 +120,7 @@ jobs:
       - run:
           name: install python dependencies
           command: |
-            sudo pip3 install --upgrade setuptools coverage wheel
+            sudo pip install --upgrade setuptools coverage wheel
       - run:
           name: install snappy as its used in tests
           command: |
@@ -146,7 +146,7 @@ jobs:
       - run:
           name: install python dependencies
           command: |
-            sudo pip3 install --upgrade setuptools wheel twine pbr
+            sudo pip install --upgrade setuptools wheel twine pbr
       - run:
           name: Build the distribution
           command: |
