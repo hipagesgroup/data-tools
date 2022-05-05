@@ -64,7 +64,7 @@ class S3Util(AwsUtil):
         Returns: object
         """
         if local_file_path is None:
-            local_file_path = "/tmp/tmp_file{}".format(str(uuid.uuid4()))
+            local_file_path = f"/tmp/tmp_file{str(uuid.uuid4())}"
 
         self.download_file(key=key, local_file_path=local_file_path)
         return load(local_file_path)
@@ -290,10 +290,7 @@ class S3Util(AwsUtil):
         Returns: dict
         """
         s3 = self.get_resource()
-        json_content = json.loads(
-            s3.Object(self.bucket, key).get()['Body'].read().decode(encoding)
-        )
-        return json_content
+        return json.loads(s3.Object(self.bucket, key).get()['Body'].read().decode(encoding))
 
     def download_strings(self, key: str, encoding: str = UTF8) -> List[str]:
         """
@@ -306,8 +303,7 @@ class S3Util(AwsUtil):
         s3 = self.get_resource()
         obj = s3.Object(self.bucket, key)
         data = obj.get()['Body'].read().decode(encoding)
-        lines = data.splitlines()
-        return lines
+        return data.splitlines()
 
     def get_keys_modified_in_range(self,
                                    key_prefix: str,
@@ -325,10 +321,8 @@ class S3Util(AwsUtil):
         LOG.info("sensing files from s3://%s/%s \n between %s to %s", self.bucket, key_prefix,
                  start_date, end_date)
         metadata = self.get_object_metadata(key_prefix)
-        lines = []
-        for file in metadata:
-            if start_date < arrow.get(file.last_modified) <= end_date:
-                lines += [file.key]
+        lines = [file.key for file in metadata if start_date < arrow.get(file.last_modified) <= end_date]
+
         LOG.info("found %s s3 files changed", len(lines))
         return lines
 
@@ -354,8 +348,7 @@ class S3Util(AwsUtil):
         """
         s3 = self.get_resource()
         bucket = s3.Bucket(name=self.bucket)
-        metadata = bucket.objects.filter(Prefix=key_prefix)
-        return metadata
+        return bucket.objects.filter(Prefix=key_prefix)
 
     def upload_binary_stream(self, stream: bytes, key: str) -> None:
         """

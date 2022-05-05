@@ -15,8 +15,7 @@ def get_release_version():
 
     """
     git_version = os.getenv("GIT_TAG", "v0.0")
-    pypi_version = git_version.lstrip("v").strip()
-    return pypi_version
+    return git_version.lstrip("v").strip()
 
 
 def get_long_description():

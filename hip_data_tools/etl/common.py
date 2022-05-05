@@ -158,7 +158,7 @@ def get_random_string(length: int) -> str:
     Returns: str
     """
     letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for i in range(length))
+    return ''.join(random.choice(letters) for _ in range(length))
 
 
 @dataclass
@@ -177,7 +177,6 @@ class Extractor(ABC):
 
     def __init__(self, settings: SourceSettings):
         self._settings = settings
-        pass
 
     @abstractmethod
     def extract_next(self) -> Any:
@@ -280,7 +279,6 @@ class Loader(ABC):
     """
     def __init__(self, settings: SinkSettings):
         self._settings = settings
-        pass
 
     @abstractmethod
     def load(self, data: Any) -> None:

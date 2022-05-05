@@ -25,8 +25,7 @@ logger object to handle logging in the entire package
 
 
 def _generate_random_file_name():
-    random_tmp_file_nm = "/tmp/tmp_file{}".format(str(uuid.uuid4()))
-    return random_tmp_file_nm
+    return f"/tmp/tmp_file{str(uuid.uuid4())}"
 
 
 def get_from_env_or_default_with_warning(env_var, default_val):
@@ -42,9 +41,8 @@ def get_from_env_or_default_with_warning(env_var, default_val):
     """
     value = os.environ.get(env_var)
     if value is None:
-        warning_string = "Environmental variable {} not found, " \
-                         "defaulting to {}".format(env_var,
-                                                   str(default_val))
+        warning_string = f"Environmental variable {env_var} not found, defaulting to {str(default_val)}"
+
         LOG.warning(warning_string)
         value = default_val
     return value
@@ -88,9 +86,7 @@ class EnvironmentKeyValueSource(KeyValueSource):
             key (str): the key to be verified for existance
         Returns: bool
         """
-        if os.getenv(key) is None:
-            return False
-        return True
+        return os.getenv(key) is not None
 
     def get(self, key):
         """
@@ -119,9 +115,7 @@ class DictKeyValueSource(KeyValueSource):
             key (str): the key to be verified for existance
         Returns: bool
         """
-        if key in self.data:
-            return True
-        return False
+        return key in self.data
 
     def get(self, key):
         """
@@ -156,7 +150,7 @@ class SecretsManager(ABC):
         self._source = source
         for key in self.keys:
             if not self._source.exists(key):
-                raise Exception("Required Environment Variable {} does not exist!".format(key))
+                raise Exception(f"Required Environment Variable {key} does not exist!")
 
     def get_secret(self, key):
         """
@@ -181,7 +175,7 @@ def flatten_nested_dict(data: dict, delimiter: str = "_", snake_cased_keys: bool
     """
 
     def expand(key, value):
-        if isinstance(value, dict) or isinstance(value, OrderedDict):
+        if isinstance(value, (dict, OrderedDict)):
             return [(key + delimiter + k, v) for k, v in flatten_nested_dict(value).items()]
         else:
             return [(key, value)]
@@ -209,9 +203,7 @@ def to_snake_case(column_name: str) -> str:
     """
     # Detect and replace special_chars
     str_replaced_special_chars = special_characters_detect.sub('_', column_name)
-    # Convert to Snake Case
-    camel_column_name = stringcase.snakecase(str_replaced_special_chars)
-    return camel_column_name
+    return stringcase.snakecase(str_replaced_special_chars)
 
 
 def nested_list_of_dict_to_dataframe(data: List[dict]) -> DataFrame:

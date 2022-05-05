@@ -1,6 +1,7 @@
 """
 This Module handles the connection and operations on Google AdWords accounts using adwords API
 """
+from ctypes import Union
 import gzip
 import math
 from collections import OrderedDict
@@ -139,8 +140,7 @@ class AdWordsUtil:
 
     def _create_service(self, **kwargs) -> GoogleSoapService:
         client = self.conn.get_adwords_client(**kwargs)
-        service = client.GetService(self.service, version=self.version)
-        return service
+        return client.GetService(self.service, version=self.version)
 
 
 class AdWordsDataReader(AdWordsUtil):
@@ -245,12 +245,12 @@ def _refine_result_list(number_of_workers: int, page_size: int, result: list,
 
 
 def _refine_page_confings(page_size: int, pages_per_worker: int, total_entries: int,
-                          number_of_workers: int) -> (int, int):
+                          number_of_workers: int) -> Union(int, int):
     page_size_per_worker = page_size
     refined_number_of_pages_per_worker = pages_per_worker
-    if page_size >= total_entries:
+    if page_size_per_worker >= total_entries:
         page_size_per_worker = 0
-    elif page_size * number_of_workers > total_entries:
+    elif page_size_per_worker * number_of_workers > total_entries:
         page_size_per_worker = 0
         refined_number_of_pages_per_worker = 0
     return page_size_per_worker, refined_number_of_pages_per_worker
@@ -376,7 +376,7 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
         ]
         self.conversion_time_format = '%Y%m%d %H%M%S %Z'
 
-    def upload_conversions(self, data: List[dict]) -> (List[dict], List[dict]):
+    def upload_conversions(self, data: List[dict]) -> Union(List[dict], List[dict]):
         """
         Upload a list of conversions as a batch
         Args:
@@ -447,17 +447,16 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
         """
         if not data:
             return [], []
-        else:
-            mutations = self._get_mutations_from_conversions_batch(data)
-            result = self._upload_mutations_batch(mutations)
-            if result['ListReturnValue.Type'] != 'OfflineConversionFeedReturnValue':
-                raise Exception(
-                    f"Unhandled Exception while loading batch of conversions, response: {result}")
-            uploaded = [x for x in result['value'] if x is not None]
-            #  Append actual data to the failed conversions
-            fails = [_find_and_append_data(fail, data) for fail in result['partialFailureErrors']]
+        mutations = self._get_mutations_from_conversions_batch(data)
+        result = self._upload_mutations_batch(mutations)
+        if result['ListReturnValue.Type'] != 'OfflineConversionFeedReturnValue':
+            raise Exception(
+                f"Unhandled Exception while loading batch of conversions, response: {result}")
+        uploaded = [x for x in result['value'] if x is not None]
+        #  Append actual data to the failed conversions
+        fails = [_find_and_append_data(fail, data) for fail in result['partialFailureErrors']]
 
-            return uploaded, fails
+        return uploaded, fails
 
     def _upload_mutations_batch(self, mutations: List[dict]) -> dict:
         return self._get_service(partial_failure=True).mutate(mutations)
@@ -477,7 +476,7 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
                     f"The column {col} is required byt not present in the data {conversion}")
 
     def _verify_accepted_columns(self, conversion: dict) -> None:
-        for col in conversion.keys():
+        for col in conversion:
             if col not in self.valid_fields:
                 raise ValueError(
                     f"The column {col} present in the DataFrame is not in the allowed column list "

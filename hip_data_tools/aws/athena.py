@@ -196,10 +196,8 @@ class AthenaUtil(AwsUtil):
 
     def _get_query_result(self, execution_id, max_result_size=1000):
         athena = self.get_client()
-        results = athena.get_query_results(QueryExecutionId=execution_id,
-                                           MaxResults=max_result_size)
         # TODO: Add ability to parse pages larger than 1000 rows
-        return results
+        return athena.get_query_results(QueryExecutionId=execution_id, MaxResults=max_result_size)
 
     def repair_table_partitions(self, table):
         """
@@ -210,7 +208,7 @@ class AthenaUtil(AwsUtil):
         Returns: None
 
         """
-        self.run_query("MSCK REPAIR TABLE {}".format(table))
+        self.run_query(f"MSCK REPAIR TABLE {table}")
 
     def add_partitions(self, table, partition_keys, partition_values):
         """
@@ -223,8 +221,8 @@ class AthenaUtil(AwsUtil):
         Returns: None
 
         """
-        partition_kv = ["{}='{}'".format(key, value) for key, value in
-                        zip(partition_keys, partition_values)]
+        partition_kv = [f"{key}='{value}'" for key, value in zip(partition_keys, partition_values)]
+
         partition_query = """
         ALTER TABLE {table_name} ADD IF NOT EXISTS PARTITION ({partitions});
         """.format(table_name=table,
@@ -291,7 +289,8 @@ class AthenaUtil(AwsUtil):
 
         """
         # Read the ddl of temporary table
-        ddl_result = self.run_query("""SHOW CREATE TABLE {}""".format(table), return_result=True)
+        ddl_result = self.run_query(f"""SHOW CREATE TABLE {table}""", return_result=True)
+
         ddl = ""
         for row in ddl_result["ResultSet"]["Rows"]:
             for column in row["Data"]:
@@ -343,7 +342,7 @@ class AthenaUtil(AwsUtil):
         Returns: None
 
         """
-        self.run_query("""DROP TABLE IF EXISTS {}""".format(table_name))
+        self.run_query(f"""DROP TABLE IF EXISTS {table_name}""")
 
 
 @dataclass
