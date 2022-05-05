@@ -375,7 +375,7 @@ class AdWordsOfflineConversionUtil(AdWordsUtil):
         ]
         self.conversion_time_format = '%Y%m%d %H%M%S %Z'
 
-    def upload_conversions(self, data: List[dict]) -> tuple(List[dict], List[dict]):
+    def upload_conversions(self, data: List[dict]) -> Union[List[dict], List[dict]]:
         """
         Upload a list of conversions as a batch
         Args:

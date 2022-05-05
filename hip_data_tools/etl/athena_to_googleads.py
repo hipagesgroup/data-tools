@@ -1,7 +1,7 @@
 """
 handle ETL of offline conversion data from Athena to Google Ads API
 """
-from typing import List, Tuple
+from typing import List, Union
 
 from attr import dataclass
 from cassandra.cqlengine import ValidationError
@@ -223,7 +223,7 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
 
         sync_etl_state_table()
 
-    def _mark_processing(self, data: List[dict]) -> tuple(List[dict], List[dict]):
+    def _mark_processing(self, data: List[dict]) -> Union[List[dict], List[dict]]:
         data_for_processing = []
         issues = []
         for dat in data:
@@ -243,7 +243,7 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
             LOG.debug(f'Uploading fail data to Cassandra: {dat}')
             self._get_sink_manager(dat).failed()
 
-    def _verify_data_before_upsert(self, data: List[dict]) -> tuple(List[dict], List[dict]):
+    def _verify_data_before_upsert(self, data: List[dict]) -> Union[List[dict], List[dict]]:
         data, issues = map(list, zip(*[self._sanitise_data(dat) for dat in data]))
 
         # Remove None from the List
