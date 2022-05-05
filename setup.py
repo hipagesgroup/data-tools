@@ -41,7 +41,7 @@ class PyTest(test_command):
         Returns: None
         """
         test_command.initialize_options(self)
-        self.pytest_args = ["-vv"]
+        self.pytest_args = ["-vv --numprocesses=auto"]
 
     def finalize_options(self):
         """
@@ -93,6 +93,7 @@ setup(
     tests_require=[
         'pytest',
         'pytest-mock==1.10.1',
+        'pytest-xdist',
         "moto==1.3.8",
         "pyarrow",
         "python-snappy",
