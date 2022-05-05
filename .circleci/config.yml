@@ -109,7 +109,7 @@ jobs:
   test:
     working_directory: ~/project
     docker:
-      - image: cimg/python:3.8
+      - image: cimg/python:3.7
     steps:
       - checkout
       - run:
@@ -140,14 +140,9 @@ jobs:
             python3 -m coverage report
   deploy:
     docker:
-      - image: cimg/python:3.8
+      - image: cimg/python:3.7
     steps:
       - checkout
-      - run:
-          name: setup virtual env
-          command: |
-            python3 -m venv env
-            source ./env/bin/activate
       - run:
           name: install python dependencies
           command: |
