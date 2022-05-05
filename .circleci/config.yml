@@ -122,7 +122,7 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            pip install --upgrade setuptools coverage wheel
+            pip3 install --upgrade setuptools coverage wheel
       - run:
           name: install snappy as its used in tests
           ##/snappy is not available in the docker image
