@@ -182,15 +182,19 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
         verification_issues = []
 
         for data_batch in data_dict_batches:
+            LOG.debug(f'Data Batch: {data_batch}')
             data_to_process, processing_issue = self._mark_processing(data_batch)
+            LOG.debug(f'Data to process: {data_to_process}')
             verification_issues.extend(processing_issue)
             click_conversions = [
                 self._get_click_conversion_batch(dat) for dat in data_to_process
             ]
+            LOG.debug(f'Click Conversions: {click_conversions}')
             request = [
                 self._get_upload_conversion_request_batch(click_conversion)
                 for click_conversion in click_conversions
             ]
+            LOG.debug(f'Google Ads Request: {request}')
             response = [self._upload_conversions(r) for r in request]
             LOG.debug(f'Number of responses: {len(response)}')
             LOG.debug(f'API Response: {response}')
