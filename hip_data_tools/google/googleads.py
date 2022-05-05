@@ -289,7 +289,7 @@ def _refine_result_list(
 
 def _refine_page_confings(
     page_size: int, pages_per_worker: int, total_entries: int, number_of_workers: int
-) -> Tuple(int, int):
+) -> tuple(int, int):
     page_size_per_worker = page_size
     refined_number_of_pages_per_worker = pages_per_worker
     if page_size >= total_entries:

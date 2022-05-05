@@ -15,7 +15,7 @@ from hip_data_tools.common import SecretsManager, KeyValueSource, ENVIRONMENT, L
 
 
 def prepare_upsert_query(table: str, primary_keys: Dict[str, Any],
-                         data: Dict[str, Any]) -> Tuple(str, Tuple):
+                         data: Dict[str, Any]) -> tuple(str, Tuple):
     """
     Helper to prep upsert query
     Args:

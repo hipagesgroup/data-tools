@@ -94,7 +94,7 @@ class S3FilesExtractor(S3Extractor):
         return file
 
     @abstractmethod
-    def extract_next(self) -> Tuple[str, str]:
+    def extract_next(self) -> tuple[str, str]:
         pass
 
     def has_next(self) -> bool:
@@ -116,7 +116,7 @@ class S3FileLocationExtractor(S3FilesExtractor):
     def __init__(self, settings: S3SourceSettings):
         super().__init__(settings)
 
-    def extract_next(self) -> Tuple[str, str]:
+    def extract_next(self) -> tuple[str, str]:
         """
         next eligible source coordinates
         Returns: Tuple[str,str]
