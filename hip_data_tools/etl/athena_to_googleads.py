@@ -124,30 +124,27 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
         return verification_issues, successes, failures
 
     def _get_googleads_util(self):
-        if self._googleads is None:
-            self._googleads = GoogleAdsOfflineConversionUtil(
-                GoogleAdsConnectionManager(
-                    self.__settings.destination_connection_settings
-                )
+        self._googleads = GoogleAdsOfflineConversionUtil(
+            GoogleAdsConnectionManager(
+                self.__settings.destination_connection_settings
             )
+        )
         return self._googleads
 
     def _get_googleads_click_conversion_util(self):
-        if self._click_conversion is None:
-            self._click_conversion = GoogleAdsClicksConversionUtil(
-                GoogleAdsConnectionManager(
-                    self.__settings.destination_connection_settings
-                )
+        self._click_conversion = GoogleAdsClicksConversionUtil(
+            GoogleAdsConnectionManager(
+                self.__settings.destination_connection_settings
             )
+        )
         return self._click_conversion
 
     def _get_upload_click_conversion_request_util(self):
-        if self._upload_click_conversion_request is None:
-            self._upload_click_conversion_request = GoogleAdsUploadClickConversionsRequestUtil(
-                GoogleAdsConnectionManager(
-                    self.__settings.destination_connection_settings
-                )
+        self._upload_click_conversion_request = GoogleAdsUploadClickConversionsRequestUtil(
+            GoogleAdsConnectionManager(
+                self.__settings.destination_connection_settings
             )
+        )
         return self._upload_click_conversion_request
 
     def _get_sink_manager(self, record: dict) -> EtlSinkRecordStateManager:
