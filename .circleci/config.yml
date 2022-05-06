@@ -113,6 +113,10 @@ jobs:
     resource_class: large
     steps:
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - restore_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           name: Setup Code Climate test-reporter
           command: |
@@ -123,7 +127,7 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            pip3 install --upgrade setuptools coverage wheel poetry
+            pip3 install setuptools coverage wheel poetry
             python3 -m poetry install
       - run:
           name: install snappy as its used in tests
@@ -132,14 +136,22 @@ jobs:
             sudo apt-get update -y
             sudo apt-get install -y libsnappy-dev
       - run:
-          name: run tests using pytest/poetry and collect coverage
+          name: Run tests using pytest/poetry and collect coverage
           command: |
+            ls -lah
             . venv/bin/activate
             ./cc-test-reporter before-build
+            ls -lah
+            which pytest
+            which python
             python3 -m coverage run pytest
             python3 -m coverage xml
             ./cc-test-reporter after-build -t coverage.py
             python3 -m coverage report
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "venv"
   deploy:
     docker:
       - image: cimg/python:3.9
