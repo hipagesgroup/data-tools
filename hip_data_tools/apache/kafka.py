@@ -628,10 +628,7 @@ class KafkaS3BatchExporter:
                                              self.ts_col_nm,
                                              self.partition_key_nm,
                                              int(interval))
-        data_frames_and_fld_locs = self.generate_partitioned_dataframes(
-            df_msgs_and_meta_data)
-
-        return data_frames_and_fld_locs
+        return self.generate_partitioned_dataframes(df_msgs_and_meta_data)
 
     def generate_partitioned_dataframes(self, df_msgs_and_meta_data):
         """

@@ -48,6 +48,7 @@ from pathlib import Path
 import git
 import joblib
 
+from datetime import timezone
 from hip_data_tools.common import LOG as log
 
 CLASS_DECORATOR_STRING = '@register_class_for_version_tracking'
@@ -505,8 +506,7 @@ class VersionTracker:
         self.add_dictionary_to_versions({'aggregated_version': version_hash})
 
     def _add_versioning_timestamp(self):
-        self.add_dictionary_to_versions({'versioning_timestamp':
-                                             datetime.utcnow().isoformat()})
+        self.add_dictionary_to_versions({'versioning_timestamp': datetime.now(timezone.utc).isoformat()})
 
     def get_version_dict(self):
         """
