@@ -136,7 +136,7 @@ jobs:
           command: |
             . venv/bin/activate
             ./cc-test-reporter before-build
-            python3 -m coverage run --source hip_data_tools pytest
+            python3 -m coverage run pytest
             python3 -m coverage xml
             ./cc-test-reporter after-build -t coverage.py
             python3 -m coverage report
