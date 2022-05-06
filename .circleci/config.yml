@@ -110,6 +110,7 @@ jobs:
     working_directory: ~/project
     docker:
       - image: cimg/python:3.9
+    resource_class: large
     steps:
       - checkout
       - run:
@@ -159,7 +160,8 @@ jobs:
       - run:
           name: upload to pypi
           command: |
-            twine upload dist/*
+            . venv/bin/activate
+            python3 -m twine upload dist/*
   semantic_release:
     docker:
       - image: cimg/node:10
