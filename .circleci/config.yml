@@ -109,7 +109,7 @@ jobs:
   test:
     working_directory: ~/project
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.9
     steps:
       - checkout
       - run:
@@ -120,36 +120,39 @@ jobs:
       - run:
           name: install python dependencies
           command: |
-            sudo pip3 install --upgrade setuptools coverage wheel
+            python3 -m venv venv
+            . venv/bin/activate
+            pip3 install --upgrade setuptools coverage wheel
       - run:
           name: install snappy as its used in tests
+          ##/snappy is not available in the docker image
           command: |
-            sudo apt-get install libsnappy-dev
+            sudo apt-get update -y
+            sudo apt-get install -y libsnappy-dev
       - run:
           name: run tests using setuptools
           command: |
+            . venv/bin/activate
             ./cc-test-reporter before-build
-            coverage run --source hip_data_tools setup.py test
-            coverage xml
+            python3 -m coverage run --source hip_data_tools setup.py test
+            python3 -m coverage xml
             ./cc-test-reporter after-build -t coverage.py
-            coverage report
+            python3 -m coverage report
   deploy:
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.9
     steps:
       - checkout
       - run:
-          name: setup virtual env
-          command: |
-            python3 -m venv env
-            source ./env/bin/activate
-      - run:
           name: install python dependencies
           command: |
-            sudo pip3 install --upgrade setuptools wheel twine pbr
+            python3 -m venv venv
+            . venv/bin/activate
+            pip3 install --upgrade setuptools wheel twine pbr
       - run:
           name: Build the distribution
           command: |
+            . venv/bin/activate
             export GIT_TAG=$(git describe --tags)
             echo "reading the latest version as $GIT_TAG"
             python3 setup.py sdist bdist_wheel
@@ -159,7 +162,7 @@ jobs:
             twine upload dist/*
   semantic_release:
     docker:
-      - image: circleci/node:10
+      - image: cimg/node:10
     steps:
       - *restore_repo
       - checkout

@@ -118,8 +118,7 @@ class AdWordsToS3:
         if not self.query:
             raise ValueError(
                 "query is not set properly. please use the build_query() method to set it up.")
-        data = self._get_adwords_util().download_next_page_as_dataframe()
-        return data
+        return self._get_adwords_util().download_next_page_as_dataframe()
 
     def transfer_all(self) -> None:
         """

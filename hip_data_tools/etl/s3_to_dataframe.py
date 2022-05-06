@@ -38,8 +38,7 @@ class S3ToDataFrame:
         return self
 
     def __next__(self) -> DataFrame:
-        source_files = self.list_source_files()
-        if source_files:
+        if source_files := self.list_source_files():
             data = self.get_data_frame(source_files[self._processed_counter])
             self._processed_counter += 1
             return data

@@ -15,8 +15,7 @@ def get_release_version():
 
     """
     git_version = os.getenv("GIT_TAG", "v0.0")
-    pypi_version = git_version.lstrip("v").strip()
-    return pypi_version
+    return git_version.lstrip("v").strip()
 
 
 def get_long_description():
@@ -81,14 +80,13 @@ setup(
         "retrying",
         "arrow",
         "s3fs==0.4.2",
-        "dataclasses",
         "oauth2client",
         "gspread",
         "googleads",
         "google-ads==12.0.0",
         "numpy",
-        "mysql-connector-python>=8.0.11, <=8.0.18",
-        "mysqlclient>=1.3.6,<1.4",
+        "mysql-connector-python>=8.0.11, <=8.0.29",
+        "mysqlclient>=1.3.6,<=2.1",
         "boto3",
     ],
     test_suite="tests",
@@ -105,7 +103,7 @@ setup(
         "cfn-lint==0.58.4",
     ],
     cmdclass={'test': PyTest},
-    python_requires='~=3.6',
+    python_requires='~=3.9',
     version=get_release_version(),
 
 )

@@ -128,9 +128,7 @@ class SheetUtil:
             field_names_row_number (int): row number of field names
         Returns: field names list
         """
-        field_names = self._get_worksheet().row_values(field_names_row_number)
-        LOG.debug("Field names:\n%s", field_names)
-        return field_names
+        return self._extracted_from_get_fields_types_3(field_names_row_number, "Field names:\n%s")
 
     def get_fields_types(self, field_types_row_number: int) -> List[str]:
         """
@@ -139,9 +137,13 @@ class SheetUtil:
             field_types_row_number (int): Row number of field types
         Returns: field types list
         """
-        field_types = self._get_worksheet().row_values(field_types_row_number)
-        LOG.debug("Field types:\n%s", field_types)
-        return field_types
+        return self._extracted_from_get_fields_types_3(field_types_row_number, "Field types:\n%s")
+
+    # TODO Rename this here and in `get_fields_names` and `get_fields_types`
+    def _extracted_from_get_fields_types_3(self, arg0, arg1):
+        field_names = self._get_worksheet().row_values(arg0)
+        LOG.debug(arg1, field_names)
+        return field_names
 
     def get_dataframe(self,
                       field_names_row_number: int,
@@ -166,8 +168,4 @@ class SheetUtil:
         field_names = self.get_fields_names(field_names_row_number)
         untyped_data_frame = DataFrame(data=tupled_data,
                                        columns=field_names)
-        typed_data_frame = _get_typed_data_frame(data_frame=untyped_data_frame,
-                                                 data_types=self.get_fields_types(
-                                                     field_types_row_number),
-                                                 field_names=field_names)
-        return typed_data_frame
+        return _get_typed_data_frame(data_frame=untyped_data_frame, data_types=self.get_fields_types(field_types_row_number), field_names=field_names)

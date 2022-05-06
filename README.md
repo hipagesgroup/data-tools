@@ -1,5 +1,5 @@
 # hip-data-tools
-© Hipages Group Pty Ltd 2019
+© Hipages Group Pty Ltd 2019-2022
 
 [![PyPI version](https://badge.fury.io/py/hip-data-tools.svg)](https://pypi.org/project/hip-data-tools/#history) 
 [![CircleCI](https://circleci.com/gh/hipagesgroup/data-tools/tree/master.svg?style=svg)](https://circleci.com/gh/hipagesgroup/data-tools/tree/master)
@@ -13,7 +13,7 @@ The package is uploaded to PyPi for easy drop and use in various environmnets, s
 2. ML Training in Jupyter like notebooks
 3. Local machine for dev and exploration
 
- 
+
 ## Installation
 Install from PyPi repo:
 ```bash
@@ -23,6 +23,12 @@ pip3 install hip-data-tools
 Install from source
 ```bash
 pip3 install .
+```
+
+## MacOS Dependencies
+```
+brew install libev
+brew install librdkafka
 ```
 
 ## Connect to aws 

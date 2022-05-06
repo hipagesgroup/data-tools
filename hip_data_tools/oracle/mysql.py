@@ -4,7 +4,7 @@ Utility to read and write from and to mysql
 from builtins import str
 from contextlib import closing
 from dataclasses import dataclass
-from typing import Optional, Dict, Tuple, Any
+from typing import Optional, Dict, Tuple, Any, Union
 
 import MySQLdb
 import pandas.io.sql as sql
@@ -15,7 +15,7 @@ from hip_data_tools.common import SecretsManager, KeyValueSource, ENVIRONMENT, L
 
 
 def prepare_upsert_query(table: str, primary_keys: Dict[str, Any],
-                         data: Dict[str, Any]) -> (str, Tuple):
+    data: Dict[str, Any]) -> Union[str, Tuple]:
     """
     Helper to prep upsert query
     Args:
@@ -30,7 +30,7 @@ def prepare_upsert_query(table: str, primary_keys: Dict[str, Any],
     data_columns = data.keys()
     pk_col_list = ", ".join(pk_columns)
     data_col_list = ", ".join(data_columns)
-    parameter_list = ",".join(["%s" for col in pk_columns] + ["%s" for col in data_columns])
+    parameter_list = ",".join(["%s" for _ in pk_columns] + ["%s" for _ in data_columns])
     update_list = ", ".join([f"{col}=%s" for col in data_columns])
     values = tuple(list(primary_keys.values()) + list(data.values()))
     query = f"""
@@ -94,8 +94,7 @@ class MySqlConnectionManager:
 
         """
         self._prepare_connection_config()
-        conn = MySQLdb.connect(**self._conn_config)
-        return conn
+        return MySQLdb.connect(**self._conn_config)
 
     def _prepare_connection_config(self):
         self._conn_config = {
@@ -125,8 +124,7 @@ class MySqlConnectionManager:
     def _set_conn_charset(self):
         if self._settings.charset:
             self._conn_config["charset"] = self._settings.charset
-            if self._conn_config["charset"].lower() == 'utf8' or \
-                self._conn_config["charset"].lower() == 'utf-8':
+            if self._conn_config["charset"].lower() in ['utf8', 'utf-8']:
                 self._conn_config["use_unicode"] = True
 
 
@@ -203,5 +201,4 @@ class MySqlUtil:
         """
         query = f"SHOW columns FROM {table}"
         column_df = self.select_dataframe(query=query)
-        columns = column_df.to_dict('records')
-        return columns
+        return column_df.to_dict('records')
