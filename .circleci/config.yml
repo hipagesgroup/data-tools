@@ -135,7 +135,7 @@ jobs:
           command: |
             . venv/bin/activate
             ./cc-test-reporter before-build
-            python3 -m coverage run --source hip_data_tools setup.py test
+            python3 -m coverage run --source hip_data_tools poetry run test
             python3 -m coverage xml
             ./cc-test-reporter after-build -t coverage.py
             python3 -m coverage report
@@ -156,7 +156,8 @@ jobs:
             . venv/bin/activate
             export GIT_TAG=$(git describe --tags)
             echo "reading the latest version as $GIT_TAG"
-            python3 setup.py sdist bdist_wheel
+            python3 -m poetry build -f wheel
+            python3 -m poetry build -f sdist
       - run:
           name: upload to pypi
           command: |
