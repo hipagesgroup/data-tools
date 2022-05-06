@@ -109,7 +109,7 @@ jobs:
   test:
     working_directory: ~/project
     docker:
-      - image: cimg/python:3.8
+      - image: cimg/python:3.9
     steps:
       - checkout
       - run:
@@ -140,7 +140,7 @@ jobs:
             python3 -m coverage report
   deploy:
     docker:
-      - image: cimg/python:3.8
+      - image: cimg/python:3.9
     steps:
       - checkout
       - run:

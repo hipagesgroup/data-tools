@@ -85,8 +85,8 @@ setup(
         "googleads",
         "google-ads==12.0.0",
         "numpy",
-        "mysql-connector-python>=8.0.11, <=8.0.18",
-        "mysqlclient>=1.3.6,<1.4",
+        "mysql-connector-python>=8.0.11, <=8.0.29",
+        "mysqlclient>=1.3.6,<=2.1",
         "boto3",
     ],
     test_suite="tests",
@@ -103,7 +103,7 @@ setup(
         "cfn-lint==0.58.4",
     ],
     cmdclass={'test': PyTest},
-    python_requires='~=3.6',
+    python_requires='~=3.9',
     version=get_release_version(),
 
 )
