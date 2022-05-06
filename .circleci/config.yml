@@ -162,10 +162,11 @@ jobs:
             twine upload dist/*
   semantic_release:
     docker:
-      - image: cimg/node:10
+      - image: cimg/node:18.0.0
     steps:
       - *restore_repo
       - checkout
+      - run: node --version
       - *save_repo
       - attach_workspace:
           at: .
