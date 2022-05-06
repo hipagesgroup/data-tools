@@ -86,11 +86,13 @@ class S3ToCassandra(S3ToDataFrame):
     def _upsert_data_frame(self, data_frame):
         if self.__settings.destination_batch_size > 1:
             LOG.info("Going to upsert batches of size %s", self.__settings.destination_batch_size)
-            return self._get_cassandra_util().upsert_dataframe_in_batches(dataframe=data_frame, table=self.__settings.destination_table, batch_size=self.__settings.destination_batch_size)
+            return self._get_cassandra_util().upsert_dataframe_in_batches(
+                dataframe=data_frame, table=self.__settings.destination_table, batch_size=self.__settings.destination_batch_size)
 
         else:
             LOG.info("Going to upsert one row at a time")
-            return self._get_cassandra_util().upsert_dataframe(dataframe=data_frame, table=self.__settings.destination_table)
+            return self._get_cassandra_util().upsert_dataframe(
+                dataframe=data_frame, table=self.__settings.destination_table)
 
     def upsert_file(self, key: str) -> List[Result]:
         """
