@@ -113,8 +113,6 @@ jobs:
     resource_class: large
     steps:
       - checkout
-      - python/install-packages:
-          pkg-manager: poetry
       - run:
           name: Setup Code Climate test-reporter
           command: |
@@ -125,8 +123,8 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            pip3 install --upgrade setuptools coverage wheel
-            poetry install
+            pip3 install --upgrade setuptools coverage wheel poetry
+            python3 -m poetry install
       - run:
           name: install snappy as its used in tests
           ##/snappy is not available in the docker image
@@ -134,7 +132,7 @@ jobs:
             sudo apt-get update -y
             sudo apt-get install -y libsnappy-dev
       - run:
-          name: run tests using setuptools
+          name: run tests using pytest/poetry and collect coverage
           command: |
             . venv/bin/activate
             ./cc-test-reporter before-build
