@@ -4,6 +4,7 @@ This Module handles the connection and operations on Google AdWords accounts usi
 import math
 from collections import OrderedDict
 from typing import List, Optional, Any
+from datetime import datetime
 from attr import dataclass
 from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads import oauth2
@@ -590,7 +591,8 @@ class GoogleAdsOfflineConversionUtil(GoogleAdsUtil):
         return {
             "gclid": conversions.gclid,
             "conversion_name": "conversion_action",
-            "conversion_date_time": conversions.conversion_date_time,
+            "conversion_date_time": datetime.strptime(conversions.conversion_date_time, '%Y-%m-%d %H:%M:%S%z').strftime(
+                '%Y%m%d %H%M%S UTC'),
         }
 
     def _get_response(self, data, result):
