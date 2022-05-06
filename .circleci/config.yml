@@ -116,7 +116,7 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          key: deps1-{{ .Branch }}-{{ checksum "pyproject.toml" }}
       - run:
           name: Setup Code Climate test-reporter
           command: |
@@ -153,7 +153,7 @@ jobs:
             ./cc-test-reporter after-build -t coverage.py
             python3 -m poetry run coverage report
       - save_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          key: deps1-{{ .Branch }}-{{ checksum "pyproject.toml" }}
           paths:
             - "venv"
   deploy:
