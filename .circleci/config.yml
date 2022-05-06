@@ -135,6 +135,10 @@ jobs:
           command: |
             sudo apt-get update -y
             sudo apt-get install -y libsnappy-dev
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "pyproject.toml" }}
+          paths:
+            - "venv"
       - run:
           name: Setup Code Climate
           command: |
@@ -152,10 +156,6 @@ jobs:
             python3 -m poetry run coverage xml
             ./cc-test-reporter after-build -t coverage.py
             python3 -m poetry run coverage report
-      - save_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "pyproject.toml" }}
-          paths:
-            - "venv"
   deploy:
     docker:
       - image: cimg/python:3.9
