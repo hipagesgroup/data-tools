@@ -11,3 +11,4 @@ build/
 dist/
 .coverage
 secrets.py
+poetry.lock
