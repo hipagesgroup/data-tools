@@ -1,14 +1,77 @@
-.idea*
-.eggs*
-data_tools.egg-info*
-venv*
-bin
-.eggs
-*.egg-info
-*.pyo
+# Distribution / packaging
+.ipynb_checkpoints
 *.pyc
+*.pyo
+*.pyd
+.Python
 build/
-dist/
+eggs/
+.eggs/
+*.egg-info/
+.installed.cfg
+*.egg
+kube*
+
+# Installer
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Env
+venv
+.env
+.envrc
+env/
+.direnv
+
+# Coverage
+htmlcov
+junit
 .coverage
-secrets.py
+coverage.xml
 poetry.lock
+.tox/
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+icoverage
+coverage.lcov
+
+# Runtime
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# OS junk
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Cache
+.cache/*
+tests/__pycache__/*
+*.pytest_cache/
+__pycache__
+*.py[cod]
+.pytest_cache
+.cache
+
+# Logs
+*.log
+
+# IDE
+.idea
+.vscode/
+*.swp
+*.swo
+*.iml
+
+# Database
+*.db
+*.rdb
+*.sqlite3
+*.sqlite
+*.dump
