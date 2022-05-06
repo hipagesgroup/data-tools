@@ -24,6 +24,8 @@ gspread = "^5.3.2"
 GitPython = "^3.1.27"
 stringcase = "^1.2.0"
 mysqlclient = "^2.1.0"
+pyarrow = "^8.0.0"
+fastparquet = "^0.8.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
@@ -32,6 +34,7 @@ freezegun = "^1.2.1"
 moto = "^3.1.7"
 mock = "^4.0.3"
 testcontainers = "^3.5.3"
+mocker = "^1.1.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

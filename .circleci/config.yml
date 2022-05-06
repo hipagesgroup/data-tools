@@ -123,14 +123,14 @@ jobs:
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
             chmod +x ./cc-test-reporter
       - run:
-          name: install python dependencies
+          name: Install Python Dependencies
           command: |
             python3 -m venv venv
             . venv/bin/activate
             pip3 install setuptools coverage wheel poetry
             python3 -m poetry update
       - run:
-          name: install snappy as its used in tests
+          name: Install snappy for testing
           ##/snappy is not available in the docker image
           command: |
             sudo apt-get update -y
