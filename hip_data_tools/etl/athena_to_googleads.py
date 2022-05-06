@@ -1,7 +1,7 @@
 """
 handle ETL of offline conversion data from Athena to Google Ads API
 """
-from typing import List, Union, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any
 
 from attr import dataclass
 from cassandra.cqlengine import ValidationError
