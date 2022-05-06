@@ -128,7 +128,7 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             pip3 install setuptools coverage wheel poetry
-            python3 -m poetry install
+            python3 -m poetry update
       - run:
           name: install snappy as its used in tests
           ##/snappy is not available in the docker image
@@ -166,7 +166,7 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            pip3 install --upgrade setuptools wheel twine pbr
+            pip3 install setuptools wheel twine pbr poetry
       - run:
           name: Build the distribution
           command: |
