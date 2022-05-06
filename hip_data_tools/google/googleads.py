@@ -8,6 +8,7 @@ from attr import dataclass
 from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads import oauth2
 from pandas import DataFrame
+from datetime import datetime
 
 from hip_data_tools.common import (
     KeyValueSource,
@@ -590,7 +591,8 @@ class GoogleAdsOfflineConversionUtil(GoogleAdsUtil):
         return {
             "gclid": conversions.gclid,
             "conversion_name": "conversion_action",
-            "conversion_date_time": conversions.conversion_date_time,
+            "conversion_date_time": datetime.strptime(conversions.conversion_date_time, '%Y-%m-%d %H:%M:%S%z').strftime(
+                '%Y%m%d %H%M%S UTC'),
         }
 
     def _get_response(self, data, result):
