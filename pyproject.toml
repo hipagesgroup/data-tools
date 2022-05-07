@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "hipageslabs"
+name = "hip_data_tools"
 version = "1.0"
 readme = "README.md"
 description = "Common Python tools and utilities for data engineering."
-authors = ["hipagesgroup/data-platform"]
+authors = ["Hipages Data Team <datascience@hipagesgroup.com.au>"]
 license = "OSL"
 
 [tool.poetry.dependencies]
@@ -42,3 +42,6 @@ packaging = "^21.3"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+packages = [
+    { include = "hip_data_tools" }
+]
