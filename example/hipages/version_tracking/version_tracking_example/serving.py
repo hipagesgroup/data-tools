@@ -6,7 +6,7 @@ Example API endpoint used for our versioning example.
 from fastapi import FastAPI
 from hip_data_tools.hipages.version_tracking import VersionTracker
 from hip_data_tools.hipages.version_tracking \
-    import register_method_for_version_tracking
+import register_method_for_version_tracking
 
 MULTIPLIER = 5
 """
