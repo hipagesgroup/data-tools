@@ -110,6 +110,7 @@ jobs:
     working_directory: ~/project
     docker:
       - image: cimg/python:3.9
+    resource_class: large
     steps:
       - checkout
       - setup_remote_docker:
@@ -209,10 +210,11 @@ jobs:
           path: dist
   semantic_release:
     docker:
-      - image: cimg/node:10
+      - image: cimg/node:18.0.0
     steps:
       - *restore_repo
       - checkout
+      - run: node --version
       - *save_repo
       - attach_workspace:
           at: .
