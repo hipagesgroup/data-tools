@@ -123,11 +123,21 @@ jobs:
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
             chmod +x ./cc-test-reporter
       - run:
-          name: Install Python Dependencies
+          name: Setup Python Virtual Enviroment 
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+      - run:
+          name: Install Python Dependencies (with pip)
           command: |
             python3 -m venv venv
             . venv/bin/activate
             pip3 install setuptools coverage wheel poetry
+      - run:
+          name: Install Python Dependencies (with poetry)
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
             python3 -m poetry update
       - run:
           name: Install snappy for testing
