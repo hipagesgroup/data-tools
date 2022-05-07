@@ -41,34 +41,37 @@ class TestCommon(TestCase):
         assert testexpected == flatten_nested_dict(testinput)
 
     def test__should__flatten_dict__with_duplicate_keys(self):
-        self.test__convert_to_snake_case_dict(["foo_bar", "baz"])
+        # sourcery skip: class-extract-method
+        testinput = {"abc": 123, "def": "qwe", "foo": {"bar": {"baz": "boo"}}, "foo_bar": {"baz": "boo2"}}
+        testexpected = {"abc": 123, "def": "qwe", "foo_bar_baz": "boo2"}
+        self.assertDictEqual(testinput, testexpected)
+
 
     def test__should__flatten_dict__with_camel_case(self):
-        self.test__convert_to_snake_case_dict(["fooBar", "Baz"])
-
-    @staticmethod
-    def test__convert_to_snake_case_dict(arg):
-        testinput = arg[1]
-        testinput = {"abc": 123, "def": "qwe", "foo": {"bar": {"baz": "boo"}}, arg[0]: {testinput: "boo2"}}
+        testinput = {"abc": 123, "def": "qwe", "foo": {"bar": {"baz": "boo"}}, "fooBar": {"Baz": "boo2"}}
         testexpected = {"abc": 123, "def": "qwe", "foo_bar_baz": "boo2"}
-        assert testexpected == flatten_nested_dict(testinput)
+        self.assertDictEqual(testinput, testexpected)
 
     def test__should__convert_to_snake_case__with_camel_case(self):
-        self.test__convert_to_snake_case_value(["ThisIsCamelCase", "this_is_camel_case"])
+        # sourcery skip: class-extract-method
+        testinput = "ThisIsCamelCase"
+        testexpected = "this_is_camel_case"
+        self.assertEqual(testexpected, to_snake_case(testinput))
 
     def test__should__convert_to_snake_case__with_spaces(self):
-        self.test__convert_to_snake_case_value(["ThisIs Camel Case", "this_is__camel__case"])
+        testinput = "ThisIs Camel Case"
+        testexpected = "this_is__camel__case"
+        self.assertEqual(testexpected, to_snake_case(testinput))
 
     def test__should__convert_to_snake_case__with_special_chars(self):
-        self.test__convert_to_snake_case_value(["This%Is.Camel$%#@!^Case", "this__is__camel_______case"])
+        testinput = "This%Is.Camel$%#@!^Case"
+        testexpected = "this__is__camel_______case"
+        self.assertEqual(testexpected, to_snake_case(testinput))
 
     def test__should__convert_to_snake_case__with_id(self):
-        self.test__convert_to_snake_case_value(["ThisIsAnID", "this_is_an_i_d"])
-
-    @staticmethod
-    def test__convert_to_snake_case_value(arg):
-        testinput = arg[0]
-        assert arg[1] == to_snake_case(testinput)
+        testinput = "ThisIsAnID"
+        testexpected = "this_is_an_i_d"
+        self.assertEqual(testexpected, to_snake_case(testinput))
 
     def test__should__convert_list_of_dict_to_proper_df__with__nested_items(self):
         testinput = [
@@ -139,6 +142,7 @@ class TestCommon(TestCase):
             "country__territory": [0, 3434]
         })
         assert_frame_equal(testexpected, testinput)
+
 class TestObject:
     def __init__(self):
         self.x = 'hello'
