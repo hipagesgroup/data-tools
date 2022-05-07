@@ -37,6 +37,7 @@ testcontainers = "^3.5.3"
 mocker = "^1.1.1"
 pytest-mock = "^3.7.0"
 pytest-stub = "^1.1.0"
+packaging = "^21.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
