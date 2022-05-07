@@ -506,7 +506,7 @@ class VersionTracker:
         self.add_dictionary_to_versions({'aggregated_version': version_hash})
 
     def _add_versioning_timestamp(self):
-        self.add_dictionary_to_versions({'versioning_timestamp': datetime.now(timezone.utc).isoformat()})
+        self.add_dictionary_to_versions({'versioning_timestamp': datetime.now(timezone.utc).isoformat().replace('+00:00', '')})
 
     def get_version_dict(self):
         """

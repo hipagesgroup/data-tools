@@ -291,10 +291,9 @@ def generate_snapshot_file_name_with_timestamp():
     Returns (str): String containing the date and time stamped path
 
     """
-    current_datetime = datetime.today().strftime('%Y%m%d_%H%M%S')
+    current_datetime = datetime.now().strftime('%Y%m%d_%H%M%S')
 
-    return "df_dt_of_upload_{}" \
-        .format(current_datetime)
+    return f"df_dt_of_upload_{current_datetime}"
 
 
 def add_interval_partitioning_column(msgs_df,
