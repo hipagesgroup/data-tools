@@ -46,7 +46,8 @@ class TestCommon(TestCase):
     def test__should__flatten_dict__with_camel_case(self):
         assert self.test__convert_to_snake_case_dict("fooBar", "Baz")
 
-    def test__convert_to_snake_case_dict(self, arg0, arg1):
+    @staticmethod
+    def test__convert_to_snake_case_dict(arg0, arg1):
         testinput = {"abc": 123, "def": "qwe", "foo": {"bar": {"baz": "boo"}}, arg0: {arg1: "boo2"}}
         testexpected = {"abc": 123, "def": "qwe", "foo_bar_baz": "boo2"}
         return testexpected == flatten_nested_dict(testinput)
@@ -63,8 +64,9 @@ class TestCommon(TestCase):
     def test__should__convert_to_snake_case__with_id(self):
         assert self.test__convert_to_snake_case_value("ThisIsAnID", "this_is_an_i_d")
 
-    def test__convert_to_snake_case_value(self, arg1):
-        return arg1 == to_snake_case(self)
+    @staticmethod
+    def test__convert_to_snake_case_value(arg0, arg1):
+        return arg1 == to_snake_case(arg0)
 
     def test__should__convert_list_of_dict_to_proper_df__with__nested_items(self):
         testinput = [
