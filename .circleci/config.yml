@@ -116,7 +116,7 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "pyproject.toml" }}
+          key: deps1-{{ .Branch }}-{{ checksum "poetry.lock" }}
       - run:
           name: Setup Code Climate test-reporter
           command: |
@@ -146,7 +146,7 @@ jobs:
             sudo apt-get update -y
             sudo apt-get install -y libsnappy-dev
       - save_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "pyproject.toml" }}
+          key: deps1-{{ .Branch }}-{{ checksum "poetry.lock" }}
           paths:
             - "venv"
       - run:
