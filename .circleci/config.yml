@@ -110,7 +110,6 @@ jobs:
     working_directory: ~/project
     docker:
       - image: cimg/python:3.9
-    resource_class: large
     steps:
       - checkout
       - setup_remote_docker:
@@ -172,12 +171,27 @@ jobs:
       - image: cimg/python:3.9
     steps:
       - checkout
+      - restore_cache:
+          key: deps2-{{ .Branch }}-{{ checksum "poetry.lock" }}
       - run:
-          name: install python dependencies
+          name: Setup Python Virtual Enviroment 
           command: |
             python3 -m venv venv
             . venv/bin/activate
+      - run:
+          name: Install Python Dependencies (with pip)
+          command: |
+            . venv/bin/activate
             pip3 install setuptools wheel twine pbr poetry
+      - run:
+          name: Install Python Dependencies (with poetry)
+          command: |
+            . venv/bin/activate
+            python3 -m poetry install --no-ansi
+      - save_cache:
+          key: deps2-{{ .Branch }}-{{ checksum "poetry.lock" }}
+          paths:
+            - "venv"
       - run:
           name: Build the distribution
           command: |
@@ -191,6 +205,8 @@ jobs:
           command: |
             . venv/bin/activate
             python3 -m twine upload dist/*
+      - store_artifacts:
+          path: dist
   semantic_release:
     docker:
       - image: cimg/node:10
