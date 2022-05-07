@@ -37,6 +37,7 @@ containing registered classes, functions, and methods will be logged to disk
 in a json file
 """
 
+
 import argparse
 import json
 import os
@@ -214,11 +215,8 @@ def check_for_decorated_declaration_in_file(path,
     lines_with_decorator = _find_lines_with_decorator(decorating_string,
                                                       lines_in_file)
 
-    tagged_declarations = _find_decorated_declarations(declaration,
-                                                       lines_in_file,
-                                                       lines_with_decorator)
-
-    return tagged_declarations
+    return _find_decorated_declarations(
+        declaration, lines_in_file, lines_with_decorator)
 
 
 def _find_decorated_declarations(declaration,
