@@ -44,13 +44,13 @@ class TestCommon(TestCase):
         # sourcery skip: class-extract-method
         testinput = {"abc": 123, "def": "qwe", "foo": {"bar": {"baz": "boo"}}, "foo_bar": {"baz": "boo2"}}
         testexpected = {"abc": 123, "def": "qwe", "foo_bar_baz": "boo2"}
-        self.assertDictEqual(testinput, testexpected)
+        self.assertDictEqual(flatten_nested_dict(testinput), testexpected)
 
 
     def test__should__flatten_dict__with_camel_case(self):
         testinput = {"abc": 123, "def": "qwe", "foo": {"bar": {"baz": "boo"}}, "fooBar": {"Baz": "boo2"}}
         testexpected = {"abc": 123, "def": "qwe", "foo_bar_baz": "boo2"}
-        self.assertDictEqual(testinput, testexpected)
+        self.assertDictEqual(flatten_nested_dict(testinput), testexpected)
 
     def test__should__convert_to_snake_case__with_camel_case(self):
         # sourcery skip: class-extract-method
