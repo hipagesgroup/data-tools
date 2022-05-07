@@ -136,7 +136,7 @@ jobs:
           name: Install Python Dependencies (with poetry)
           command: |
             . venv/bin/activate
-            python3 -m poetry update --no-ansi
+            python3 -m poetry install --no-ansi
       - run:
           name: Install snappy for testing
           ##/snappy is not available in the docker image
