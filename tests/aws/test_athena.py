@@ -1,10 +1,8 @@
 from collections import OrderedDict
 from unittest import TestCase
 from unittest.mock import Mock
-
 from dataclasses import asdict
 from pandas import DataFrame
-
 import hip_data_tools.aws.athena as athena
 from hip_data_tools.aws.athena import AthenaUtil, SqlInspector
 from .resources import explained_queries as explained_queries

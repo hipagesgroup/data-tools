@@ -1,9 +1,7 @@
 import os
 from unittest import TestCase
-
 from googleads.adwords import ServiceQueryBuilder
 from py._builtin import execfile
-
 from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.etl.adwords_to_s3 import AdWordsToS3Settings, AdWordsToS3

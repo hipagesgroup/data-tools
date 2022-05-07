@@ -2,11 +2,9 @@ import os
 from collections import OrderedDict
 from unittest import TestCase
 from unittest.mock import Mock
-
 from googleads.adwords import ServiceQueryBuilder, ReportQueryBuilder
 from pandas import np, DataFrame
 from py._builtin import execfile
-
 from hip_data_tools.aws.athena import AthenaUtil
 from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 from hip_data_tools.etl.adwords_to_athena import AdWordsToAthenaSettings, AdWordsToAthena, \

@@ -1,12 +1,10 @@
 import os
 from unittest import TestCase, mock
 from unittest.mock import MagicMock
-
 from cassandra.cqlengine import ValidationError
 from cassandra.policies import DCAwareRoundRobinPolicy
 from retrying import retry
 from testcontainers.compose import DockerCompose
-
 import tests.test_common as base
 from hip_data_tools.apache.cassandra import CassandraConnectionManager, \
     CassandraConnectionSettings, \

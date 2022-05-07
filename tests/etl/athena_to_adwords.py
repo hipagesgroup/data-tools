@@ -1,13 +1,11 @@
 import os
 from unittest import TestCase
 from unittest.mock import Mock, MagicMock
-
 from cassandra.policies import DCAwareRoundRobinPolicy
 from pandas import DataFrame
 from py.builtin import execfile
 from retrying import retry
 from testcontainers.compose import DockerCompose
-
 import tests.test_common as base
 from hip_data_tools.apache.cassandra import CassandraConnectionSettings, CassandraSecretsManager, \
     CassandraConnectionManager

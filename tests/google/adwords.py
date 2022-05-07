@@ -1,6 +1,5 @@
 import os
 from unittest import TestCase
-
 from googleads import adwords
 from py.builtin import execfile
 

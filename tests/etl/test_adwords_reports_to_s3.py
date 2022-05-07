@@ -1,9 +1,7 @@
 from unittest import TestCase
-
 import numpy as np
 import pandas as pd
 from pandas._libs.tslibs.timestamps import Timestamp
-
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.etl.adwords_to_s3 import AdWordsReportsToS3, AdWordsReportToS3Settings
 

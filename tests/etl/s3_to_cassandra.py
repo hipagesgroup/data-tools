@@ -2,9 +2,7 @@ import os
 import uuid
 from unittest import TestCase
 from unittest.mock import Mock
-
 from moto import mock_s3
-
 from hip_data_tools.aws.common import AwsConnectionManager, AwsConnectionSettings, AwsSecretsManager
 from hip_data_tools.aws.s3 import S3Util
 from hip_data_tools.etl.s3_to_cassandra import S3ToCassandra, S3ToCassandraSettings
