@@ -43,13 +43,10 @@ import json
 import os
 import socket
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
-
 import git
 import joblib
-
-from datetime import timezone
 from hip_data_tools.common import LOG as log
 
 CLASS_DECORATOR_STRING = '@register_class_for_version_tracking'
@@ -212,7 +209,7 @@ def check_for_decorated_declaration_in_file(path,
 
     lines_in_file = _load_file_lines_into_list(path)
 
-    lines_with_decorator = _find_lines_with_decorator(decorating_string,
+    lines_with_decorator =_find_lines_with_decorator(decorating_string,
                                                       lines_in_file)
 
     return _find_decorated_declarations(
@@ -504,7 +501,8 @@ class VersionTracker:
         self.add_dictionary_to_versions({'aggregated_version': version_hash})
 
     def _add_versioning_timestamp(self):
-        self.add_dictionary_to_versions({'versioning_timestamp': datetime.now(timezone.utc).isoformat().replace('+00:00', '')})
+        self.add_dictionary_to_versions({'versioning_timestamp': \
+            datetime.now(timezone.utc).isoformat().replace('+00:00', '')})
 
     def get_version_dict(self):
         """
