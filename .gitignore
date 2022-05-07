@@ -31,7 +31,6 @@ htmlcov
 junit
 .coverage
 coverage.xml
-poetry.lock
 .tox/
 .coverage.*
 nosetests.xml
