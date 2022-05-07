@@ -41,30 +41,30 @@ class TestCommon(TestCase):
         assert testexpected == flatten_nested_dict(testinput)
 
     def test__should__flatten_dict__with_duplicate_keys(self):
-        assert self.test__convert_to_snake_case_dict("foo_bar", "baz")
+        self.test__convert_to_snake_case_dict("foo_bar", "baz")
 
     def test__should__flatten_dict__with_camel_case(self):
-        assert self.test__convert_to_snake_case_dict("fooBar", "Baz")
+        self.test__convert_to_snake_case_dict("fooBar", "Baz")
 
     def test__convert_to_snake_case_dict(self, arg0, arg1):
         testinput = {"abc": 123, "def": "qwe", "foo": {"bar": {"baz": "boo"}}, arg0: {arg1: "boo2"}}
         testexpected = {"abc": 123, "def": "qwe", "foo_bar_baz": "boo2"}
-        return testexpected == flatten_nested_dict(testinput)
+        assert testexpected == flatten_nested_dict(testinput)
 
     def test__should__convert_to_snake_case__with_camel_case(self):
-        assert self.test__convert_to_snake_case_value("ThisIsCamelCase", "this_is_camel_case")
+        self.test__convert_to_snake_case_value("ThisIsCamelCase", "this_is_camel_case")
 
     def test__should__convert_to_snake_case__with_spaces(self):
-        assert self.test__convert_to_snake_case_value("ThisIs Camel Case", "this_is__camel__case")
+        self.test__convert_to_snake_case_value("ThisIs Camel Case", "this_is__camel__case")
 
     def test__should__convert_to_snake_case__with_special_chars(self):
-        assert self.test__convert_to_snake_case_value("This%Is.Camel$%#@!^Case", "this__is__camel_______case")
+        self.test__convert_to_snake_case_value("This%Is.Camel$%#@!^Case", "this__is__camel_______case")
 
     def test__should__convert_to_snake_case__with_id(self):
-        assert self.test__convert_to_snake_case_value("ThisIsAnID", "this_is_an_i_d")
+        self.test__convert_to_snake_case_value("ThisIsAnID", "this_is_an_i_d")
 
     def test__convert_to_snake_case_value(self, arg0, arg1):
-        return arg1 == to_snake_case(arg0)
+        assert arg1 == to_snake_case(arg0)
 
     def test__should__convert_list_of_dict_to_proper_df__with__nested_items(self):
         testinput = [
