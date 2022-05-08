@@ -1,5 +1,4 @@
 from unittest import TestCase
-
 from hip_data_tools.etl.adwords_to_athena import AdWordsReportsToAthena, \
     AdWordsReportsToAthenaSettings
 

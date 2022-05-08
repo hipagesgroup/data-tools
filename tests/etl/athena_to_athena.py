@@ -1,6 +1,5 @@
 from unittest import TestCase
 from unittest.mock import Mock
-
 from hip_data_tools.etl.athena_to_athena import AthenaToAthena, AthenaToAthenaSettings
 
 

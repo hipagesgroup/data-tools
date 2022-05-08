@@ -1,51 +1,30 @@
 import datetime
-from unittest import TestCase
-
 import pandas as pd
+from unittest import TestCase
 from pandas._libs.tslibs.timestamps import Timestamp
 from pandas._testing import assert_frame_equal
-
 from hip_data_tools.common import flatten_nested_dict, \
     to_snake_case, nested_list_of_dict_to_dataframe, validate_and_fix_common_integer_fields
 
 
 class TestCommon(TestCase):
-    # def test__get_release_version__parses_tag(self):
-    #     os.environ["GIT_TAG"] = "v1.3"
-    #     actual = get_release_version()
-    #     expected = "1.3"
-    #     self.assertEqual(actual, expected)
-    #
-    # def test__get_release_version__works_without_tag(self):
-    #     del os.environ["GIT_TAG"]
-    #     actual = get_release_version()
-    #     expected = "0.0"
-    #     self.assertEqual(actual, expected)
-    #
-    # def test__get_long_description__reads_readme(self):
-    #     actual = get_long_description()[0:16]
-    #     expected = "# hip-data-tools"
-    #     self.assertEqual(actual, expected)
-
     def test__should__flatten_dict__with_one_level_of_nesting(self):
-        input = {
+        testinput = {
             "abc": 123,
             "def": "qwe",
             "foo": {
                 "bar": "baz"
             }
         }
-        expected = {
+        testexpected = {
             "abc": 123,
             "def": "qwe",
             "foo_bar": "baz"
         }
-        actual = flatten_nested_dict(input, "_")
-        self.assertDictEqual(expected, actual)
+        assert testexpected == flatten_nested_dict(testinput, "_")
 
     def test__should__flatten_dict__with_two_levels_of_nesting(self):
-        input = {
-
+        testinput = {
             "abc": 123,
             "def": "qwe",
             "foo": {
@@ -54,84 +33,48 @@ class TestCommon(TestCase):
                 }
             }
         }
-        expected = {
+        testexpected = {
             "abc": 123,
             "def": "qwe",
             "foo_bar_baz": "boo"
         }
-        actual = flatten_nested_dict(input)
-        self.assertDictEqual(expected, actual)
+        assert testexpected == flatten_nested_dict(testinput)
 
     def test__should__flatten_dict__with_duplicate_keys(self):
-        input = {
+        # sourcery skip: class-extract-method
+        testinput = {"abc": 123, "def": "qwe", "foo": {"bar": {"baz": "boo"}}, "foo_bar": {"baz": "boo2"}}
+        testexpected = {"abc": 123, "def": "qwe", "foo_bar_baz": "boo2"}
+        self.assertDictEqual(flatten_nested_dict(testinput), testexpected)
 
-            "abc": 123,
-            "def": "qwe",
-            "foo": {
-                "bar": {
-                    "baz": "boo"
-                }
-            },
-            "foo_bar": {
-                "baz": "boo2"
-            }
-        }
-        expected = {
-            "abc": 123,
-            "def": "qwe",
-            "foo_bar_baz": "boo2"
-        }
-        actual = flatten_nested_dict(input)
-        self.assertDictEqual(expected, actual)
 
     def test__should__flatten_dict__with_camel_case(self):
-        input = {
-
-            "abc": 123,
-            "def": "qwe",
-            "foo": {
-                "bar": {
-                    "baz": "boo"
-                }
-            },
-            "fooBar": {
-                "Baz": "boo2"
-            }
-        }
-        expected = {
-            "abc": 123,
-            "def": "qwe",
-            "foo_bar_baz": "boo2"
-        }
-        actual = flatten_nested_dict(input)
-        self.assertDictEqual(expected, actual)
+        testinput = {"abc": 123, "def": "qwe", "foo": {"bar": {"baz": "boo"}}, "fooBar": {"Baz": "boo2"}}
+        testexpected = {"abc": 123, "def": "qwe", "foo_bar_baz": "boo2"}
+        self.assertDictEqual(flatten_nested_dict(testinput), testexpected)
 
     def test__should__convert_to_snake_case__with_camel_case(self):
-        input = "ThisIsCamelCase"
-        expected = "this_is_camel_case"
-        actual = to_snake_case(input)
-        self.assertEqual(expected, actual)
+        # sourcery skip: class-extract-method
+        testinput = "ThisIsCamelCase"
+        testexpected = "this_is_camel_case"
+        self.assertEqual(testexpected, to_snake_case(testinput))
 
     def test__should__convert_to_snake_case__with_spaces(self):
-        input = "ThisIs Camel Case"
-        expected = "this_is__camel__case"
-        actual = to_snake_case(input)
-        self.assertEqual(expected, actual)
+        testinput = "ThisIs Camel Case"
+        testexpected = "this_is__camel__case"
+        self.assertEqual(testexpected, to_snake_case(testinput))
 
     def test__should__convert_to_snake_case__with_special_chars(self):
-        input = "This%Is.Camel$%#@!^Case"
-        expected = "this__is__camel_______case"
-        actual = to_snake_case(input)
-        self.assertEqual(expected, actual)
+        testinput = "This%Is.Camel$%#@!^Case"
+        testexpected = "this__is__camel_______case"
+        self.assertEqual(testexpected, to_snake_case(testinput))
 
     def test__should__convert_to_snake_case__with_id(self):
-        input = "ThisIsAnID"
-        expected = "this_is_an_i_d"
-        actual = to_snake_case(input)
-        self.assertEqual(expected, actual)
+        testinput = "ThisIsAnID"
+        testexpected = "this_is_an_i_d"
+        self.assertEqual(testexpected, to_snake_case(testinput))
 
     def test__should__convert_list_of_dict_to_proper_df__with__nested_items(self):
-        input = [
+        testinput = [
             {
                 "abc": 123,
                 "def": "qwe",
@@ -147,13 +90,12 @@ class TestCommon(TestCase):
                 }
             },
         ]
-        expected = ['abc', 'def', 'foo_bar_baz']
-        actual = nested_list_of_dict_to_dataframe(input)
-        self.assertListEqual(expected, list(actual.columns.values))
+        testexpected = ['abc', 'def', 'foo_bar_baz']
+        actual = nested_list_of_dict_to_dataframe(testinput)
+        assert testexpected == list(actual.columns.values)
 
-    def test__should__return_dataframe__when__a_list_of_dictionaries_with_complex_lists_is_given(
-            self):
-        input_value = [
+    def test__should__return_dataframe__when__a_list_of_dictionaries_with_complex_lists_is_given(self):
+        testinput = [
             {
                 'adGroupId': 94823864785,
                 'labels': 'Hello_1',
@@ -175,30 +117,31 @@ class TestCommon(TestCase):
                 'complex_field': [TestObject()]
             }
         ]
-        actual = nested_list_of_dict_to_dataframe(input_value)
+        testinput = nested_list_of_dict_to_dataframe(testinput)
         data = {'ad_group_id': {0: 94823864785, 1: 34523864785},
                 'labels': {0: 'Hello_1', 1: 'Hello_2'},
                 'tuple_field': {0: ('field_1', 'val_1'), 1: ('field_2', 'val_2')},
                 'bool_field': {0: True, 1: False},
                 'array_field': {0: ['["v1", "v2"]'], 1: ['[["v1", "v2"], []]']},
                 'num_array_filed': {0: ['1', '3', '4', '5'], 1: ['1', '3', '4', '5']},
-                'time_field': {0: Timestamp('2020-06-18 00:00:00'),
-                               1: Timestamp('2020-06-18 00:00:00')},
+                'time_field': {
+                    0: Timestamp('2020-06-18 00:00:00'),
+                    1: Timestamp('2020-06-18 00:00:00')
+                },
                 'complex_field': {0: [], 1: ['{"x": "hello", "y": "world"}']}}
-        expected = pd.DataFrame(data=data)
-        assert_frame_equal(expected, actual)
+        assert_frame_equal(pd.DataFrame(data=data), testinput)
 
     def test__should__validate_and_fix_common_integer_fields(self):
-        actual = pd.DataFrame(
-            data={"id": [None, "34523864785"],
-                  "country__territory": ["----", "3434"]})
-        validate_and_fix_common_integer_fields(actual)
-        expected = pd.DataFrame(
-            data={"id": [0, 34523864785],
-                  "country__territory": [0, 3434]})
-
-        assert_frame_equal(expected, actual)
-
+        testinput = pd.DataFrame(data={
+            "id": [None, "34523864785"],
+            "country__territory": ["----", "3434"]
+        })
+        validate_and_fix_common_integer_fields(testinput)
+        testexpected = pd.DataFrame(data={
+            "id": [0, 34523864785],
+            "country__territory": [0, 3434]
+        })
+        assert_frame_equal(testexpected, testinput)
 
 class TestObject:
     def __init__(self):

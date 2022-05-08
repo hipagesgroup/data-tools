@@ -110,58 +110,103 @@ jobs:
     working_directory: ~/project
     docker:
       - image: cimg/python:3.9
-    resource_class: large
     steps:
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - restore_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "poetry.lock" }}
       - run:
           name: Setup Code Climate test-reporter
           command: |
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
             chmod +x ./cc-test-reporter
       - run:
-          name: install python dependencies
+          name: Setup Python Virtual Enviroment 
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            pip3 install --upgrade setuptools coverage wheel
       - run:
-          name: install snappy as its used in tests
+          name: Install Python Dependencies (with pip)
+          command: |
+            . venv/bin/activate
+            pip3 install setuptools coverage wheel poetry
+      - run:
+          name: Install Python Dependencies (with poetry)
+          command: |
+            . venv/bin/activate
+            python3 -m poetry install --no-ansi
+      - run:
+          name: Install snappy for testing
           ##/snappy is not available in the docker image
           command: |
             sudo apt-get update -y
             sudo apt-get install -y libsnappy-dev
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "poetry.lock" }}
+          paths:
+            - "venv"
       - run:
-          name: run tests using setuptools
+          name: Setup Code Climate
           command: |
             . venv/bin/activate
             ./cc-test-reporter before-build
-            python3 -m coverage run --source hip_data_tools setup.py test
-            python3 -m coverage xml
+      - run:
+          name: Run Tests
+          command: |
+            . venv/bin/activate
+            python3 -m poetry run coverage run --omit '*virtualenvs*' -m pytest
+      - run:
+          name: Run Coverage XML and send to Code Climate
+          command: |
+            . venv/bin/activate
+            python3 -m poetry run coverage xml
+            python3 -m poetry run coverage report > coverage.txt
             ./cc-test-reporter after-build -t coverage.py
-            python3 -m coverage report
+      - store_artifacts:
+          path: coverage.txt
+          destination: coverage.txt
   deploy:
     docker:
       - image: cimg/python:3.9
     steps:
       - checkout
+      - restore_cache:
+          key: deps2-{{ .Branch }}-{{ checksum "poetry.lock" }}
       - run:
-          name: install python dependencies
+          name: Setup Python Virtual Enviroment 
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            pip3 install --upgrade setuptools wheel twine pbr
+      - run:
+          name: Install Python Dependencies (with pip)
+          command: |
+            . venv/bin/activate
+            pip3 install setuptools wheel twine pbr poetry
+      - run:
+          name: Install Python Dependencies (with poetry)
+          command: |
+            . venv/bin/activate
+            python3 -m poetry install --no-ansi
+      - save_cache:
+          key: deps2-{{ .Branch }}-{{ checksum "poetry.lock" }}
+          paths:
+            - "venv"
       - run:
           name: Build the distribution
           command: |
             . venv/bin/activate
             export GIT_TAG=$(git describe --tags)
             echo "reading the latest version as $GIT_TAG"
-            python3 setup.py sdist bdist_wheel
+            python3 -m poetry build -f wheel
+            python3 -m poetry build -f sdist
       - run:
           name: upload to pypi
           command: |
             . venv/bin/activate
             python3 -m twine upload dist/*
+      - store_artifacts:
+          path: dist
   semantic_release:
     docker:
       - image: cimg/node:18.0.0

@@ -1,5 +1,4 @@
 from unittest import TestCase
-
 from hip_data_tools.aws.common import AwsConnectionSettings
 from hip_data_tools.etl.athena_to_dataframe import AthenaToDataFrameSettings, AthenaToDataFrame
 

@@ -140,7 +140,7 @@ def test__conduit_should_create_from_env():
 
 @freeze_time("2012-01-14 03:21:34")
 def test_fld_nm_getter_Should_GenerateTimeStampedFileNameUsingOSClock():
-    expected_file_name = 'df_dt_of_upload_20120114_000000'
+    expected_file_name = 'df_dt_of_upload_20120114_032134'
 
     file_name = kafka.generate_snapshot_file_name_with_timestamp()
 
@@ -258,7 +258,7 @@ def test_PartitioningOfMessages_Should_SplitMessagesAndUploadToS3(mocker):
     assert (len(paths_and_df) == 2)
 
     expected_path = 'some_path/date_of_batch=20170322/time_of_batch=151650'
-    expected_file_name = 'df_dt_of_upload_20120114_000000'
+    expected_file_name = 'df_dt_of_upload_20120114_032134'
 
     assert (paths_and_df[0][1] == expected_path)
     assert (paths_and_df[0][2] == expected_file_name)
@@ -474,4 +474,4 @@ def test__KafkaS3BatchExporter_should_partition_msgs_and_locations(mocker):
     assert list_of_dfs_and_locs[0][0].shape == (2, 3)
     assert list_of_dfs_and_locs[1][0].shape == (1, 3)
     assert list_of_dfs_and_locs[0][1] == 'some_path/date_of_batch=20170322/time_of_batch=160650'
-    assert list_of_dfs_and_locs[0][2] == 'df_dt_of_upload_20170328_000000'
+    assert list_of_dfs_and_locs[0][2] == 'df_dt_of_upload_20170328_111010'

@@ -1,7 +1,5 @@
 from unittest import TestCase
-
 from googleads.adwords import ReportQueryBuilder
-
 from hip_data_tools.google.adwords import GoogleAdWordsConnectionManager, \
     GoogleAdWordsConnectionSettings, AdWordsParallelDataReadEstimator
 

@@ -1,7 +1,6 @@
 import json
 import uuid
 from unittest.mock import mock_open, patch
-
 import pytest
 from freezegun import freeze_time
 from joblib import hash

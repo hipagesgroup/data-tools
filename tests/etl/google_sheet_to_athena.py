@@ -1,6 +1,5 @@
 import json
 from unittest import TestCase
-
 from hip_data_tools.aws.common import AwsConnectionSettings
 from hip_data_tools.common import DictKeyValueSource
 from hip_data_tools.etl.google_sheet_to_athena import GoogleSheetToAthena, \
