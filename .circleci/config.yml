@@ -171,6 +171,8 @@ jobs:
       - image: cimg/python:3.9
     steps:
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - restore_cache:
           key: deps2-{{ .Branch }}-{{ checksum "poetry.lock" }}
       - run:
@@ -193,15 +195,16 @@ jobs:
           paths:
             - "venv"
       - run:
-          name: Build the distribution
+          name: Build the Distribution
           command: |
             . venv/bin/activate
-            export GIT_TAG=$(git describe --tags)
+            =$(git deexport GIT_TAGscribe --tags --abbrev=0)
             echo "reading the latest version as $GIT_TAG"
+            python3 -m poetry version $(git describe --tags --abbrev=0)
             python3 -m poetry build -f wheel
             python3 -m poetry build -f sdist
       - run:
-          name: upload to pypi
+          name: Upload to pypi
           command: |
             . venv/bin/activate
             python3 -m twine upload dist/*
@@ -213,15 +216,17 @@ jobs:
     steps:
       - *restore_repo
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run: node --version
       - *save_repo
       - attach_workspace:
           at: .
 
       - *yarn_authenticate_github_packages
-      - *yarn_restore_cache
+      #- *yarn_restore_cache
       - run: yarn install --prefer-offline --frozen-lockfile
-      - *yarn_save_cache
+      #- *yarn_save_cache
       - *install_makefile
       - *yarn_restore_global_cache
       - *install_semantic-release
