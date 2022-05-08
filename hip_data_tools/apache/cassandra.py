@@ -40,10 +40,7 @@ _PYTHON_TO_CASSANDRA_DATA_TYPE_MAP = {
 
 
 def _get_data_frame_column_types(data_frame):
-    data_frame_col_dict = {}
-    for col in data_frame:
-        data_frame_col_dict[col] = type(data_frame[col][0]).__name__
-    return data_frame_col_dict
+    return {col: type(data_frame[col][0]).__name__ for col in data_frame}
 
 
 def get_cql_columns_from_dataframe(data_frame):
@@ -76,7 +73,7 @@ def dataframe_to_cassandra_tuples(dataframe: DataFrame) -> list:
         dataframe (DataFrame): the dataframe to be converted to a list of tuples
     Returns: list[tuple]
     """
-    return [tuple([_standardize_datatype(val) for val in row[1:]]) for row in dataframe.itertuples()]
+    return [tuple(_standardize_datatype(val) for val in row[1:]) for row in dataframe.itertuples()]
 
 
 def dicts_to_cassandra_tuples(data: list) -> list:
@@ -147,8 +144,8 @@ class CassandraSecretsManager(SecretsManager):
     """
 
     def __init__(self, source: KeyValueSource = ENVIRONMENT,
-                 username_var: str = "CASSANDRA_USERNAME",
-                 password_var: str = "CASSANDRA_PASSWORD"):
+        username_var: str = "CASSANDRA_USERNAME",
+        password_var: str = "CASSANDRA_PASSWORD"):
         super().__init__([username_var, password_var], source)
 
         self.username = self.get_secret(username_var)
