@@ -198,7 +198,7 @@ jobs:
           name: Build the Distribution
           command: |
             . venv/bin/activate
-            =$(git deexport GIT_TAGscribe --tags --abbrev=0)
+            export GIT_TAG=$(git describe --tags --abbrev=0)
             echo "reading the latest version as $GIT_TAG"
             python3 -m poetry version $(git describe --tags --abbrev=0)
             python3 -m poetry build -f wheel
