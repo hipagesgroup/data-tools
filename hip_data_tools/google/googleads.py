@@ -424,7 +424,9 @@ class GoogleAdsClicksConversionUtil(GoogleAdsUtil):
         click_conversion = self._get_type()
         click_conversion.gclid = data["gclid"]
         click_conversion.conversion_value = data["conversion_value"]
-        click_conversion.conversion_date_time = data["conversion_date_time"]
+        click_conversion.conversion_date_time = datetime.strptime(
+            data["conversion_date_time"], "%Y%m%d %H%M%S UTC"
+        ).strftime("%Y-%m-%d %H:%M:%S-09:00")
         click_conversion.conversion_action = data["conversion_action"]
         click_conversion.currency_code = data["currency_code"]
         return click_conversion
@@ -591,8 +593,9 @@ class GoogleAdsOfflineConversionUtil(GoogleAdsUtil):
         return {
             "gclid": conversions.gclid,
             "conversion_name": "conversion_action",
-            "conversion_date_time": datetime.strptime(conversions.conversion_date_time, '%Y-%m-%d %H:%M:%S%z').strftime(
-                '%Y%m%d %H%M%S UTC'),
+            "conversion_date_time": datetime.strptime(
+                conversions.conversion_date_time, "%Y-%m-%d %H:%M:%S%z"
+            ).strftime("%Y%m%d %H%M%S UTC"),
         }
 
     def _get_response(self, data, result):
