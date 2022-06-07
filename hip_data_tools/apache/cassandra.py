@@ -263,7 +263,7 @@ class CassandraUtil:
     def __init__(self, keyspace: str, conn: CassandraConnectionManager):
         self.keyspace = keyspace
         self._conn = conn
-        self.consistency_level = ConsistencyLevel.QUORUM
+        self.consistency_level = ConsistencyLevel.LOCAL_QUORUM
         self._session = self._conn.get_session(self.keyspace)
 
     def _cql_upsert_from_dict(self, data: dict, table: str):
