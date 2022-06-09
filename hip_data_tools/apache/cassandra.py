@@ -251,6 +251,7 @@ class CassandraConnectionManager:
             self._settings.cluster_ips,
             load_balancing_policy=self._settings.load_balancing_policy,
             auth_provider=self._auth,
+            consistency=self.consistency_level,
             port=self._settings.port,
             ssl_options=self._settings.ssl_options,
             default_keyspace=default_keyspace)
