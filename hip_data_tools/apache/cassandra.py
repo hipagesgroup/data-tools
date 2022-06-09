@@ -212,6 +212,7 @@ class CassandraConnectionManager:
             username=self._settings.secrets_manager.username,
             password=self._settings.secrets_manager.password,
         )
+        self.consistency_level = ConsistencyLevel.LOCAL_QUORUM
 
     def get_cluster(self) -> Cluster:
         """
@@ -250,6 +251,7 @@ class CassandraConnectionManager:
             self._settings.cluster_ips,
             load_balancing_policy=self._settings.load_balancing_policy,
             auth_provider=self._auth,
+            consistency=self.consistency_level,
             port=self._settings.port,
             ssl_options=self._settings.ssl_options,
             default_keyspace=default_keyspace)
