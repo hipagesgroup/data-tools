@@ -75,6 +75,7 @@ from cassandra.policies import DCAwareRoundRobinPolicy
 from cassandra.cqlengine import columns
 from cassandra.cqlengine.management import sync_table
 from cassandra.cqlengine.models import Model
+from cassandra import ConsistencyLevel
 
 load_balancing_policy = DCAwareRoundRobinPolicy(local_dc='AWS_VPC_AP_SOUTHEAST_2')
 
@@ -83,7 +84,8 @@ conn = CassandraConnectionManager(
         cluster_ips=["1.1.1.1", "2.2.2.2"],
         port=9042,
         load_balancing_policy=load_balancing_policy,
-    )
+    ),
+    consistency_level=ConsistencyLevel.LOCAL_QUORUM
 )
 
 conn = CassandraConnectionManager(
@@ -93,7 +95,8 @@ conn = CassandraConnectionManager(
         load_balancing_policy=load_balancing_policy,
         secrets_manager=CassandraSecretsManager(
         username_var="MY_CUSTOM_USERNAME_ENV_VAR"),
-    )
+    ),
+    consistency_level=ConsistencyLevel.LOCAL_ONE
 )
 
 # For running Cassandra model operations

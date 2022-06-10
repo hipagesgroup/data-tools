@@ -204,7 +204,7 @@ class CassandraConnectionManager:
         for connecting to a cluster
     """
 
-    def __init__(self, settings: CassandraConnectionSettings):
+    def __init__(self, settings: CassandraConnectionSettings,consistency_level: ConsistencyLevel = ConsistencyLevel.LOCAL_ONE):
         self._settings = settings
         self.cluster = None
         self.session = None
@@ -212,7 +212,7 @@ class CassandraConnectionManager:
             username=self._settings.secrets_manager.username,
             password=self._settings.secrets_manager.password,
         )
-        self.consistency_level = ConsistencyLevel.LOCAL_QUORUM
+        self.consistency_level = consistency_level
 
     def get_cluster(self) -> Cluster:
         """
@@ -236,6 +236,7 @@ class CassandraConnectionManager:
         """
         if self.session is None:
             self.session = self.get_cluster().connect(keyspace)
+            self.session.default_consistency_level = self.consistency_level
 
         return self.session
 
