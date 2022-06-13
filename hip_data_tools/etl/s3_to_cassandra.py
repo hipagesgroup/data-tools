@@ -5,6 +5,7 @@ from typing import Optional, List
 
 from attr import dataclass
 from cassandra.datastax.graph import Result
+from cassandra import ConsistencyLevel
 
 from hip_data_tools.apache.cassandra import CassandraUtil, CassandraConnectionManager, \
     CassandraConnectionSettings
@@ -42,7 +43,7 @@ class S3ToCassandra(S3ToDataFrame):
         return CassandraUtil(
             keyspace=self.__settings.destination_keyspace,
             conn=CassandraConnectionManager(
-                settings=self.__settings.destination_connection_settings),
+                settings=self.__settings.destination_connection_settings,consistency_level=ConsistencyLevel.LOCAL_QUORUM),
         )
 
     def _get_s3_util(self):
