@@ -24,7 +24,7 @@ gspread = "^5.3.2"
 GitPython = "^3.1.27"
 stringcase = "^1.2.0"
 mysqlclient = "^2.1.0"
-pyarrow = "^8.0.0"
+pyarrow = ">=6.0.1,<9.0.0"
 fastparquet = "^0.8.1"
 
 [tool.poetry.dev-dependencies]
