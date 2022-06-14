@@ -19,7 +19,7 @@ gitdb==4.0.9; python_version >= "3.7"
 gitpython==3.1.27; python_version >= "3.7"
 google-auth-oauthlib==0.5.2; python_version >= "3.6"
 google-auth==1.35.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
-googleads==31.0.0
+googleads==32.0.0
 gspread==5.4.0; python_version >= "3.6"
 httplib2==0.20.4; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0"
 idna==3.3; python_version >= "3.7" and python_version < "4"

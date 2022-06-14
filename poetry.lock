@@ -378,7 +378,7 @@ tool = ["click (>=6.0.0)"]
 
 [[package]]
 name = "googleads"
-version = "31.0.0"
+version = "32.0.0"
 description = "Google Ads Python Client Library"
 category = "main"
 optional = false
@@ -1203,7 +1203,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4"
-content-hash = "2795b99cc3416909c2ada34521208b7bf3ba7988f0602e69cb05c0228ce56883"
+content-hash = "86a8e6fcee55dfd6b3cc5c341a50b696b24056942016cf8c0fe30f00f8a50d07"
 
 [metadata.files]
 alabaster = [
@@ -1565,7 +1565,7 @@ google-auth-oauthlib = [
     {file = "google_auth_oauthlib-0.5.2-py2.py3-none-any.whl", hash = "sha256:6d6161d0ec0a62e2abf2207c6071c117ec5897b300823c4bb2d963ee86e20e4f"},
 ]
 googleads = [
-    {file = "googleads-31.0.0.tar.gz", hash = "sha256:431325bb9ee74f42902ec0a8a9b152d84d1c0ad5a7689b90f951af536c13a170"},
+    {file = "googleads-32.0.0.tar.gz", hash = "sha256:9448c92e199a14ff5461c9b6b81113662cff8a6d6d6d9ba604764a02902e4533"},
 ]
 gspread = [
     {file = "gspread-5.4.0-py3-none-any.whl", hash = "sha256:21704b47d007c3b5fd34eddfa4c4a9dcd1ecc1dc615083b9c636127726e66c18"},
