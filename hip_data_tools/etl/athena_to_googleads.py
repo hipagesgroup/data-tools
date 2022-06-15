@@ -4,6 +4,7 @@ handle ETL of offline conversion data from Athena to Google Ads API
 from typing import List, Tuple, Dict, Any
 from attr import dataclass
 from cassandra.cqlengine import ValidationError
+from cassandra import ConsistencyLevel
 from pandas import DataFrame
 
 from hip_data_tools.apache.cassandra import (
@@ -212,7 +213,10 @@ class AthenaToGoogleAdsOfflineConversion(AthenaToDataFrame):
 
         LOG.info("Connecting to Cassandra")
 
-        conn = CassandraConnectionManager(self.__settings.etl_state_manager_connection)
+        conn = CassandraConnectionManager(
+            self.__settings.etl_state_manager_connection,
+            consistency_level=ConsistencyLevel.LOCAL_QUORUM,
+        )
         conn.setup_connection(self.__settings.etl_state_manager_keyspace)
 
         LOG.info("Cassandra connection established")

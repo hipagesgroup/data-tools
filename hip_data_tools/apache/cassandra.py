@@ -2,7 +2,7 @@
 Utility for connecting to and transforming data in Cassandra clusters
 """
 import os
-from typing import List, Optional
+from typing import List
 
 import pandas as pd
 from attr import dataclass
@@ -160,7 +160,6 @@ class CassandraConnectionSettings:
     load_balancing_policy: LoadBalancingPolicy
     secrets_manager: CassandraSecretsManager
     ssl_options: dict = None
-    consistency_level: ConsistencyLevel = ConsistencyLevel.LOCAL_ONE
 
 
 class CassandraConnectionManager:
