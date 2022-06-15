@@ -160,7 +160,7 @@ class CassandraConnectionSettings:
     load_balancing_policy: LoadBalancingPolicy
     secrets_manager: CassandraSecretsManager
     ssl_options: dict = None
-    consistency_level: Optional[ConsistencyLevel] = ConsistencyLevel.LOCAL_ONE
+    consistency_level: ConsistencyLevel = ConsistencyLevel.LOCAL_ONE
 
 
 class CassandraConnectionManager:
