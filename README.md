@@ -11,7 +11,7 @@ The package is uploaded to PyPi for easy drop and use in various environmnets, s
 
 1. Running production workloads
 2. ML Training in Jupyter like notebooks
-3. Local machine for dev and exploration
+3. Local machine for dev and exploration 
 
 
 ## Installation
