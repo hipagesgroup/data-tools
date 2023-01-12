@@ -1,0 +1,13 @@
+apiVersion: backstage.io/v1alpha1
+      kind: Component
+      metadata:
+        name: data-tools
+        description: >-
+          Common Python tools and utilities for data engineering, ETL, Exploration, etc. made opensource and packaged, making it easy to use in any environment.
+        annotations:
+          github.com/project-slug: hipagesgroup/data-tools
+      spec:
+        type: service
+        lifecycle: experimental
+        owner: data-platform
+      
