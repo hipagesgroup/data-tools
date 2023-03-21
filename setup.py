@@ -83,7 +83,7 @@ setup(
         "oauth2client",
         "gspread",
         "googleads",
-        "google-ads==20.0.0",
+        "google-ads==18.0.0",
         "numpy",
         "mysql-connector-python>=8.0.11, <=8.0.29",
         "mysqlclient>=1.3.6,<=2.1",
