@@ -74,7 +74,7 @@ setup(
         "pandas",
         "GitPython",
         "confluent-kafka",
-        "pyarrow>=6.0.1,<9.0.0",
+        "pyarrow",
         "cassandra-driver",
         "tqdm",
         "retrying",
