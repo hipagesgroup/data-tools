@@ -207,13 +207,13 @@ def test_DataFramePartitioner_Should_SplitTheDF_by_timestamps():
 
     expected_data = [{'field1': 'some string value',
                       'field2': "1490195805000",
-                      'partition_key_ts': "2017-03-22 15:16:45"},
+                      'partition_key_ts': "2017-03-22 15:17:25"},
                      {'field1': 'another string value',
                       'field2': "1490198805000",
-                      'partition_key_ts': "2017-03-22 16:06:45"},
+                      'partition_key_ts': "2017-03-22 16:07:40"},
                      {'field1': 'string value 3',
                       'field2': "1490198805000",
-                      'partition_key_ts': "2017-03-22 16:06:45"}, ]
+                      'partition_key_ts': "2017-03-22 16:07:40"}, ]
 
     df_expected = pd.DataFrame(expected_data)
 
