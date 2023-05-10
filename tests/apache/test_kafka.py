@@ -257,7 +257,7 @@ def test_PartitioningOfMessages_Should_SplitMessagesAndUploadToS3(mocker):
 
     assert (len(paths_and_df) == 2)
 
-    expected_path = 'some_path/date_of_batch=20170322/time_of_batch=151650'
+    expected_path = 'some_path/date_of_batch=20170322/time_of_batch=151730'
     expected_file_name = 'df_dt_of_upload_20120114_032134'
 
     assert (paths_and_df[0][1] == expected_path)
