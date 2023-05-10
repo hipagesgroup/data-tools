@@ -6,7 +6,7 @@ from unittest.mock import Mock
 import pandas as pd
 from pandas import DataFrame
 from pandas._libs.tslibs.nattype import NaT
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 from hip_data_tools.apache.cassandra import CassandraUtil, dataframe_to_cassandra_tuples, \
     _standardize_datatype, dicts_to_cassandra_tuples, CassandraSecretsManager, \
     _get_data_frame_column_types, get_cql_columns_from_dataframe, ValidationError ,\
