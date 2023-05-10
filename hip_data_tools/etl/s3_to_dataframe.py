@@ -4,7 +4,7 @@ Module to deal with data transfer from S3 to Pandas DataFrame
 from typing import Iterator, List
 
 import pandas as pd
-from attr import dataclass
+from dataclasses import dataclass
 from pandas import DataFrame
 
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager

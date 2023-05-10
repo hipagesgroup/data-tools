@@ -2,7 +2,7 @@ from abc import ABC
 from typing import Any, Optional
 
 import boto3 as boto
-from attr import dataclass
+from dataclasses import dataclass
 from botocore.client import BaseClient
 
 from hip_data_tools.common import KeyValueSource, ENVIRONMENT, SecretsManager
