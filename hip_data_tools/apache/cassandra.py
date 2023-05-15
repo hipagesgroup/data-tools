@@ -5,7 +5,7 @@ import os
 from typing import List
 
 import pandas as pd
-from attr import dataclass
+from dataclasses import dataclass
 from cassandra import ConsistencyLevel
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster, Session

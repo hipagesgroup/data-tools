@@ -109,7 +109,7 @@ class S3Util(AwsUtil):
 
         tmp_file = NamedTemporaryFile(delete=False)
         destination = f"{key}/{file_name}.parquet"
-        dataframe.to_parquet(fname=tmp_file.name, **kwargs)
+        dataframe.to_parquet(path=tmp_file.name, **kwargs)
         self.upload_file(local_file_path=tmp_file.name, key=destination, remove_local=True)
 
     def download_parquet_as_dataframe(self,
