@@ -3,7 +3,7 @@ Module to deal with data transfer from S3 to Cassandra
 """
 from typing import Optional, List
 
-from attr import dataclass
+from dataclasses import dataclass
 from cassandra.datastax.graph import Result
 from cassandra import ConsistencyLevel
 

@@ -1,7 +1,7 @@
 """
 handle ETL of data from Athena to Pandas Dataframe
 """
-from attr import dataclass
+from dataclasses import dataclass
 
 from hip_data_tools.aws.athena import AthenaUtil
 from hip_data_tools.aws.common import AwsConnectionSettings, AwsConnectionManager

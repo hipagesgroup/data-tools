@@ -5,7 +5,7 @@ services package
 from abc import ABC, abstractmethod
 from typing import List
 
-from attr import dataclass
+from dataclasses import dataclass
 from oauth2client.service_account import ServiceAccountCredentials
 
 from hip_data_tools.common import SecretsManager, ENVIRONMENT, KeyValueSource

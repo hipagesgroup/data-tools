@@ -2,7 +2,7 @@
 Module to deal with data transfer from Google sheets to S3
 """
 
-from attr import dataclass
+from dataclasses import dataclass
 
 from hip_data_tools.aws.common import AwsConnectionManager
 from hip_data_tools.aws.common import AwsConnectionSettings
