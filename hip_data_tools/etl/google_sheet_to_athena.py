@@ -2,7 +2,7 @@
 Module to deal with data transfer from Google sheets to Athena
 """
 
-from attr import dataclass
+from dataclasses import dataclass
 
 from hip_data_tools.aws.athena import AthenaUtil, get_table_settings_for_dataframe
 from hip_data_tools.aws.common import AwsConnectionManager

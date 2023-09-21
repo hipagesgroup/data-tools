@@ -3,7 +3,7 @@ Module to deal with data transfer from Adwords to Athena
 """
 from typing import List, Any, Optional, Tuple
 
-from attr import dataclass
+from dataclasses import dataclass
 from pandas import DataFrame
 
 from hip_data_tools.common import LOG
