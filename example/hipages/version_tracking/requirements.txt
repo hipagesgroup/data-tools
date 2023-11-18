@@ -1,2 +1,4 @@
 fastapi
 hip-data-tools
+numpy>=1.22.2 # not directly required, pinned by Snyk to avoid a vulnerability
+pyarrow>=14.0.1 # not directly required, pinned by Snyk to avoid a vulnerability
