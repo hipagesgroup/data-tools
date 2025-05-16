@@ -52,14 +52,16 @@ class S3ToCassandra(S3ToDataFrame):
             conn=AwsConnectionManager(self.__settings.source_connection_settings),
         )
 
-    def create_table(self):
+    def create_table(self, data_frame=None):
         """
         Creates the destination cassandra table if not exists
         Returns: None
         """
-        files = self.list_source_files()
-        data_frame = self._get_s3_util().download_parquet_as_dataframe(
-            key=files[0])
+        # files = self.list_source_files()
+        # data_frame = self._get_s3_util().download_parquet_as_dataframe(
+        #     key=files[0])      
+
+
         # use specified partition and clustering keys
         self._get_cassandra_util().create_table_from_dataframe(
             data_frame=data_frame,
@@ -95,12 +97,11 @@ class S3ToCassandra(S3ToDataFrame):
             return self._get_cassandra_util().upsert_dataframe(
                 dataframe=data_frame, table=self.__settings.destination_table)
 
-    def upsert_file(self, key: str) -> List[Result]:
+    def upsert_dataframe(self, data_frame) -> List[Result]:
         """
         Read a parquet file from s3 and upsert the records to Cassandra
         Args:
             key: s3 key for the parquet file
         Returns: None
         """
-        data_frame = self.get_data_frame(key)
         return self._upsert_data_frame(data_frame)
