@@ -65,35 +65,6 @@ class TestDataFrameToCassandra(TestCase):
             partition_key_column_list=["id"],
             table_options_statement=""
         )
-    
-    def test_create_and_upsert_all(self):
-        # Mock the required methods
-        self.df_to_cassandra.create_table = Mock()
-        self.df_to_cassandra.upsert_all_dataframes = Mock(return_value=["batch_result"])
-        
-        # Call the method to test
-        result = self.df_to_cassandra.create_and_upsert_all()
-        
-        # Assert the methods were called in the right order
-        self.df_to_cassandra.create_table.assert_called_once()
-        self.df_to_cassandra.upsert_all_dataframes.assert_called_once()
-        
-        # Assert the result is what we expect
-        self.assertEqual(result, ["batch_result"])
-        
-    def testupsert_all_dataframes(self):
-        # Define _get_iterator which is missing but called in upsert_all_dataframes
-        self.df_to_cassandra._get_iterator = Mock(return_value=[self.sample_df])
-        self.df_to_cassandra._upsert_data_frame = Mock(return_value=["upsert_result"])
-        
-        # Call the method to test
-        result = self.df_to_cassandra.upsert_all_dataframes()
-        
-        # Assert the _upsert_data_frame was called with the right argument
-        self.df_to_cassandra._upsert_data_frame.assert_called_once_with(self.sample_df)
-        
-        # Assert the result is what we expect
-        self.assertEqual(result, [["upsert_result"]])
         
     def test__upsert_data_frame_with_batch(self):
         # Mock _get_cassandra_util

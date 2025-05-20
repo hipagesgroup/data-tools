@@ -58,21 +58,6 @@ class DataFrameToCassandra:
             table_options_statement=self.__settings.destination_table_options_statement,
         )
 
-    def create_and_upsert_all(self) -> List[List[Result]]:
-        """
-        First creates the table and then upsert all dataframes to the table
-        Returns: List[List[Result]]
-        """
-        self.create_table()
-        return self.upsert_all_files()
-
-    def upsert_all_dataframes(self) -> List[List[Result]]:
-        """
-        Upsert all dataframes sequentially into cassandra
-        Returns: List[List[Result]]
-        """
-        return [self._upsert_data_frame(df) for df in self._get_iterator()]
-
     def _upsert_data_frame(self, data_frame):
         if self.__settings.destination_batch_size > 1:
             LOG.info("Going to upsert batches of size %s", self.__settings.destination_batch_size)
