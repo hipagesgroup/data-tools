@@ -66,7 +66,7 @@ class DataFrameToCassandra:
         self.create_table()
         return self.upsert_all_files()
 
-    def upsert_all_files(self) -> List[List[Result]]:
+    def upsert_all_dataframes(self) -> List[List[Result]]:
         """
         Upsert all dataframes sequentially into cassandra
         Returns: List[List[Result]]
