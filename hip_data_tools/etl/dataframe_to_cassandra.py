@@ -52,7 +52,7 @@ class DataFrameToCassandra:
         """
         # use specified partition and clustering keys
         self._get_cassandra_util().create_table_from_dataframe(
-            data_frame=self.data_frame,
+            data_frame=self.__settings.data_frame,
             table_name=self.__settings.destination_table,
             primary_key_column_list=self.__settings.destination_table_primary_keys,
             partition_key_column_list=self.__settings.destination_table_partition_key,

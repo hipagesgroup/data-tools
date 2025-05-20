@@ -30,9 +30,7 @@ class TestDataFrameToCassandra(TestCase):
             destination_connection_settings=self.mock_conn_settings,
         )
         
-        # Patch the super().__init__ call in DataFrameToCassandra.__init__ 
-        with patch('builtins.super'):
-            self.df_to_cassandra = DataFrameToCassandra(self.settings)
+        self.df_to_cassandra = DataFrameToCassandra(self.settings)
         
         # Add the data_frame attribute that's missing but referenced
         self.df_to_cassandra.data_frame = self.sample_df
