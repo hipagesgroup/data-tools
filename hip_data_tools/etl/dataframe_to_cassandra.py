@@ -36,7 +36,6 @@ class DataFrameToCassandra:
 
     def __init__(self, settings: DataFrameToCassandraSettings):
         self.__settings = settings
-        self.keys_to_transfer = None
 
     def _get_cassandra_util(self):
         return CassandraUtil(
@@ -62,7 +61,7 @@ class DataFrameToCassandra:
     def create_and_upsert_all(self) -> List[List[Result]]:
         """
         First creates the table and then upsert all dataframes to the table
-        Returns: None
+        Returns: List[List[Result]]
         """
         self.create_table()
         return self.upsert_all_files()
@@ -70,7 +69,7 @@ class DataFrameToCassandra:
     def upsert_all_files(self) -> List[List[Result]]:
         """
         Upsert all dataframes sequentially into cassandra
-        Returns: None
+        Returns: List[List[Result]]
         """
         return [self._upsert_data_frame(df) for df in self._get_iterator()]
 

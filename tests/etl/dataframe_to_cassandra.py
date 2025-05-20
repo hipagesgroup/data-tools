@@ -61,16 +61,13 @@ class TestDataFrameToCassandra(TestCase):
         self.df_to_cassandra.create_table()
         
         # Assert create_table_from_dataframe was called with the right arguments
-        mock_util_instance.create_table_from_dataframe.assert_called_once()
-        
-        # Get the call arguments
-        args, kwargs = mock_util_instance.create_table_from_dataframe.call_args
-        
-        # Check table name and options were passed correctly
-        self.assertEqual(kwargs.get('table_name'), "test_table")
-        self.assertEqual(kwargs.get('primary_key_column_list'), ["id"])
-        self.assertEqual(kwargs.get('partition_key_column_list'), ["id"])
-        self.assertEqual(kwargs.get('table_options_statement'), "")
+        mock_util_instance.create_table_from_dataframe.assert_called_once_with(
+            data_frame=self.sample_df,
+            table_name="test_table",
+            primary_key_column_list=["id"],
+            partition_key_column_list=["id"],
+            table_options_statement=""
+        )
     
     def test_create_and_upsert_all(self):
         # Mock the required methods
