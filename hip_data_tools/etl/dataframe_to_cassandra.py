@@ -71,7 +71,8 @@ class DataFrameToCassandra:
 
     def upsert_dataframe(self) -> List[Result]:
         """
-        Upsert the records to Cassandra using a dataframe
+        Upsert the records to Cassandra using a predetermined DataFrame from
+        the settings
         Returns: List[Result]
         """
         return self._upsert_data_frame(self.__settings.data_frame)
