@@ -44,7 +44,7 @@ class DataFrameToCassandra:
                 settings=self.__settings.destination_connection_settings,consistency_level=ConsistencyLevel.LOCAL_QUORUM),
         )
 
-    def create_table(self):
+    def create_table(self) -> None:
         """
         Creates the destination cassandra table if not exists
         Returns: None
@@ -58,7 +58,7 @@ class DataFrameToCassandra:
             table_options_statement=self.__settings.destination_table_options_statement,
         )
 
-    def _upsert_data_frame(self, data_frame):
+    def _upsert_data_frame(self, data_frame) -> List[Result]:
         if self.__settings.destination_batch_size > 1:
             LOG.info("Going to upsert batches of size %s", self.__settings.destination_batch_size)
             return self._get_cassandra_util().upsert_dataframe_in_batches(
@@ -72,6 +72,6 @@ class DataFrameToCassandra:
     def upsert_dataframe(self) -> List[Result]:
         """
         Upsert the records to Cassandra using a dataframe
-        Returns: None
+        Returns: List[Result]
         """
         return self._upsert_data_frame(self.__settings.data_frame)
