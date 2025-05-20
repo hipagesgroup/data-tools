@@ -1,5 +1,5 @@
 """
-Module to deal with data transfer from S3 to Cassandra
+Module to deal with data transfer to Cassandra
 """
 from typing import Optional, List
 
@@ -29,7 +29,7 @@ class DataFrameToCassandraSettings:
 
 class DataFrameToCassandra:
     """
-    Class to transfer parquet data from s3 to Cassandra
+    Class to transfer Pandas Dataframe to Cassandra
     Args:
         settings (DataFrameToCassandraSettings): the settings around the etl to be executed
     """
@@ -61,7 +61,7 @@ class DataFrameToCassandra:
 
     def create_and_upsert_all(self) -> List[List[Result]]:
         """
-        First creates the table and then upsert all s3 files to the table
+        First creates the table and then upsert all dataframes to the table
         Returns: None
         """
         self.create_table()
@@ -69,7 +69,7 @@ class DataFrameToCassandra:
 
     def upsert_all_files(self) -> List[List[Result]]:
         """
-        Upsert all files from s3 sequentially into cassandra
+        Upsert all dataframes sequentially into cassandra
         Returns: None
         """
         return [self._upsert_data_frame(df) for df in self._get_iterator()]
@@ -87,9 +87,7 @@ class DataFrameToCassandra:
 
     def upsert_dataframe(self) -> List[Result]:
         """
-        Read a parquet file from s3 and upsert the records to Cassandra
-        Args:
-            key: s3 key for the parquet file
+        Upsert the records to Cassandra using a dataframe
         Returns: None
         """
         return self._upsert_data_frame(self.__settings.data_frame)
