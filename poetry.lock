@@ -1108,7 +1108,7 @@ files = [
 ]
 
 [package.extras]
-build = ["blurb", "twine", "wheel"]
+build = ["blurb", "twine (<5.0.0)", "wheel"]
 docs = ["sphinx"]
 test = ["pytest (<5.4)", "pytest-cov"]
 
