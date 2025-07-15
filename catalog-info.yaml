@@ -10,4 +10,4 @@ metadata:
 spec:
   type: service
   lifecycle: experimental
-  owner: data-platform
+  owner: data-analytics-engineering
