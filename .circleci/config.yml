@@ -88,8 +88,9 @@ references:
     run:
       name: Setup Code Climate test-reporter
       command: |
-        curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+        curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 -o ./cc-test-reporter
         chmod +x ./cc-test-reporter
+        ./cc-test-reporter --version
 
   run_semantic-release: &run_semantic-release
     run:
