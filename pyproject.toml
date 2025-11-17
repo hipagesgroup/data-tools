@@ -26,17 +26,6 @@ mysqlclient = "^2.1.1"
 pyarrow = "^16.1.0"
 fastparquet = "^2023.2.0"
 
-[tool.poetry.dev-dependencies]
-freezegun = "^1.2.1"
-moto = "^4.1.6"
-mock = "^4.0.3"
-testcontainers = "^3.5.3"
-mocker = "^1.1.1"
-pytest-mock = "^3.7.0"
-pytest-stub = "^1.1.0"
-# speed up build in dev: due to collision which causes a reinstall,
-# we will not use 21.3 but 20.9 in dev in order to avoid reinstall
-packaging = ">20.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.2"
