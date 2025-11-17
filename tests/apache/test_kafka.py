@@ -207,13 +207,13 @@ def test_DataFramePartitioner_Should_SplitTheDF_by_timestamps():
 
     expected_data = [{'field1': 'some string value',
                       'field2': "1490195805000",
-                      'partition_key_ts': "2017-03-22 15:17:25"},
+                      'partition_key_ts': "2017-03-22 15:16:40"},
                      {'field1': 'another string value',
                       'field2': "1490198805000",
-                      'partition_key_ts': "2017-03-22 16:07:40"},
+                      'partition_key_ts': "2017-03-22 16:06:40"},
                      {'field1': 'string value 3',
                       'field2': "1490198805000",
-                      'partition_key_ts': "2017-03-22 16:07:40"}, ]
+                      'partition_key_ts': "2017-03-22 16:06:40"}, ]
 
     df_expected = pd.DataFrame(expected_data)
 
@@ -257,7 +257,7 @@ def test_PartitioningOfMessages_Should_SplitMessagesAndUploadToS3(mocker):
 
     assert (len(paths_and_df) == 2)
 
-    expected_path = 'some_path/date_of_batch=20170322/time_of_batch=151730'
+    expected_path = 'some_path/date_of_batch=20170322/time_of_batch=151640'
     expected_file_name = 'df_dt_of_upload_20120114_032134'
 
     assert (paths_and_df[0][1] == expected_path)
@@ -473,5 +473,5 @@ def test__KafkaS3BatchExporter_should_partition_msgs_and_locations(mocker):
     assert len(list_of_dfs_and_locs) == 2
     assert list_of_dfs_and_locs[0][0].shape == (2, 3)
     assert list_of_dfs_and_locs[1][0].shape == (1, 3)
-    assert list_of_dfs_and_locs[0][1] == 'some_path/date_of_batch=20170322/time_of_batch=160740'
+    assert list_of_dfs_and_locs[0][1] == 'some_path/date_of_batch=20170322/time_of_batch=160640'
     assert list_of_dfs_and_locs[0][2] == 'df_dt_of_upload_20170328_111010'
