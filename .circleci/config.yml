@@ -109,7 +109,7 @@ jobs:
   test:
     working_directory: ~/project
     docker:
-      - image: cimg/python:3.9
+      - image: cimg/python:3.12
     steps:
       - checkout
       - setup_remote_docker:
@@ -168,7 +168,7 @@ jobs:
           destination: coverage.txt
   deploy:
     docker:
-      - image: cimg/python:3.9
+      - image: cimg/python:3.12
     steps:
       - checkout
       - setup_remote_docker:
