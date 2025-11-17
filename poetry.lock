@@ -1324,20 +1324,31 @@ files = [
 
 [[package]]
 name = "mock"
-version = "5.2.0"
+version = "4.0.3"
 description = "Rolling backport of unittest.mock for all Pythons"
 optional = false
 python-versions = ">=3.6"
 groups = ["dev"]
 files = [
-    {file = "mock-5.2.0-py3-none-any.whl", hash = "sha256:7ba87f72ca0e915175596069dbbcc7c75af7b5e9b9bc107ad6349ede0819982f"},
-    {file = "mock-5.2.0.tar.gz", hash = "sha256:4e460e818629b4b173f32d08bf30d3af8123afbb8e04bb5707a1fd4799e503f0"},
+    {file = "mock-4.0.3-py3-none-any.whl", hash = "sha256:122fcb64ee37cfad5b3f48d7a7d51875d7031aaf3d8be7c42e2bee25044eee62"},
+    {file = "mock-4.0.3.tar.gz", hash = "sha256:7d3fbbde18228f4ff2f1f119a45cdffa458b4c0dee32eb4d2bb2f82554bac7bc"},
 ]
 
 [package.extras]
 build = ["blurb", "twine", "wheel"]
 docs = ["sphinx"]
-test = ["pytest", "pytest-cov"]
+test = ["pytest (<5.4)", "pytest-cov"]
+
+[[package]]
+name = "mocker"
+version = "1.1.1"
+description = "Graceful platform for test doubles in Python (mocks, stubs, fakes, and dummies)."
+optional = false
+python-versions = "*"
+groups = ["dev"]
+files = [
+    {file = "mocker-1.1.1.tar.bz2", hash = "sha256:2009911707c74b28bdc9959b5224717e45fcb93475b4b7bb4efad3285fcf2919"},
+]
 
 [[package]]
 name = "moto"
@@ -1803,6 +1814,21 @@ pytest = ">=6.2.5"
 
 [package.extras]
 dev = ["pre-commit", "pytest-asyncio", "tox"]
+
+[[package]]
+name = "pytest-stub"
+version = "1.1.0"
+description = "Stub packages, modules and attributes."
+optional = false
+python-versions = "*"
+groups = ["dev"]
+files = [
+    {file = "pytest-stub-1.1.0.tar.gz", hash = "sha256:276043d91cbad863ba56b99f6b781a4a1bc19e1d2e928a5f8e76979ee02c8099"},
+    {file = "pytest_stub-1.1.0-py2.py3-none-any.whl", hash = "sha256:5de0e3247f8e51321c4dc6d94bbe53c8a96a51edcf722d3df3cb20d4d32b27d7"},
+]
+
+[package.dependencies]
+pytest = ">=2.9.0"
 
 [[package]]
 name = "python-dateutil"
@@ -2453,4 +2479,4 @@ test = ["pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4"
-content-hash = "312d9c20628803d941b0b3336be73dfb582bba8e897e7f98710801a057df05f6"
+content-hash = "536f0b85e664e6c8b1878bd81265ac3f6c730a6b956eca40af88fa9e024aa45f"
