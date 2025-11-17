@@ -1285,6 +1285,23 @@ files = [
 ]
 
 [[package]]
+name = "mock"
+version = "5.2.0"
+description = "Rolling backport of unittest.mock for all Pythons"
+optional = false
+python-versions = ">=3.6"
+groups = ["dev"]
+files = [
+    {file = "mock-5.2.0-py3-none-any.whl", hash = "sha256:7ba87f72ca0e915175596069dbbcc7c75af7b5e9b9bc107ad6349ede0819982f"},
+    {file = "mock-5.2.0.tar.gz", hash = "sha256:4e460e818629b4b173f32d08bf30d3af8123afbb8e04bb5707a1fd4799e503f0"},
+]
+
+[package.extras]
+build = ["blurb", "twine", "wheel"]
+docs = ["sphinx"]
+test = ["pytest", "pytest-cov"]
+
+[[package]]
 name = "moto"
 version = "4.2.14"
 description = ""
@@ -2195,4 +2212,4 @@ test = ["pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4"
-content-hash = "01967d73940722270fcd2c40907ac29050645d7f565481a3c1d07f714df6e48a"
+content-hash = "e0a09d42ef0cd62a6d1986fcb38472d2e1090e1216e49ddc3c3cfc892e0ed4c9"
