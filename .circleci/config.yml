@@ -88,10 +88,6 @@ references:
     run:
       name: Setup Code Climate test-reporter
       command: |
-        if [[ -z "$CC_TEST_REPORTER_ID" ]]; then
-          echo "CC_TEST_REPORTER_ID is not set. (https://docs.codeclimate.com/docs/finding-your-test-coverage-token#section-regenerating-a-repos-test-reporter-id)"
-          exit 1
-        fi
         curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
         chmod +x ./cc-test-reporter
 
