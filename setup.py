@@ -101,7 +101,7 @@ setup(
         "cfn-lint==0.58.4",
     ],
     cmdclass={'test': PyTest},
-    python_requires='~=3.9',
+    python_requires='~=3.12',
     version=get_release_version(),
 
 )
