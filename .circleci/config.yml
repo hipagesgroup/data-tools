@@ -83,14 +83,19 @@ references:
       name: Install dockerlint
       command: |
         yarn global add --no-progress --non-interactive "dockerlint@0.3.9"
-
-  install_codeclimate: &install_codeclimate
-    run:
-      name: Setup Code Climate test-reporter
-      command: |
-        curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 -o ./cc-test-reporter
-        chmod +x ./cc-test-reporter
-        ./cc-test-reporter --version
+        
+  ## have to remove this run from CI since this link here is broken, there is no replacement at the moment.
+  ## The GitHub repo for codeclimate/test-reporter shows the project was archived on July 19 2025. 
+  ## install_codeclimate: &install_codeclimate  
+  ##  run:
+  ##    name: Setup Code Climate test-reporter
+  ##    command: |
+  ##      if [[ -z "$CC_TEST_REPORTER_ID" ]]; then
+  ##        echo "CC_TEST_REPORTER_ID is not set. (https://docs.codeclimate.com/docs/finding-your-test-coverage-token#section-regenerating-a-repos-test-reporter-id)"
+  ##        exit 1
+  ##      fi
+  ##      curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  ##      chmod +x ./cc-test-reporter   
 
   run_semantic-release: &run_semantic-release
     run:
