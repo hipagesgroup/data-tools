@@ -33,6 +33,8 @@ sphinx = "^6.1.3"
 freezegun = "^1.2.2"
 moto = "^4.1.6"
 mock = "^5.0.0"
+testcontainers = "^3.5.3"
+pytest-mock = "^3.7.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
