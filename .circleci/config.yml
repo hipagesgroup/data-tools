@@ -149,23 +149,25 @@ jobs:
           key: deps1-{{ .Branch }}-{{ checksum "poetry.lock" }}
           paths:
             - "venv"
-      - run:
-          name: Setup Code Climate
-          command: |
-            . venv/bin/activate
-            ./cc-test-reporter before-build
+      ## cc-test-reporter deprecated      
+      ##- run:
+      ##    name: Setup Code Climate
+      ##    command: |
+      ##      . venv/bin/activate
+      ##      ./cc-test-reporter before-build
       - run:
           name: Run Tests
           command: |
             . venv/bin/activate
             python3 -m poetry run coverage run --omit '*virtualenvs*' -m pytest
-      - run:
-          name: Run Coverage XML and send to Code Climate
-          command: |
-            . venv/bin/activate
-            python3 -m poetry run coverage xml
-            python3 -m poetry run coverage report > coverage.txt
-            ./cc-test-reporter after-build -t coverage.py
+      ## cc-test-reporter deprecated      
+      ##- run:
+      ##    name: Run Coverage XML and send to Code Climate
+      ##    command: |
+      ##      . venv/bin/activate
+      ##      python3 -m poetry run coverage xml
+      ##      python3 -m poetry run coverage report > coverage.txt
+      ##      ./cc-test-reporter after-build -t coverage.py
       - store_artifacts:
           path: coverage.txt
           destination: coverage.txt
