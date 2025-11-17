@@ -317,8 +317,8 @@ def add_interval_partitioning_column(msgs_df,
     """
 
     msgs_df[time_column] = pd.to_datetime(msgs_df[time_column], unit='ms')
-    rounding_time_frame = '{}S'.format(int(interval))
-    msgs_df[partitioning_key] = msgs_df[time_column].dt.ceil(
+    rounding_time_frame = '{}s'.format(int(interval))
+    msgs_df[partitioning_key] = msgs_df[time_column].dt.floor(
         rounding_time_frame)
 
     return msgs_df
