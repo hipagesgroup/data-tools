@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en-US"
+      dir="ltr">
+
+    
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
+
+<script id="hubspot-script" charset="utf-8" type="text/javascript" data-src="/dist/js/hubspot.js"></script>
+
+<!-- Google Tag Manager -->
+ <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-TXGLXKS');
+ </script>
+<!-- End Google Tag Manager -->
+
+<!-- Hotjar Tracking Code for Code Climate -->
+<script>
+  (function(h,o,t,j,a,r){
+    h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+    h._hjSettings={hjid:3133814,hjsv:6};
+    a=o.getElementsByTagName('head')[0];
+    r=o.createElement('script');r.async=1;
+    r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+    a.appendChild(r);
+  })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+</script>
+
+<style>
+  [x-cloak] {
+    display: none
+  }
+</style>
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/safari-pinned-tab.svg"" color="#161928">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="theme-color" content="#ffffff">
+
+          <script type="module">!function(){const e=document.createElement("link").relList;if(!(e&&e.supports&&e.supports("modulepreload"))){for(const e of document.querySelectorAll('link[rel="modulepreload"]'))r(e);new MutationObserver((e=>{for(const o of e)if("childList"===o.type)for(const e of o.addedNodes)if("LINK"===e.tagName&&"modulepreload"===e.rel)r(e);else if(e.querySelectorAll)for(const o of e.querySelectorAll("link[rel=modulepreload]"))r(o)})).observe(document,{childList:!0,subtree:!0})}function r(e){if(e.ep)return;e.ep=!0;const r=function(e){const r={};return e.integrity&&(r.integrity=e.integrity),e.referrerpolicy&&(r.referrerPolicy=e.referrerpolicy),"use-credentials"===e.crossorigin?r.credentials="include":"anonymous"===e.crossorigin?r.credentials="omit":r.credentials="same-origin",r}(e);fetch(e.href,r)}}();</script>
+<script type="module" src="/dist/assets/app-eb56d51a.js" crossorigin onload="e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/js/app.js&#039;}});document.dispatchEvent(e);"></script>
+<link href="/dist/assets/app-7abada27.css" rel="stylesheet">
+      <title>Code Climate | Code Climate</title>
+<script>dataLayer = [];
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-TXGLXKS');
+</script><meta name="generator" content="SEOmatic">
+<meta name="keywords" content="Code Climate,codeclimate, engineering platform management">
+<meta name="description" content="Velocity synthesizes the data from your repos to give you full visibility and empowers your team for continuous delivery.">
+<meta name="referrer" content="no-referrer-when-downgrade">
+<meta name="robots" content="none">
+<meta content="en_US" property="og:locale">
+<meta content="Code Climate" property="og:site_name">
+<meta content="website" property="og:type">
+<meta content="Code Climate" property="og:title">
+<meta content="Velocity synthesizes the data from your repos to give you full visibility and empowers your team for continuous delivery." property="og:description">
+<meta content="https://du10j5vfk4mbr.cloudfront.net/_1200x630_crop_center-center_82_none/seo-general-ogimage.png?mtime=1684273589" property="og:image">
+<meta content="1200" property="og:image:width">
+<meta content="630" property="og:image:height">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@codeclimate">
+<meta name="twitter:creator" content="@codeclimate">
+<meta name="twitter:title" content="Code Climate">
+<meta name="twitter:description" content="Velocity synthesizes the data from your repos to give you full visibility and empowers your team for continuous delivery.">
+<meta name="twitter:image" content="https://du10j5vfk4mbr.cloudfront.net/_800x800_crop_center-center_82_none/seo-general-ogimage.png?mtime=1684273589">
+<meta name="twitter:image:width" content="800">
+<meta name="twitter:image:height" content="800">
+<link href="https://codeclimate.com" rel="home">
+<link type="text/plain" href="https://codeclimate.com/humans.txt" rel="author"></head>
+
+  
+  <body class="relative antialiased" x-data="codeClimate()"><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TXGLXKS"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+  
+  <script>(function (c, p, d, u, id, i) {
+        id = ''; // Optional Custom ID for user in your system
+        u = 'https://tracking.g2crowd.com/attribution_tracking/conversions/' + c + '.js?p=' + encodeURI(p) + '&e=' + id;
+        i = document.createElement('script');
+        i.type = 'application/javascript';
+        i.async = true;
+        i.src = u;
+        d.getElementsByTagName('head')[0].appendChild(i);
+      }("1009854", document.location.href, document));</script>
+
+      <a
+  class="fixed left-4 top-4 px-3 py-4 z-[1000] transition-transform -translate-y-20 focus:translate-y-0 primary-btn-large primary-button-filled-purple-900"
+  x-cloak
+  href="#content"
+>
+  Skip to content
+</a>
+
+      
+<header class=""
+        x-cloak
+        x-ref="header"
+        :class="navHovered != 0 || mobileMenuOpen ? 'nav-hovered' : 'nav-not-hovered'">
+      <div class="py-2 md:py-[10px] bg-primary-purple-500 relative"
+     id="header-banner"
+     x-cloak
+     x-data="banner('banner-58216')"
+     x-show="showBanner"
+>
+  <div class="container pr-7 md:pr-0">
+    <div class="max-w-content-tighter mx-auto">
+      <a         target="_blank"
+        href="/blog/engineering-insights-strategy"
+       class="group">
+      <div class="text-left md:text-center leading-none inline md:flex flex-row items-center justify-center">
+                  <span class="banner-tag bg-accent-blue-200 text-neutral-900 text-center inline md:block">On-Demand Webinar</span>
+                          <div class="body-xs text-white text-left md:text-center align-middle inline md:block ml-2">
+            How to Build a Software Engineering Insights Strategy for Enterprise Orgs.
+          </div>
+                          <span
+            class="ml-3 align-middle underline underline-offset-2 text-white body-xs-medium transition-normal transition-colors group-hover:text-blue-200">Watch Now</span>
+              </div>
+    </a>
+      <button class="absolute top-1 right-1 lg:bottom-auto lg:top-[50%] transform lg:translate-y-[-50%] lg:right-3"
+              x-on:click="closeBanner('banner-58216')"
+              type="button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Close</title>
+  <path
+    d="M6.22499 18.825L5.17499 17.775L10.95 12L5.17499 6.22505L6.22499 5.17505L12 10.95L17.775 5.17505L18.825 6.22505L13.05 12L18.825 17.775L17.775 18.825L12 13.05L6.22499 18.825Z"
+    fill="white"/>
+</svg>
+        <span class="sr-only">Close banner</span>
+      </button>
+    </div>
+  </div>
+</div>
+    <div class="h-[68px] relative">
+    <div class="header-container h-full">
+      <div class="max-w-content-looser mx-auto h-full flex flex-row items-center justify-between">
+        
+<a href="/"    class="header-main-logo ">
+  <svg xmlns="http://www.w3.org/2000/svg" width="200" height="22" viewBox="0 0 200 22" fill="none">
+  <title>Return to Code Climate homepage.</title>
+  <path
+    d="M57.3514 4.46436C59.5284 4.46436 61.018 5.15186 62.393 6.41227C62.6222 6.64144 62.6222 6.75602 62.393 6.87061L60.7889 8.58936C60.6743 8.70394 60.4451 8.70394 60.3305 8.58936C59.5284 7.90186 58.4972 7.44352 57.5805 7.44352C55.1743 7.44352 53.4555 9.39144 53.4555 11.7977C53.4555 14.2039 55.1743 16.1519 57.6951 16.1519C58.7264 16.1519 59.7576 15.8081 60.4451 15.1206C60.5597 15.006 60.7889 15.006 60.9034 15.1206L62.5076 16.8394C62.6222 16.9539 62.6222 17.1831 62.5076 17.2977C61.1326 18.6727 59.1847 19.3602 57.3514 19.3602C53.1118 19.3602 49.5597 16.0373 49.5597 11.6831C49.5597 7.32894 53.2264 4.46436 57.3514 4.46436Z"
+    fill="#161928"/>
+  <path
+    d="M71.6743 16.4956C74.0805 16.4956 75.9139 14.5477 75.9139 12.256C75.9139 9.84977 73.9659 8.01644 71.6743 8.01644C69.3826 8.01644 67.4347 9.96436 67.4347 12.256C67.4347 14.5477 69.3826 16.4956 71.6743 16.4956ZM71.6743 4.46436C75.9139 4.46436 79.4659 7.90186 79.4659 12.256C79.4659 16.6102 76.143 19.9331 71.6743 19.9331C67.2055 19.9331 63.9972 16.6102 63.9972 12.256C63.9972 7.90186 67.4347 4.46436 71.6743 4.46436Z"
+    fill="#161928"/>
+  <path
+    d="M87.2576 16.4956C89.6638 16.4956 91.3826 14.6623 91.3826 12.1414C91.3826 9.73519 89.6638 7.78727 87.2576 7.78727H85.1951V16.2664L87.2576 16.4956ZM81.7576 5.15186C81.7576 4.92269 81.9867 4.80811 82.1013 4.80811H87.2576C91.3826 4.80811 94.7055 8.13102 94.7055 12.1414C94.7055 16.2664 91.3826 19.5894 87.2576 19.5894H82.1013C81.8722 19.5894 81.7576 19.3602 81.7576 19.2456V5.15186Z"
+    fill="#161928"/>
+  <path
+    d="M97.4555 5.15186C97.4555 4.92269 97.6847 4.80811 97.7993 4.80811H106.622C106.851 4.80811 106.966 5.03727 106.966 5.15186V7.44352C106.966 7.67269 106.737 7.78727 106.622 7.78727H100.778V10.5373H105.591C105.82 10.5373 105.935 10.7664 105.935 10.881V13.1727C105.935 13.4019 105.706 13.5164 105.591 13.5164H100.778V16.381H106.622C106.851 16.381 106.966 16.6102 106.966 16.7248V19.0164C106.966 19.2456 106.737 19.3602 106.622 19.3602H97.7993C97.5701 19.3602 97.4555 19.131 97.4555 19.0164V5.15186Z"
+    fill="#161928"/>
+  <path
+    d="M121.174 4.46436C123.351 4.46436 124.841 5.15186 126.216 6.41227C126.445 6.64144 126.445 6.75602 126.216 6.87061L124.612 8.58936C124.497 8.70394 124.268 8.70394 124.153 8.58936C123.351 7.90186 122.32 7.44352 121.403 7.44352C118.997 7.44352 117.278 9.39144 117.278 11.7977C117.278 14.2039 118.883 16.2664 121.403 16.2664C122.435 16.2664 123.466 15.9227 124.153 15.2352C124.268 15.1206 124.497 15.1206 124.612 15.2352L126.216 16.9539C126.33 17.0685 126.33 17.2977 126.216 17.4123C124.841 18.7873 122.893 19.4748 121.06 19.4748C116.82 19.4748 113.268 16.1519 113.268 11.7977C113.268 7.44352 116.935 4.46436 121.174 4.46436Z"
+    fill="#161928"/>
+  <path
+    d="M128.966 5.15186C128.966 4.92269 129.195 4.80811 129.424 4.80811H131.945C132.174 4.80811 132.289 5.03727 132.289 5.15186V16.6102H137.331C137.56 16.6102 137.674 16.8394 137.674 16.9539V19.131C137.674 19.3602 137.445 19.4748 137.331 19.4748H129.31C129.081 19.4748 128.966 19.2456 128.966 19.131V5.15186Z"
+    fill="#161928"/>
+  <path
+    d="M139.851 5.15186C139.851 4.92269 140.08 4.80811 140.195 4.80811H142.83C143.06 4.80811 143.174 5.03727 143.174 5.15186V19.2456C143.174 19.4748 142.945 19.5894 142.83 19.5894H140.195C139.966 19.5894 139.851 19.3602 139.851 19.2456V5.15186Z"
+    fill="#161928"/>
+  <path
+    d="M148.216 4.80811C148.216 4.57894 148.445 4.46436 148.56 4.46436H148.903C149.018 4.46436 149.247 4.57894 149.247 4.69352L154.06 13.9748L158.872 4.69352C158.987 4.57894 159.101 4.46436 159.216 4.46436H159.56C159.789 4.46436 159.903 4.57894 159.903 4.80811L162.31 19.131C162.31 19.4748 162.195 19.4748 161.966 19.4748H159.445C159.216 19.4748 159.101 19.2456 159.101 19.131L158.07 12.5998L154.518 19.5894C154.403 19.7039 154.289 19.8185 154.174 19.8185H153.83C153.716 19.8185 153.487 19.7039 153.487 19.5894L149.935 12.5998L148.903 19.2456C148.903 19.4748 148.674 19.5894 148.56 19.5894H146.039C145.81 19.5894 145.695 19.3602 145.695 19.2456L148.216 4.80811Z"
+    fill="#161928"/>
+  <path
+    d="M172.278 14.4328L170.674 10.9953L169.07 14.4328H172.278ZM163.456 19.0161L170.101 4.80778C170.216 4.6932 170.331 4.57861 170.445 4.57861H170.674C170.789 4.57861 171.018 4.6932 171.018 4.80778L177.664 19.1307C177.778 19.4744 177.664 19.589 177.32 19.589H174.914C174.57 19.589 174.456 19.4744 174.112 19.1307L173.31 17.5265H167.695L166.893 19.2453C166.778 19.4744 166.549 19.7036 166.091 19.7036H163.685C163.456 19.589 163.456 19.3599 163.456 19.0161Z"
+    fill="#161928"/>
+  <path
+    d="M180.643 7.78727H177.549C177.32 7.78727 177.206 7.55811 177.206 7.44352V5.15186C177.206 4.92269 177.435 4.80811 177.549 4.80811H186.945C187.174 4.80811 187.289 5.03727 187.289 5.15186V7.44352C187.289 7.67269 187.06 7.78727 186.945 7.78727H183.851V19.131C183.851 19.3602 183.622 19.4748 183.508 19.4748H180.987C180.758 19.4748 180.643 19.2456 180.643 19.131V7.78727Z"
+    fill="#161928"/>
+  <path
+    d="M189.581 5.15186C189.581 4.92269 189.81 4.80811 189.924 4.80811H198.747C198.976 4.80811 199.091 5.03727 199.091 5.15186V7.44352C199.091 7.67269 198.862 7.78727 198.747 7.78727H192.903V10.5373H197.716C197.945 10.5373 198.06 10.7664 198.06 10.881V13.1727C198.06 13.4019 197.831 13.5164 197.716 13.5164H192.903V16.381H198.747C198.976 16.381 199.091 16.6102 199.091 16.7248V19.0164C199.091 19.2456 198.862 19.3602 198.747 19.3602H189.924C189.695 19.3602 189.581 19.131 189.581 19.0164V5.15186Z"
+    fill="#161928"/>
+  <path
+    d="M27.4451 -0.00439453L19.8826 7.55811L24.3513 12.0269L27.4451 8.93311L36.1534 17.6414L40.6222 13.0581L27.4451 -0.00439453Z"
+    fill="#161928"/>
+  <path
+    d="M18.5076 8.85938L14.0388 4.39062L2.46592 15.7344L0.861755 17.6823L5.3305 22.0365L7.04926 20.3177L12.7784 14.474L14.0388 13.4427L18.5076 17.9115L22.7472 22.0365L27.2159 17.6823L22.9763 13.4427L18.5076 8.85938Z"
+    fill="#161928"/>
+</svg>
+</a>
+        
+<nav class="hidden xl:block h-full"
+     x-ref="megamenu"
+     role='navigation'
+     aria-label="Primary"
+     x-on:mouseover.away="navHovered = 0"
+>
+  <ul class="flex flex-row items-center h-full xl:gap-8 2xl:gap-10">
+                <li x-on:mouseover="navHovered = 1"
+          class="main-nav-wrapper h-full border-b-2 border-transparent transition-colors ">
+                  <span class="body-xs h-full flex items-center cursor-default">Framework</span>
+                          
+<section
+  class="z-[90] absolute border-t border-t-neutral-100 top-full w-screen left-0 right-0 bg-white mega-menu-shadow"
+  x-show="navHovered === 1"
+  x-cloak
+  x-transition:enter="transition-normal"
+  x-transition:enter-start="opacity-0"
+  x-transition:enter-end="opacity-100"
+>
+  <div class="max-w-content mx-auto pt-14 pb-16">
+    <div class="flex flex-row gap-10 2xl:gap-12">
+      <ul class="grid grid-cols-3 gap-4 max-w-[75%]">
+                  
+<li class="featured-card">
+  <a target="" href="/sei/transformational-software-engineering" class="h-full pt-8 pb-5 px-6 block">
+    <div class="flex flex-col h-full">
+              
+  
+      
+    <img class="lazyload" width="40" height="40" alt="Checkbox" data-src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/checkbox.svg">
+  
+
+            <h4 class="font-medium text-[17px] leading-6 text-neutral-900 mt-6 flex-grow">
+        What We Know
+      </h4>
+      <p class="line-clamp-3 mt-[10px] body-xs text-neutral-700">
+        Our key takeaways from partnering with engineering leaders at enterprises.
+      </p>
+      <span class="inline-flex mt-8 flex-row body-xs-medium items-center gap-2 arrow-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="18" height="18" rx="9" fill="#5F5AFA"/>
+  <path d="M7.32901 12.75L6.75 12.1962L10.092 9L6.75 5.80376L7.32901 5.25L11.25 9L7.32901 12.75Z" fill="white"/>
+</svg>
+          Details
+      </span>
+    </div>
+  </a>
+</li>
+                  
+<li class="featured-card">
+  <a target="" href="/sei/how-we-ensure-success" class="h-full pt-8 pb-5 px-6 block">
+    <div class="flex flex-col h-full">
+              
+  
+      
+    <img class="lazyload" width="40" height="40" alt="Query" data-src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/query.svg">
+  
+
+            <h4 class="font-medium text-[17px] leading-6 text-neutral-900 mt-6 flex-grow">
+        How We Ensure Success
+      </h4>
+      <p class="line-clamp-3 mt-[10px] body-xs text-neutral-700">
+        Our unique and personalized approach to help you achieve your business goals.
+      </p>
+      <span class="inline-flex mt-8 flex-row body-xs-medium items-center gap-2 arrow-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="18" height="18" rx="9" fill="#5F5AFA"/>
+  <path d="M7.32901 12.75L6.75 12.1962L10.092 9L6.75 5.80376L7.32901 5.25L11.25 9L7.32901 12.75Z" fill="white"/>
+</svg>
+          Details
+      </span>
+    </div>
+  </a>
+</li>
+                  
+<li class="featured-card">
+  <a target="" href="/sei/software-engineering-intelligence-platform" class="h-full pt-8 pb-5 px-6 block">
+    <div class="flex flex-col h-full">
+              
+  
+      
+    <img class="lazyload" width="40" height="40" alt="Mesh" data-src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/mesh.svg">
+  
+
+            <h4 class="font-medium text-[17px] leading-6 text-neutral-900 mt-6 flex-grow">
+        Your Insights Platform
+      </h4>
+      <p class="line-clamp-3 mt-[10px] body-xs text-neutral-700">
+        Get to know your custom-designed engineering insights platform.
+      </p>
+      <span class="inline-flex mt-8 flex-row body-xs-medium items-center gap-2 arrow-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="18" height="18" rx="9" fill="#5F5AFA"/>
+  <path d="M7.32901 12.75L6.75 12.1962L10.092 9L6.75 5.80376L7.32901 5.25L11.25 9L7.32901 12.75Z" fill="white"/>
+</svg>
+          Details
+      </span>
+    </div>
+  </a>
+</li>
+              </ul>
+      <div>
+                  <span class="inline-block body-overline-small text-primary-purple-500 pb-6">
+            Advisory Services
+          </span>
+                <ul class="flex flex-col gap-5">
+                                                <li>
+                <a class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500"
+                   target="" href="/sei/executive-insights-program"
+                >
+                                      
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/user-group.svg" width="24" height="24" alt="User group">
+
+
+                                    Executive Insights Program
+                </a>
+              </li>
+                                                            <li>
+                <a class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500"
+                   target="" href="/sei/engineering-outcomes-program"
+                >
+                                      
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/spot.svg" width="24" height="24" alt="Spot">
+
+
+                                    Engineering Outcomes Program
+                </a>
+              </li>
+                                        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+              </li>
+                <li x-on:mouseover="navHovered = 2"
+          class="main-nav-wrapper h-full border-b-2 border-transparent transition-colors ">
+                  <span class="body-xs h-full flex items-center cursor-default">Solutions</span>
+                          
+<section
+  class="z-[90] absolute border-t border-t-neutral-100 top-full w-screen left-0 right-0 bg-white mega-menu-shadow"
+  x-show="navHovered === 2"
+  x-cloak
+  x-transition:enter="transition-normal"
+  x-transition:enter-start="opacity-0"
+  x-transition:enter-end="opacity-100"
+>
+  <div class="max-w-content mx-auto pt-14 pb-16">
+    <div class="flex flex-row gap-12">
+      <div class="w-full max-w-1/4">
+                  <span class="inline-block body-overline-small text-primary-purple-500 pb-6">
+            By Role
+          </span>
+                <ul class="flex flex-col gap-4">
+                                                <li>
+                <a target="" href="/sei/engineering-executives"
+                   class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500">
+                                      
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/performance.svg" width="24" height="24" alt="Performance">
+
+
+                                    Engineering Executives
+                </a>
+              </li>
+                                                            <li>
+                <a target="" href="/sei/engineering-management"
+                   class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500">
+                                      
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/team.svg" width="24" height="24" alt="Team">
+
+
+                                    Engineering Management
+                </a>
+              </li>
+                              </ul>
+      </div>
+      <div class="w-full max-w-1/4">
+                  <span class="inline-block body-overline-small text-primary-purple-500 pb-6">
+            By Use Case
+          </span>
+                <ul class="flex flex-col gap-4">
+                                                <li>
+                <a target="" href="/sei/copilot-impact"
+                   class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500">
+                                      
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/venn-diagram.svg" width="24" height="24" alt="Venn diagram">
+
+
+                                    GenAI Impact
+                </a>
+              </li>
+                                                            <li>
+                <a target="" href="/sei/business-outcomes"
+                   class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500">
+                                      
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/briefcase.svg" width="24" height="24" alt="Briefcase">
+
+
+                                    Business Outcomes
+                </a>
+              </li>
+                                                            <li>
+                <a target="" href="/sei/developer-experience-survey"
+                   class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500">
+                                      
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/document.svg" width="24" height="24" alt="Document">
+
+
+                                    DevEx Survey
+                </a>
+              </li>
+                              </ul>
+      </div>
+            <div class="w-full max-w-1/2">
+        <div class="flex flex-row">
+                      <div class="w-full">
+              
+
+
+
+
+
+
+<picture>
+                
+          <img data-src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2716%27%20height%3D%279%27%20style%3D%27background%3Atransparent%27%2F%3E"
+           data-srcset="https://codeclimate.imgix.net/Homepage_Solutions.png?auto=compress%2Cformat&amp;fit=clip&amp;fm=webp&amp;q=80&amp;w=280&amp;s=84a77512c1232e0450c9c1cbbca71c1a 280w"
+           sizes="100vw"
+           class="lazyload w-full h-full"
+           alt="Homepage Solutions"
+      >
+      </picture>
+            </div>
+                                <div class="bg-neutral-50 pl-8 py-8 pr-12">
+                              <a target="_blank" href="/blog/mapping-engineering-goals-to-business-outcomes"
+                   class="text-btn-large text-button-chevron-neutral-900">
+                  Maximize Business Impact
+                </a>
+                                            <p class="text-neutral-700 body-xs pt-4 line-clamp-3">
+                  Leaders need to map engineering work to business outcomes. Here&#039;s how they can get started.
+                </p>
+                          </div>
+                  </div>
+      </div>
+    </div>
+  </div>
+</section>
+              </li>
+                <li x-on:mouseover="navHovered = 3"
+          class="main-nav-wrapper h-full border-b-2 border-transparent transition-colors relative">
+                  <span class="body-xs h-full flex items-center cursor-default">Resources</span>
+                          
+<section
+  class="z-[90] absolute border-t border-t-neutral-100 top-[calc(100%+2px)] -left-[35px] w-[300px] bg-white mega-menu-shadow"
+  x-show="navHovered === 3"
+  x-cloak
+  x-transition:enter="transition-normal"
+  x-transition:enter-start="opacity-0"
+  x-transition:enter-end="opacity-100"
+>
+  <div class="py-10 px-8">
+          <span class="inline-block body-overline-small text-primary-purple-500 pb-6">
+        Resources
+      </span>
+        <ul class="flex flex-col gap-5">
+                                <li>
+            <a class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500"
+              target="" href="/blog"
+            >
+                              
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/lines.svg" width="24" height="24" alt="Lines">
+
+
+                            Blog
+            </a>
+          </li>
+                                        <li>
+            <a class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500"
+              target="" href="https://codeclimate.com/blog/search?query=ebook"
+            >
+                              
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/guide-book.svg" width="24" height="24" alt="Guide book">
+
+
+                            eBooks
+            </a>
+          </li>
+                                        <li>
+            <a class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500"
+              target="" href="/case-studies"
+            >
+                              
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/award.svg" width="24" height="24" alt="Award">
+
+
+                            Case Studies
+            </a>
+          </li>
+                                        <li>
+            <a class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500"
+              target="" href="/sei/support"
+            >
+                              
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/send-purple.svg" width="24" height="24" alt="Send purple">
+
+
+                            Guides
+            </a>
+          </li>
+                  </ul>
+  </div>
+</section>
+              </li>
+                <li x-on:mouseover="navHovered = 4"
+          class="main-nav-wrapper h-full border-b-2 border-transparent transition-colors relative">
+                  <span class="body-xs h-full flex items-center cursor-default">Company</span>
+                          
+<section
+  class="z-[90] absolute border-t border-t-neutral-100 top-[calc(100%+2px)] -left-[250px] w-[600px] bg-white mega-menu-shadow"
+  x-show="navHovered === 4"
+  x-cloak
+  x-transition:enter="transition-normal"
+  x-transition:enter-start="opacity-0"
+  x-transition:enter-end="opacity-100"
+>
+  <div class="flex flex-row gap-12">
+    <div class="py-10 px-8">
+              <span class="inline-block body-overline-small text-primary-purple-500 pb-6">
+        Meet Us
+      </span>
+            <ul class="flex flex-col gap-5">
+                                        <li>
+              <a class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500"
+                target="" href="/company"
+              >
+                                  
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/user-group.svg" width="24" height="24" alt="User group">
+
+
+                                About Code Climate
+              </a>
+            </li>
+                                                  <li>
+              <a class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500"
+                target="" href="/company/careers"
+              >
+                                  
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/code-climate-small.svg" width="24" height="24" alt="Code climate small">
+
+
+                                Code Climate Careers
+              </a>
+            </li>
+                        </ul>
+    </div>
+    <div class="py-10 px-8">
+              <span class="inline-block body-overline-small text-primary-purple-500 pb-6">
+        Get in Touch
+      </span>
+            <ul class="flex flex-col gap-5">
+                                        <li>
+              <a
+                target="" href="/sei/request-consultation"
+                class="inline-flex gap-3 items-center icon-size-lg body-xs-medium hover:text-primary-purple-500">
+                                  
+  
+  
+  <img src="https://d2s3vrs6w5rpjb.cloudfront.net/Basic/Purple/dashboard.svg" width="24" height="24" alt="Dashboard">
+
+
+                                Request a Consultation
+              </a>
+            </li>
+                        </ul>
+    </div>
+  </div>
+</section>
+              </li>
+          </ul>
+</nav>
+        <div class="h-full flex-row items-center gap-5 hidden xl:flex">
+          <div class="h-full flex flex-row items-center">
+                          <div class="flex justify-center h-full">
+  <div class="relative h-full"
+       x-data="{
+            open: false,
+            toggle() {
+                if (this.open) {
+                    return this.close()
+                }
+
+                this.$refs.button.focus()
+
+                this.open = true
+            },
+            close(focusAfter) {
+                if (! this.open) return
+
+                this.open = false
+
+                focusAfter && focusAfter.focus()
+            }
+        }"
+       x-on:keydown.escape.prevent.stop="close($refs.button)"
+       x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
+       x-id="['dropdown-button']"
+  >
+    <!-- Button -->
+    <button
+      x-ref="button"
+      x-on:click="toggle()"
+      :aria-expanded="open"
+      :aria-controls="$id('dropdown-button')"
+      type="button"
+      class="flex items-center h-full gap-2 body-xs-medium login-link px-5"
+    >Sign In <svg width="21" height="12" viewBox="0 0 21 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_1879_81600)">
+<path d="M20.3331 2.37571L18.9485 1.01538L10.6165 9.34736L2.28452 1.01538L0.899902 2.3757L10.6165 12.0923L20.3331 2.37571Z" fill="#161928"/>
+</g>
+<defs>
+<clipPath id="clip0_1879_81600">
+<rect width="12" height="20.3077" fill="white" transform="matrix(-4.37114e-08 1 1 4.37114e-08 0 0)"/>
+</clipPath>
+</defs>
+</svg>
+    </button>
+
+    <div class="absolute left-0 right-0 top-full rounded-md bg-white shadow-md"
+         x-ref="panel"
+         x-show="open"
+         x-transition.origin.top.left
+         x-on:click.outside="close($refs.button)"
+         :id="$id('dropdown-button')"
+         style="display: none;"
+    >
+                                <a target="_blank" href="https://velocity.codeclimate.com/session/new"
+            class="transition-normal rounded-b-md hover:bg-primary-green-0 hover:text-primary-green-600 rounded-t-md hover:bg-primary-purple-100 hover:text-primary-purple-700 text-neutral-900 flex flex-row items-center gap-2 w-full px-4 py-2.5 text-left body-xs disabled:text-neutral-500">
+            Platform
+                          <span class="icon-size-xs">
+                <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <path d="M4.5 21C4.1 21 3.75 20.85 3.45 20.55C3.15 20.25 3 19.9 3 19.5V4.5C3 4.1 3.15 3.75 3.45 3.45C3.75 3.15 4.1 3 4.5 3H10.725C10.9417 3 11.1208 3.07083 11.2625 3.2125C11.4042 3.35417 11.475 3.53333 11.475 3.75C11.475 3.96667 11.4042 4.14583 11.2625 4.2875C11.1208 4.42917 10.9417 4.5 10.725 4.5H4.5V19.5H19.5V13.275C19.5 13.0583 19.5708 12.8792 19.7125 12.7375C19.8542 12.5958 20.0333 12.525 20.25 12.525C20.4667 12.525 20.6458 12.5958 20.7875 12.7375C20.9292 12.8792 21 13.0583 21 13.275V19.5C21 19.9 20.85 20.25 20.55 20.55C20.25 20.85 19.9 21 19.5 21H4.5ZM9.025 14.975C8.89167 14.825 8.82083 14.65 8.8125 14.45C8.80417 14.25 8.875 14.075 9.025 13.925L18.45 4.5H13.725C13.5083 4.5 13.3292 4.42917 13.1875 4.2875C13.0458 4.14583 12.975 3.96667 12.975 3.75C12.975 3.53333 13.0458 3.35417 13.1875 3.2125C13.3292 3.07083 13.5083 3 13.725 3H20.25C20.4667 3 20.6458 3.07083 20.7875 3.2125C20.9292 3.35417 21 3.53333 21 3.75V10.275C21 10.4917 20.9292 10.6708 20.7875 10.8125C20.6458 10.9542 20.4667 11.025 20.25 11.025C20.0333 11.025 19.8542 10.9542 19.7125 10.8125C19.5708 10.6708 19.5 10.4917 19.5 10.275V5.575L10.075 15C9.94167 15.1333 9.77083 15.2 9.5625 15.2C9.35417 15.2 9.175 15.125 9.025 14.975Z" fill="#161928"/>
+</svg>
+              </span>
+                      </a>
+                  </div>
+  </div>
+</div>
+                                      <a target="" href="/sei/request-consultation"
+                class="primary-btn-large demo-button">
+                Request a consultation
+              </a>
+                      </div>
+                                              <div class="w-one h-[75%] border-l post-header-link-divider"></div>
+            <a target="" href="/quality"
+              class="max-w-[125px] body-xs-medium flex flex-row items-center gap-2 group h-full post-header-link">
+              Quality by Code Climate
+              <span class="w-[18px] transition-normal transition-transform transform group-hover:translate-x-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none">
+  <rect width="18" height="18" fill="#43F2A7" rx="9"/>
+  <mask id="a" width="18" height="18" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha">
+    <path fill="#D9D9D9" d="M0 0h18v18H0z"/>
+  </mask>
+  <g mask="url(#a)">
+    <path fill="#161928" d="m7.329 12.75-.579-.554L10.092 9 6.75 5.804l.579-.554L11.25 9l-3.921 3.75Z"/>
+  </g>
+</svg>
+              </span>
+            </a>
+                  </div>
+        <button class="mobile-menu-button xl:hidden"
+                type="button"
+                x-on:click="mobileMenuOpen = !mobileMenuOpen"
+                x-bind:aria-expanded="mobileMenuOpen">
+          <div x-show="!mobileMenuOpen"
+               x-transition:enter="transition-normal"
+               x-transition:enter-start="opacity-0"
+               x-transition:enter-end="opacity-100">
+            <svg xmlns="http://www.w3.org/2000/svg" width="42" height="18" viewBox="0 0 42 18" fill="none">
+  <rect width="42" height="2" fill="#1C1C1F"/>
+  <rect y="8" width="34" height="2" fill="#1C1C1F"/>
+  <rect y="16" width="26" height="2" fill="#1C1C1F"/>
+</svg>
+          </div>
+          <span class="flex flex-row gap-1 body-xs text-neutral-900"
+                x-show="mobileMenuOpen"
+                x-transition:enter="transition-normal"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100">
+            Close
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M6.22499 18.825L5.17499 17.775L10.95 12L5.17499 6.22505L6.22499 5.17505L12 10.95L17.775 5.17505L18.825 6.22505L13.05 12L18.825 17.775L17.775 18.825L12 13.05L6.22499 18.825Z"
+    fill="#161928"/>
+</svg>
+          </span>
+          <span class="sr-only"
+                x-text="!mobileMenuOpen ? 'Open Menu' : 'Close Menu'"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+  
+  <main>
+    <section id="hero">
+      
+          </section>
+    <div id="content">
+          <section x-data="heroPadding()"
+         class="from-neutral-50 to-white bg-gradient-to-b relative">
+  <div class="flex flex-col justify-center bg-error-page-motif bg-no-repeat bg-offset-error">
+    <div class="container py-20">
+      <div class="max-w-content mx-auto h-full flex flex-col gap-10 md:gap-14 lg:gap-24">
+        <div class="w-full">
+                      <div class="body-overline text-primary-purple-500 mb-2 md:mb-4">
+              404 Error
+            </div>
+                                <h1 class="h1 text-neutral-900 xl:max-w-[650px] mb-6 md:mb-8 lg:mb-10">
+              Oops, this page does not exist
+            </h1>
+                                <p class="text-neutral-700 max-w-[550px]  mb-6 md:mb-8 lg:mb-10">
+              It seems the page you were looking for was either moved or doesn&#039;t exist.
+            </p>
+                                <div class="mb-6 md:mb-8 lg:mb-10">
+              <a target="" href="/"
+                class="primary-btn-large has-arrow primary-button-filled-purple-500">
+                Return home
+              </a>
+            </div>
+                            </div>
+      </div>
+    </div>
+  </div>
+</section>
+    </div>
+    <section id="footer-cta">
+      
+    </section>
+  </main>
+
+      
+
+<footer id="site-footer" class="bg-neutral-50 pt-8 md:pt-12 lg:pt-16 xl:pt-20">
+  <div class="container">
+    <div class="max-w-content mx-auto">
+      <section class="py-5 lg:py-8 xl:py-12 flex flex-col md:flex-row gap-8 md:gap-20 lg:gap-24 xl:gap-28">
+        <div>
+          
+<a href="/"    class="footer-main-logo ">
+  <svg xmlns="http://www.w3.org/2000/svg" width="200" height="22" viewBox="0 0 200 22" fill="none">
+  <title>Return to Code Climate homepage.</title>
+  <path
+    d="M57.3514 4.46436C59.5284 4.46436 61.018 5.15186 62.393 6.41227C62.6222 6.64144 62.6222 6.75602 62.393 6.87061L60.7889 8.58936C60.6743 8.70394 60.4451 8.70394 60.3305 8.58936C59.5284 7.90186 58.4972 7.44352 57.5805 7.44352C55.1743 7.44352 53.4555 9.39144 53.4555 11.7977C53.4555 14.2039 55.1743 16.1519 57.6951 16.1519C58.7264 16.1519 59.7576 15.8081 60.4451 15.1206C60.5597 15.006 60.7889 15.006 60.9034 15.1206L62.5076 16.8394C62.6222 16.9539 62.6222 17.1831 62.5076 17.2977C61.1326 18.6727 59.1847 19.3602 57.3514 19.3602C53.1118 19.3602 49.5597 16.0373 49.5597 11.6831C49.5597 7.32894 53.2264 4.46436 57.3514 4.46436Z"
+    fill="#161928"/>
+  <path
+    d="M71.6743 16.4956C74.0805 16.4956 75.9139 14.5477 75.9139 12.256C75.9139 9.84977 73.9659 8.01644 71.6743 8.01644C69.3826 8.01644 67.4347 9.96436 67.4347 12.256C67.4347 14.5477 69.3826 16.4956 71.6743 16.4956ZM71.6743 4.46436C75.9139 4.46436 79.4659 7.90186 79.4659 12.256C79.4659 16.6102 76.143 19.9331 71.6743 19.9331C67.2055 19.9331 63.9972 16.6102 63.9972 12.256C63.9972 7.90186 67.4347 4.46436 71.6743 4.46436Z"
+    fill="#161928"/>
+  <path
+    d="M87.2576 16.4956C89.6638 16.4956 91.3826 14.6623 91.3826 12.1414C91.3826 9.73519 89.6638 7.78727 87.2576 7.78727H85.1951V16.2664L87.2576 16.4956ZM81.7576 5.15186C81.7576 4.92269 81.9867 4.80811 82.1013 4.80811H87.2576C91.3826 4.80811 94.7055 8.13102 94.7055 12.1414C94.7055 16.2664 91.3826 19.5894 87.2576 19.5894H82.1013C81.8722 19.5894 81.7576 19.3602 81.7576 19.2456V5.15186Z"
+    fill="#161928"/>
+  <path
+    d="M97.4555 5.15186C97.4555 4.92269 97.6847 4.80811 97.7993 4.80811H106.622C106.851 4.80811 106.966 5.03727 106.966 5.15186V7.44352C106.966 7.67269 106.737 7.78727 106.622 7.78727H100.778V10.5373H105.591C105.82 10.5373 105.935 10.7664 105.935 10.881V13.1727C105.935 13.4019 105.706 13.5164 105.591 13.5164H100.778V16.381H106.622C106.851 16.381 106.966 16.6102 106.966 16.7248V19.0164C106.966 19.2456 106.737 19.3602 106.622 19.3602H97.7993C97.5701 19.3602 97.4555 19.131 97.4555 19.0164V5.15186Z"
+    fill="#161928"/>
+  <path
+    d="M121.174 4.46436C123.351 4.46436 124.841 5.15186 126.216 6.41227C126.445 6.64144 126.445 6.75602 126.216 6.87061L124.612 8.58936C124.497 8.70394 124.268 8.70394 124.153 8.58936C123.351 7.90186 122.32 7.44352 121.403 7.44352C118.997 7.44352 117.278 9.39144 117.278 11.7977C117.278 14.2039 118.883 16.2664 121.403 16.2664C122.435 16.2664 123.466 15.9227 124.153 15.2352C124.268 15.1206 124.497 15.1206 124.612 15.2352L126.216 16.9539C126.33 17.0685 126.33 17.2977 126.216 17.4123C124.841 18.7873 122.893 19.4748 121.06 19.4748C116.82 19.4748 113.268 16.1519 113.268 11.7977C113.268 7.44352 116.935 4.46436 121.174 4.46436Z"
+    fill="#161928"/>
+  <path
+    d="M128.966 5.15186C128.966 4.92269 129.195 4.80811 129.424 4.80811H131.945C132.174 4.80811 132.289 5.03727 132.289 5.15186V16.6102H137.331C137.56 16.6102 137.674 16.8394 137.674 16.9539V19.131C137.674 19.3602 137.445 19.4748 137.331 19.4748H129.31C129.081 19.4748 128.966 19.2456 128.966 19.131V5.15186Z"
+    fill="#161928"/>
+  <path
+    d="M139.851 5.15186C139.851 4.92269 140.08 4.80811 140.195 4.80811H142.83C143.06 4.80811 143.174 5.03727 143.174 5.15186V19.2456C143.174 19.4748 142.945 19.5894 142.83 19.5894H140.195C139.966 19.5894 139.851 19.3602 139.851 19.2456V5.15186Z"
+    fill="#161928"/>
+  <path
+    d="M148.216 4.80811C148.216 4.57894 148.445 4.46436 148.56 4.46436H148.903C149.018 4.46436 149.247 4.57894 149.247 4.69352L154.06 13.9748L158.872 4.69352C158.987 4.57894 159.101 4.46436 159.216 4.46436H159.56C159.789 4.46436 159.903 4.57894 159.903 4.80811L162.31 19.131C162.31 19.4748 162.195 19.4748 161.966 19.4748H159.445C159.216 19.4748 159.101 19.2456 159.101 19.131L158.07 12.5998L154.518 19.5894C154.403 19.7039 154.289 19.8185 154.174 19.8185H153.83C153.716 19.8185 153.487 19.7039 153.487 19.5894L149.935 12.5998L148.903 19.2456C148.903 19.4748 148.674 19.5894 148.56 19.5894H146.039C145.81 19.5894 145.695 19.3602 145.695 19.2456L148.216 4.80811Z"
+    fill="#161928"/>
+  <path
+    d="M172.278 14.4328L170.674 10.9953L169.07 14.4328H172.278ZM163.456 19.0161L170.101 4.80778C170.216 4.6932 170.331 4.57861 170.445 4.57861H170.674C170.789 4.57861 171.018 4.6932 171.018 4.80778L177.664 19.1307C177.778 19.4744 177.664 19.589 177.32 19.589H174.914C174.57 19.589 174.456 19.4744 174.112 19.1307L173.31 17.5265H167.695L166.893 19.2453C166.778 19.4744 166.549 19.7036 166.091 19.7036H163.685C163.456 19.589 163.456 19.3599 163.456 19.0161Z"
+    fill="#161928"/>
+  <path
+    d="M180.643 7.78727H177.549C177.32 7.78727 177.206 7.55811 177.206 7.44352V5.15186C177.206 4.92269 177.435 4.80811 177.549 4.80811H186.945C187.174 4.80811 187.289 5.03727 187.289 5.15186V7.44352C187.289 7.67269 187.06 7.78727 186.945 7.78727H183.851V19.131C183.851 19.3602 183.622 19.4748 183.508 19.4748H180.987C180.758 19.4748 180.643 19.2456 180.643 19.131V7.78727Z"
+    fill="#161928"/>
+  <path
+    d="M189.581 5.15186C189.581 4.92269 189.81 4.80811 189.924 4.80811H198.747C198.976 4.80811 199.091 5.03727 199.091 5.15186V7.44352C199.091 7.67269 198.862 7.78727 198.747 7.78727H192.903V10.5373H197.716C197.945 10.5373 198.06 10.7664 198.06 10.881V13.1727C198.06 13.4019 197.831 13.5164 197.716 13.5164H192.903V16.381H198.747C198.976 16.381 199.091 16.6102 199.091 16.7248V19.0164C199.091 19.2456 198.862 19.3602 198.747 19.3602H189.924C189.695 19.3602 189.581 19.131 189.581 19.0164V5.15186Z"
+    fill="#161928"/>
+  <path
+    d="M27.4451 -0.00439453L19.8826 7.55811L24.3513 12.0269L27.4451 8.93311L36.1534 17.6414L40.6222 13.0581L27.4451 -0.00439453Z"
+    fill="#161928"/>
+  <path
+    d="M18.5076 8.85938L14.0388 4.39062L2.46592 15.7344L0.861755 17.6823L5.3305 22.0365L7.04926 20.3177L12.7784 14.474L14.0388 13.4427L18.5076 17.9115L22.7472 22.0365L27.2159 17.6823L22.9763 13.4427L18.5076 8.85938Z"
+    fill="#161928"/>
+</svg>
+</a>
+          <div class="pt-4 md:pt-5 lg:pt-6 xl:pt-7 body-xs text-neutral-600">
+            © 2025 Code Climate
+          </div>
+        </div>
+        <nav class="w-full"
+             role='navigation'
+             aria-label="Footer">
+          <div class="flex flex-col md:flex-row md:justify-between gap-6 md:gap-8">
+            <ul class="grid grid-cols-2 gap-6 md:gap-8 xl:grid-cols-4">
+                              <li>
+                                      <span class="body-xs-medium mb-[18px] inline-block text-primary-purple-500">
+                    Framework
+                  </span>
+                                                        <ul class="flex flex-col gap-3">
+                                              <li>
+                                                      <a target="" href="/sei/transformational-software-engineering"
+                              class="footer-child-node">What We Know</a>
+                                                  </li>
+                                              <li>
+                                                      <a target="" href="/sei/how-we-ensure-success"
+                              class="footer-child-node">How We Ensure Success</a>
+                                                  </li>
+                                              <li>
+                                                      <a target="" href="/sei/software-engineering-intelligence-platform"
+                              class="footer-child-node">Your Insights Platform</a>
+                                                  </li>
+                                          </ul>
+                                  </li>
+                              <li>
+                                      <span class="body-xs-medium mb-[18px] inline-block text-primary-purple-500">
+                    By Use Case
+                  </span>
+                                                        <ul class="flex flex-col gap-3">
+                                              <li>
+                                                      <a target="" href="/sei/copilot-impact"
+                              class="footer-child-node">GenAI Impact</a>
+                                                  </li>
+                                              <li>
+                                                      <a target="" href="/sei/business-outcomes"
+                              class="footer-child-node">Business Outcomes</a>
+                                                  </li>
+                                              <li>
+                                                      <a target="" href="/sei/developer-experience-survey"
+                              class="footer-child-node">DevEx Survey</a>
+                                                  </li>
+                                          </ul>
+                                  </li>
+                              <li>
+                                      <span class="body-xs-medium mb-[18px] inline-block text-primary-purple-500">
+                    Resources
+                  </span>
+                                                        <ul class="flex flex-col gap-3">
+                                              <li>
+                                                      <a target="" href="/blog"
+                              class="footer-child-node">Blogs</a>
+                                                  </li>
+                                              <li>
+                                                      <a target="" href="/case-studies"
+                              class="footer-child-node">Case Studies</a>
+                                                  </li>
+                                              <li>
+                                                      <a target="" href="/blog/ebooks"
+                              class="footer-child-node">eBooks</a>
+                                                  </li>
+                                              <li>
+                                                      <a target="" href="/sei/support"
+                              class="footer-child-node">Guides</a>
+                                                  </li>
+                                          </ul>
+                                  </li>
+                              <li>
+                                      <span class="body-xs-medium mb-[18px] inline-block text-primary-purple-500">
+                    Company
+                  </span>
+                                                        <ul class="flex flex-col gap-3">
+                                              <li>
+                                                      <a target="" href="/company"
+                              class="footer-child-node">About Code Climate</a>
+                                                  </li>
+                                              <li>
+                                                      <a target="" href="/sei/request-consultation"
+                              class="footer-child-node">Request a consultation</a>
+                                                  </li>
+                                          </ul>
+                                  </li>
+                          </ul>
+                          <ul class="pt-8 border-t border-t-neutral-100 md:pt-0 md:pl-8 md:border-l md:border-t-0 lg:min-w-[175px]">
+                                  <li>
+                                          <span class="footer-parent-node-secondary">Quality by Code Climate</span>
+                                                              <ul class="flex flex-col gap-3">
+                                                  <li>
+                                                          <a target="" href="/quality"
+                                class="footer-child-node">Product Information</a>
+                                                      </li>
+                                                  <li>
+                                                          <a target="" href="/quality/support"
+                                class="footer-child-node">Support</a>
+                                                      </li>
+                                              </ul>
+                                      </li>
+                              </ul>
+                      </div>
+        </nav>
+      </section>
+      <section class="py-5 md:py-8 lg:py-10 xl:py-12 border-t border-t-neutral-100 flex gap-5 lg:gap-12 xl:gap-14 flex-col items-center justify-center md:flex-row md:justify-between">
+                <div class="w-full">
+                  </div>
+      </section>
+      <section
+        class="py-5 md:py-6 lg:py-7 border-t border-t-neutral-100 flex gap-5 flex-col items-center justify-center md:flex-row md:justify-between">
+                  <ul class="flex flex-row flex-wrap items-center gap-6 md:gap-7 lg:gap-8">
+                                          <li>
+                  <a target="" href="/privacy"
+                    class="post-footer-node">
+                    Privacy Policy
+                  </a>
+                </li>
+                                                        <li>
+                  <a target="" href="/terms"
+                    class="post-footer-node">
+                    Terms of Service
+                  </a>
+                </li>
+                                    </ul>
+                          <ul class="flex flex-row items-center gap-6">
+                                                                                    <li>
+                  <a href="https://www.linkedin.com/company/code-climate/"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     class="footer-social-icon icon-size-sm">
+                    <svg role="img" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <title>Find Code Climate on LinkedIn.</title>
+  <path
+    d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+</svg>
+                  </a>
+                </li>
+                                                                                                  <li>
+                  <a href="https://twitter.com/codeclimate"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     class="footer-social-icon icon-size-sm">
+                    <svg role="img" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <title>Find Code Climate on Twitter.</title>
+  <path
+    d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+</svg>
+                  </a>
+                </li>
+                                                                                                  <li>
+                  <a href="https://www.youtube.com/@codeclimate1421/videos"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     class="footer-social-icon icon-size-sm">
+                    <svg role="img" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <title>Find Code Climate on YouTube.</title>
+  <path
+    d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+</svg>
+                  </a>
+                </li>
+                                    </ul>
+              </section>
+    </div>
+  </div>
+</footer>
+  
+  <div class="fixed inset-0 bg-neutral-900 bg-opacity-25 z-[80]"
+     x-cloak
+     x-show="navHovered != 0 || modalOpen"
+     x-transition.opacity
+     x-on:click="modalOpen=false"
+>
+</div>
+
+  <div class="fixed top-0 left-0 right-0 w-full z-[90] bg-white xl:hidden"
+     x-cloak
+     x-show="mobileMenuOpen"
+     x-collapse
+     x-trap.noscroll="mobileMenuOpen"
+     @keydown.esc="mobileMenuOpen=false"
+>
+  <div class="h-screen" x-data="heroPadding()">
+    <div class="border-t border-neutral-100 h-full">
+      <div class="pt-8 overflow-y-scroll h-full container">
+
+        
+<form
+  x-data="{searchValue:''}"
+  class="h-11 w-full relative" x-bind:action="'/search?query=${searchValue}'">
+  <button
+    type="submit"
+    class="left-2 vertical-align absolute icon-size-md svg-primary-purple-600">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M16.5499 17.575L10.2499 11.3C9.7499 11.7167 9.1749 12.0417 8.5249 12.275C7.8749 12.5083 7.20824 12.625 6.5249 12.625C4.80824 12.625 3.35824 12.0333 2.1749 10.85C0.991569 9.66667 0.399902 8.21667 0.399902 6.5C0.399902 4.8 0.991569 3.354 2.1749 2.162C3.35824 0.970667 4.80824 0.375 6.5249 0.375C8.2249 0.375 9.66657 0.966667 10.8499 2.15C12.0332 3.33333 12.6249 4.78333 12.6249 6.5C12.6249 7.21667 12.5082 7.9 12.2749 8.55C12.0416 9.2 11.7249 9.76667 11.3249 10.25L17.5999 16.525L16.5499 17.575ZM6.5249 11.125C7.80824 11.125 8.8959 10.675 9.7879 9.775C10.6792 8.875 11.1249 7.78333 11.1249 6.5C11.1249 5.21667 10.6792 4.125 9.7879 3.225C8.8959 2.325 7.80824 1.875 6.5249 1.875C5.2249 1.875 4.12924 2.325 3.2379 3.225C2.3459 4.125 1.8999 5.21667 1.8999 6.5C1.8999 7.78333 2.3459 8.875 3.2379 9.775C4.12924 10.675 5.2249 11.125 6.5249 11.125Z" fill="#161928"/>
+</svg>
+    <span class="sr-only">
+        Click to search Code Climate
+      </span>
+  </button>
+  <input
+    x-ref="searchInput"
+    x-model="searchValue"
+    type="text"
+    name="query"
+    placeholder="Search Code Climate"
+    autocomplete="off"
+    class="w-full h-full py-3 px-8 border border-neutral-100 placeholder:text-neutral-300 text-[17px]"
+  >
+  <button
+    type="button"
+    x-on:click="searchValue = '', $nextTick(() => $refs.searchInput.focus())"
+    class="right-2 vertical-align absolute icon-size-md svg-neutral-900">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M6.22499 18.825L5.17499 17.775L10.95 12L5.17499 6.22505L6.22499 5.17505L12 10.95L17.775 5.17505L18.825 6.22505L13.05 12L18.825 17.775L17.775 18.825L12 13.05L6.22499 18.825Z"
+    fill="#161928"/>
+</svg>
+    <span class="sr-only">
+        Clear search term
+      </span>
+  </button>
+</form>
+        <nav role='navigation' aria-label="Mobile" class="mt-8">
+          <ul class="flex flex-col gap-8">
+                          <li class="pb-8 border-b border-neutral-100">
+                <div class="body-overline-small text-primary-purple-500 mb-5 uppercase">Framework</div>
+                                  <ul class="flex flex-col gap-4">
+                                                                  <li>
+  <a target="" href="/sei/transformational-software-engineering"
+    class="text-neutral-900 body-medium ">
+    What We Know
+      </a>
+</li>
+                                                                                        <li>
+  <a target="" href="/sei/how-we-ensure-success"
+    class="text-neutral-900 body-medium ">
+    How We Ensure Success
+      </a>
+</li>
+                                                                                        <li>
+  <a target="" href="/sei/software-engineering-intelligence-platform"
+    class="text-neutral-900 body-medium ">
+    Your Insights Platform
+      </a>
+</li>
+                                                                                                                  <li x-data="{expanded:false}" class="w-full">
+                            <button class="w-full flex flex-row items-center justify-between gap-6"
+                                    x-bind:aria-expanded="expanded"
+                                    x-on:click="expanded=!expanded">
+                              <span class="body-medium">Advisory Services</span>
+                              <span class="transform transition-normal svg-neutral-900 icon-size-lg"
+                                    aria-hidden="true"
+                                    :class="expanded ? 'rotate-180': 'rotate-0'">
+                                <svg width="25" height="25" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 11.2875L4.7625 7.03127L5.55 6.24377L9 9.69377L12.45 6.24377L13.2375 7.03127L9 11.2875Z" fill="#161928"/>
+</svg>
+                              </span>
+                            </button>
+                            <ul class="flex flex-col gap-5 my-5"
+                                x-show="expanded"
+                                x-collapse
+                            >
+                                                                                                <li>
+  <a target="" href="/sei/executive-insights-program"
+    class="text-neutral-900 body-xs-medium ">
+    Executive Insights Program
+      </a>
+</li>
+                                                                                                                                <li>
+  <a target="" href="/sei/engineering-outcomes-program"
+    class="text-neutral-900 body-xs-medium ">
+    Engineering Outcomes Program
+      </a>
+</li>
+                                                                                          </ul>
+                          </li>
+                                                                                                                <li>
+  <a target="_blank" href="https://velocity.codeclimate.com/session/new"
+    class="text-neutral-900 body-medium flex flex-row items-center gap-6">
+    Sign In
+          <span class="sr-only">
+        link opens in new window
+      </span>
+      <span class="icon-size-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <path d="M4.5 21C4.1 21 3.75 20.85 3.45 20.55C3.15 20.25 3 19.9 3 19.5V4.5C3 4.1 3.15 3.75 3.45 3.45C3.75 3.15 4.1 3 4.5 3H10.725C10.9417 3 11.1208 3.07083 11.2625 3.2125C11.4042 3.35417 11.475 3.53333 11.475 3.75C11.475 3.96667 11.4042 4.14583 11.2625 4.2875C11.1208 4.42917 10.9417 4.5 10.725 4.5H4.5V19.5H19.5V13.275C19.5 13.0583 19.5708 12.8792 19.7125 12.7375C19.8542 12.5958 20.0333 12.525 20.25 12.525C20.4667 12.525 20.6458 12.5958 20.7875 12.7375C20.9292 12.8792 21 13.0583 21 13.275V19.5C21 19.9 20.85 20.25 20.55 20.55C20.25 20.85 19.9 21 19.5 21H4.5ZM9.025 14.975C8.89167 14.825 8.82083 14.65 8.8125 14.45C8.80417 14.25 8.875 14.075 9.025 13.925L18.45 4.5H13.725C13.5083 4.5 13.3292 4.42917 13.1875 4.2875C13.0458 4.14583 12.975 3.96667 12.975 3.75C12.975 3.53333 13.0458 3.35417 13.1875 3.2125C13.3292 3.07083 13.5083 3 13.725 3H20.25C20.4667 3 20.6458 3.07083 20.7875 3.2125C20.9292 3.35417 21 3.53333 21 3.75V10.275C21 10.4917 20.9292 10.6708 20.7875 10.8125C20.6458 10.9542 20.4667 11.025 20.25 11.025C20.0333 11.025 19.8542 10.9542 19.7125 10.8125C19.5708 10.6708 19.5 10.4917 19.5 10.275V5.575L10.075 15C9.94167 15.1333 9.77083 15.2 9.5625 15.2C9.35417 15.2 9.175 15.125 9.025 14.975Z" fill="#161928"/>
+</svg>
+      </span>
+      </a>
+</li>
+                                                            </ul>
+                              </li>
+                          <li class="pb-8 border-b border-neutral-100">
+                <div class="body-overline-small text-primary-purple-500 mb-5 uppercase">Solutions</div>
+                                  <ul class="flex flex-col gap-4">
+                                                                                            <li x-data="{expanded:false}" class="w-full">
+                            <button class="w-full flex flex-row items-center justify-between gap-6"
+                                    x-bind:aria-expanded="expanded"
+                                    x-on:click="expanded=!expanded">
+                              <span class="body-medium">By Use Case</span>
+                              <span class="transform transition-normal svg-neutral-900 icon-size-lg"
+                                    aria-hidden="true"
+                                    :class="expanded ? 'rotate-180': 'rotate-0'">
+                                <svg width="25" height="25" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 11.2875L4.7625 7.03127L5.55 6.24377L9 9.69377L12.45 6.24377L13.2375 7.03127L9 11.2875Z" fill="#161928"/>
+</svg>
+                              </span>
+                            </button>
+                            <ul class="flex flex-col gap-5 my-5"
+                                x-show="expanded"
+                                x-collapse
+                            >
+                                                                                                <li>
+  <a target="" href="/sei/copilot-impact"
+    class="text-neutral-900 body-xs-medium ">
+    GenAI Impact
+      </a>
+</li>
+                                                                                                                                <li>
+  <a target="" href="/sei/business-outcomes"
+    class="text-neutral-900 body-xs-medium ">
+    Business Outcomes
+      </a>
+</li>
+                                                                                                                                <li>
+  <a target="" href="/sei/developer-experience-survey"
+    class="text-neutral-900 body-xs-medium ">
+    DevEx Survey
+      </a>
+</li>
+                                                                                          </ul>
+                          </li>
+                                                                                                                                          <li x-data="{expanded:false}" class="w-full">
+                            <button class="w-full flex flex-row items-center justify-between gap-6"
+                                    x-bind:aria-expanded="expanded"
+                                    x-on:click="expanded=!expanded">
+                              <span class="body-medium">By Role</span>
+                              <span class="transform transition-normal svg-neutral-900 icon-size-lg"
+                                    aria-hidden="true"
+                                    :class="expanded ? 'rotate-180': 'rotate-0'">
+                                <svg width="25" height="25" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 11.2875L4.7625 7.03127L5.55 6.24377L9 9.69377L12.45 6.24377L13.2375 7.03127L9 11.2875Z" fill="#161928"/>
+</svg>
+                              </span>
+                            </button>
+                            <ul class="flex flex-col gap-5 my-5"
+                                x-show="expanded"
+                                x-collapse
+                            >
+                                                                                                <li>
+  <a target="" href="/sei/engineering-executives"
+    class="text-neutral-900 body-xs-medium ">
+    Engineering Executives
+      </a>
+</li>
+                                                                                                                                <li>
+  <a target="" href="/sei/engineering-management"
+    class="text-neutral-900 body-xs-medium ">
+    Engineering Management
+      </a>
+</li>
+                                                                                          </ul>
+                          </li>
+                                                                                    </ul>
+                              </li>
+                          <li class="pb-8 border-b border-neutral-100">
+                <div class="body-overline-small text-primary-purple-500 mb-5 uppercase">Resources</div>
+                                  <ul class="flex flex-col gap-4">
+                                                                  <li>
+  <a target="" href="/blog"
+    class="text-neutral-900 body-medium ">
+    Blog
+      </a>
+</li>
+                                                                                        <li>
+  <a target="" href="/blog/ebooks"
+    class="text-neutral-900 body-medium ">
+    eBooks
+      </a>
+</li>
+                                                                                        <li>
+  <a target="" href="/case-studies"
+    class="text-neutral-900 body-medium ">
+    Case Studies
+      </a>
+</li>
+                                                                                        <li>
+  <a target="" href="/sei/support"
+    class="text-neutral-900 body-medium ">
+    Guides
+      </a>
+</li>
+                                                            </ul>
+                              </li>
+                          <li class="pb-8 ">
+                <div class="body-overline-small text-primary-purple-500 mb-5 uppercase">Company</div>
+                                  <ul class="flex flex-col gap-4">
+                                                                  <li>
+  <a target="" href="/company"
+    class="text-neutral-900 body-medium ">
+    About
+      </a>
+</li>
+                                                                                        <li>
+  <a target="" href="/company/careers"
+    class="text-neutral-900 body-medium ">
+    Careers
+      </a>
+</li>
+                                                                                        <li>
+  <a target="" href="/sei/request-consultation"
+    class="text-neutral-900 body-medium ">
+    Request a consultation
+      </a>
+</li>
+                                                            </ul>
+                              </li>
+                                      <li>
+                <a target="" href="/sei/request-consultation"
+                   class="block primary-btn-large primary-button-filled-purple-500 max-w-none w-full">
+                  Request a consultation
+                </a>
+              </li>
+                      </ul>
+                      <ul class="bg-primary-green-0 mt-11 pt-9 container pb-14">
+                              <li class="pb-8">
+                  <div class="body-overline-small text-primary-green-400 mb-5 uppercase">Quality by Code Climate</div>
+                                      <ul class="flex flex-col gap-4">
+                                                                        <li>
+  <a target="" href="/quality"
+    class="text-neutral-900 body-medium ">
+    Product Information
+      </a>
+</li>
+                                                                                                <li>
+  <a target="" href="/quality/support"
+    class="text-neutral-900 body-medium ">
+    Support
+      </a>
+</li>
+                                                                  </ul>
+                                  </li>
+                          </ul>
+                  </nav>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script type="application/ld+json">{"@context":"http://schema.org","@graph":[{"@type":"WebSite","author":{"@id":"https://codeclimate.com/#identity"},"copyrightHolder":{"@id":"https://codeclimate.com/#identity"},"creator":{"@id":"#creator"},"description":"Velocity synthesizes the data from your repos to give you full visibility and empowers your team for continuous delivery.","image":{"@type":"ImageObject","url":"https://du10j5vfk4mbr.cloudfront.net/_1200x630_crop_center-center_82_none/seo-general-ogimage.png?mtime=1684273589"},"name":"Code Climate"},{"@id":"https://codeclimate.com/#identity","@type":"LocalBusiness","address":{"@type":"PostalAddress","addressCountry":"US","addressLocality":"New York","addressRegion":"NY","postalCode":"10022","streetAddress":"195 Broadway, 20th Floor"},"description":"Code Climate - Velocity synthesizes the data from your repos to give you full visibility and empowers your team for continuous delivery.","email":"hello@codeclimate.com","image":{"@type":"ImageObject","height":"1006","url":"https://du10j5vfk4mbr.cloudfront.net/seo-general-ogimage.png","width":"1842"},"logo":{"@type":"ImageObject","height":"60","url":"https://du10j5vfk4mbr.cloudfront.net/_600x60_fit_center-center_82_none/seo-general-ogimage.png?mtime=1684273589","width":"110"},"name":"Code Climate, Inc.","priceRange":"$","telephone":"(877) 609-3771","url":"https://codeclimate.com"},{"@id":"#creator","@type":"Organization"}]}</script></body>
+</html>
