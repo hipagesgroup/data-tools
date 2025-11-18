@@ -84,16 +84,18 @@ references:
       command: |
         yarn global add --no-progress --non-interactive "dockerlint@0.3.9"
 
-  install_codeclimate: &install_codeclimate
-    run:
-      name: Setup Code Climate test-reporter
-      command: |
-        if [[ -z "$CC_TEST_REPORTER_ID" ]]; then
-          echo "CC_TEST_REPORTER_ID is not set. (https://docs.codeclimate.com/docs/finding-your-test-coverage-token#section-regenerating-a-repos-test-reporter-id)"
-          exit 1
-        fi
-        curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-        chmod +x ./cc-test-reporter
+  ## have to remove this run from CI since this link here is broken, there is no replacement at the moment.
+  ## The GitHub repo for codeclimate/test-reporter shows the project was archived on July 19 2025. 
+  ## install_codeclimate: &install_codeclimate  
+  ##  run:
+  ##    name: Setup Code Climate test-reporter
+  ##    command: |
+  ##      if [[ -z "$CC_TEST_REPORTER_ID" ]]; then
+  ##        echo "CC_TEST_REPORTER_ID is not set. (https://docs.codeclimate.com/docs/finding-your-test-coverage-token#section-regenerating-a-repos-test-reporter-id)"
+  ##        exit 1
+  ##      fi
+  ##      curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  ##      chmod +x ./cc-test-reporter   
 
   run_semantic-release: &run_semantic-release
     run:
@@ -109,18 +111,19 @@ jobs:
   test:
     working_directory: ~/project
     docker:
-      - image: cimg/python:3.9
+      - image: cimg/python:3.12
     steps:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
       - restore_cache:
           key: deps1-{{ .Branch }}-{{ checksum "poetry.lock" }}
-      - run:
-          name: Setup Code Climate test-reporter
-          command: |
-            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-            chmod +x ./cc-test-reporter
+      ## this link is deprecated https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64    
+      ##- run:
+      ##    name: Setup Code Climate test-reporter
+      ##    command: |
+      ##      curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+      ##      chmod +x ./cc-test-reporter
       - run:
           name: Setup Python Virtual Enviroment 
           command: |
@@ -146,29 +149,31 @@ jobs:
           key: deps1-{{ .Branch }}-{{ checksum "poetry.lock" }}
           paths:
             - "venv"
-      - run:
-          name: Setup Code Climate
-          command: |
-            . venv/bin/activate
-            ./cc-test-reporter before-build
+      ## cc-test-reporter deprecated      
+      ##- run:
+      ##    name: Setup Code Climate
+      ##    command: |
+      ##      . venv/bin/activate
+      ##      ./cc-test-reporter before-build
       - run:
           name: Run Tests
           command: |
             . venv/bin/activate
             python3 -m poetry run coverage run --omit '*virtualenvs*' -m pytest
-      - run:
-          name: Run Coverage XML and send to Code Climate
-          command: |
-            . venv/bin/activate
-            python3 -m poetry run coverage xml
-            python3 -m poetry run coverage report > coverage.txt
-            ./cc-test-reporter after-build -t coverage.py
+      ## cc-test-reporter deprecated      
+      ##- run:
+      ##    name: Run Coverage XML and send to Code Climate
+      ##    command: |
+      ##      . venv/bin/activate
+      ##      python3 -m poetry run coverage xml
+      ##      python3 -m poetry run coverage report > coverage.txt
+      ##      ./cc-test-reporter after-build -t coverage.py
       - store_artifacts:
           path: coverage.txt
           destination: coverage.txt
   deploy:
     docker:
-      - image: cimg/python:3.9
+      - image: cimg/python:3.12
     steps:
       - checkout
       - setup_remote_docker:
