@@ -189,7 +189,7 @@ jobs:
           name: Install Python Dependencies (with pip)
           command: |
             . venv/bin/activate
-            pip3 install setuptools wheel "twine<5.0.0" pbr poetry
+            pip3 install setuptools wheel "twine==5.1.1" pbr poetry
       - run:
           name: Install Python Dependencies (with poetry)
           command: |
