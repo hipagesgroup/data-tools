@@ -1,2 +1,0 @@
-fastapi
-hip-data-tools
