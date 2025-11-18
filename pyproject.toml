@@ -7,7 +7,7 @@ authors = ["Hipages Data Team <datascience@hipagesgroup.com.au>"]
 license = "OSL"
 
 [tool.poetry.dependencies]
-python = ">=3.12,<4"
+python = ">=3.11,<4"
 Cython = "^3.0.10"
 lxml = "^4.9.2"
 cassandra-driver = "^3.29.1"

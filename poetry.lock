@@ -1611,7 +1611,10 @@ files = [
 ]
 
 [package.dependencies]
-numpy = {version = ">=1.26.0", markers = "python_version >= \"3.12\""}
+numpy = [
+    {version = ">=1.23.2", markers = "python_version == \"3.11\""},
+    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
+]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
 tzdata = ">=2022.7"
@@ -2478,5 +2481,5 @@ test = ["pytest", "pytest-cov"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.12,<4"
-content-hash = "536f0b85e664e6c8b1878bd81265ac3f6c730a6b956eca40af88fa9e024aa45f"
+python-versions = ">=3.11,<4"
+content-hash = "c578e5b2979e6e8861c99260b1f3b10cc9f244611352e953ea613e72ce82c209"
