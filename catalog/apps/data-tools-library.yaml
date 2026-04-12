@@ -10,8 +10,8 @@ metadata:
     the hipages data platform.
   annotations:
     github.com/project-slug: hipagesgroup/data-tools
-    hipages/use-techdocs-of: system:data-tools
   tags:
+    - repo
     - python
     - aws
     - kafka
@@ -22,4 +22,4 @@ spec:
   type: library
   lifecycle: production
   owner: data-analytics-engineering
-  system: data-tools
+  domain: shared-services

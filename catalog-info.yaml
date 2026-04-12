@@ -1,8 +1,8 @@
 apiVersion: backstage.io/v1alpha1
 kind: Location
 metadata:
-  name: data-tools-apps
-  description: Applications managed within the data-tools monorepo.
+  name: data-tools
+  description: Catalog entities for data-tools.
 spec:
   targets:
     - ./catalog/*.yaml
