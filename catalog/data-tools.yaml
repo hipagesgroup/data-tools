@@ -1,0 +1,24 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: data-tools
+  description: >-
+    Common Python tools and utilities for data engineering, ETL, exploration,
+    and analysis. Published as the open-source hip-data-tools package on PyPI
+    for use across the hipages data platform.
+  title: Data Tools
+  annotations:
+    github.com/project-slug: hipagesgroup/data-tools
+    backstage.io/techdocs-ref: dir:../
+  tags:
+    - repo
+    - python
+    - aws
+    - kafka
+    - cassandra
+    - etl
+    - mysql
+spec:
+  domain: shared-services
+  owner: data-analytics-engineering
+  lifecycle: production
