@@ -10,6 +10,7 @@ metadata:
     the hipages data platform.
   annotations:
     github.com/project-slug: hipagesgroup/data-tools
+    github.com/team-slug: hipagesgroup/datascience
   tags:
     - repo
     - python
