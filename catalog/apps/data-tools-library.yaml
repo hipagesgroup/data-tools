@@ -1,0 +1,25 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: data-tools-library
+  title: "Data Tools Library"
+  description: >-
+    Python library (hip-data-tools) providing reusable utilities for data
+    engineering: AWS (Athena, S3), Kafka, Cassandra, Google Sheets,
+    MySQL/Oracle, and ETL pipelines. Published to PyPI for use across
+    the hipages data platform.
+  annotations:
+    github.com/project-slug: hipagesgroup/data-tools
+  tags:
+    - repo
+    - python
+    - aws
+    - kafka
+    - cassandra
+    - etl
+    - mysql
+spec:
+  type: library
+  lifecycle: production
+  owner: data-analytics-engineering
+  domain: shared-services
