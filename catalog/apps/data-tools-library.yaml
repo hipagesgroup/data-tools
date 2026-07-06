@@ -22,5 +22,5 @@ metadata:
 spec:
   type: library
   lifecycle: production
-  owner: data-analytics-engineering
+  owner: data-platform
   domain: shared-services

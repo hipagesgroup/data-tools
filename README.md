@@ -1,5 +1,5 @@
 [![Link to data-tools-library in hipages Developer Portal, Component: data-tools-library](https://backyard.k8s.hipages.com.au/api/badges/entity/default/component/data-tools-library/badge/pingback "Link to data-tools-library in hipages Developer Portal")](https://backyard.k8s.hipages.com.au/catalog/default/component/data-tools-library)
-[![Entity owner badge, owner: data-analytics-engineering](https://backyard.k8s.hipages.com.au/api/badges/entity/default/component/data-tools-library/badge/owner "Entity owner badge")](https://backyard.k8s.hipages.com.au/catalog/default/component/data-tools-library)
+[![Entity owner badge, owner: data-platform](https://backyard.k8s.hipages.com.au/api/badges/entity/default/component/data-tools-library/badge/owner "Entity owner badge")](https://backyard.k8s.hipages.com.au/catalog/default/component/data-tools-library)
 # hip-data-tools
 © Hipages Group Pty Ltd 2019-2022
 
