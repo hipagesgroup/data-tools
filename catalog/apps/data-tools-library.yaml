@@ -4,13 +4,10 @@ metadata:
   name: data-tools-library
   title: "Data Tools Library"
   description: >-
-    Python library (hip-data-tools) providing reusable utilities for data
-    engineering: AWS (Athena, S3), Kafka, Cassandra, Google Sheets,
-    MySQL/Oracle, and ETL pipelines. Published to PyPI for use across
-    the hipages data platform.
+    Python library (hip-data-tools) providing reusable utilities for data engineering: AWS (Athena, S3), Kafka, Cassandra, Google Sheets, MySQL/Oracle, and ETL pipelines. Published to PyPI for use across the hipages data platform.
   annotations:
     github.com/project-slug: hipagesgroup/data-tools
-    github.com/team-slug: hipagesgroup/data-platform
+    github.com/team-slug: data-platform
   tags:
     - repo
     - python
@@ -22,5 +19,5 @@ metadata:
 spec:
   type: library
   lifecycle: production
-  owner: data-analytics-engineering
+  owner: data-platform
   domain: shared-services
